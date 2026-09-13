@@ -1,0 +1,43 @@
+{# linha da tabela de Processos; colunas dinâmicas via cabecalhos_dinamicos, Ações sempre fixa #}
+{% load dsgov pca_listagem %}
+<tr id="item-{{ p.pk }}">
+  {% for col in cabecalhos_dinamicos %}
+  <td data-th="{{ col.rotulo }}"{% if col.tipo == "numero" or col.tipo == "moeda" %} class="dsgov-numero"{% endif %}>
+    {% if col.chave == "situacao" %}
+      {% include "pca/_tabela_situacao.html" %}
+    {% elif col.chave == "mes_previsto" %}
+      {{ p.mes_previsto|nome_mes|default:"Sem mês previsto" }}
+    {% elif col.chave == "item_pca" %}
+      <a href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">{{ p.item_pca }}</a>
+    {% elif col.chave == "numeros_sei" %}
+      {% for sei in p.numeros_sei.all %}{{ sei.numero_sei }}{% if not forloop.last %} {% endif %}{% empty %}—{% endfor %}
+    {% elif col.tipo == "status" %}
+      {% tag_status p|atributo:col.campo p|atributo:col.chave %}
+    {% else %}
+      {{ p|exibir:col }}
+    {% endif %}
+  </td>
+  {% endfor %}
+  <td data-th="Ações">
+    <a class="br-button circle small mr-1"
+       href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}"
+       aria-label="Ver item {{ p.item_pca }}" title="Ver item {{ p.item_pca }}">
+      <i class="fas fa-eye" aria-hidden="true"></i>
+    </a>
+    {% if perms.pca.editar_pca %}
+    <a class="br-button circle small mr-1"
+       href="{% url 'pca:editar_processo' p.exercicio.ano p.item_pca %}"
+       aria-label="Editar item {{ p.item_pca }}" title="Editar item {{ p.item_pca }}">
+      <i class="fas fa-pen" aria-hidden="true"></i>
+    </a>
+    <a class="br-button circle small"
+       href="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}"
+       hx-get="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}"
+       hx-target="#modal-acompanhamento" hx-swap="innerHTML"
+       aria-label="Registrar acompanhamento do item {{ p.item_pca }}"
+       title="Registrar acompanhamento do item {{ p.item_pca }}">
+      <i class="fas fa-plus" aria-hidden="true"></i>
+    </a>
+    {% endif %}
+  </td>
+</tr>

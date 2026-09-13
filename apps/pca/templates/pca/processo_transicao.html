@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{# alterar situação: página própria com aviso da consequência, nunca modal #}
+{% block titulo %}Alterar situação — Item {{ processo.item_pca }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex align-items-center mb-4">
+  <h1 class="mb-0">Alterar situação — Item {{ processo.item_pca }}</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <div class="br-message warning mb-4">
+      <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">Esta ação registra um novo acompanhamento.</span>
+        <span class="message-body"> A mudança de situação fica visível no histórico do item e não pode ser desfeita por aqui.</span>
+      </div>
+    </div>
+    {# form já desenha non_field_errors como br-message danger #}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="versao" value="{{ versao }}">
+      <input type="hidden" name="querystring_retorno" value="{{ querystring_retorno }}">
+      {{ form }}
+      <div class="dsgov-acoes-formulario">
+        <a class="br-button" href="{% url 'pca:detalhe_processo' processo.exercicio.ano processo.item_pca %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}">Cancelar</a>
+        <button class="br-button primary" type="submit">Confirmar alteração</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

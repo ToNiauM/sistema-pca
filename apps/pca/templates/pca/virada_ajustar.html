@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{# etapa 2 do wizard: Ajustar; só itens selecionados, edição sempre por item #}
+{% block titulo %}Virada de exercício — Ajustar · PCA {{ rascunho.ano_destino }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Virada de exercício — {{ exercicio_origem.ano }} → {{ rascunho.ano_destino }}</h1>
+  <p class="text-gray-70 mb-0">{{ total_selecionados }} item{{ total_selecionados|pluralize }} selecionado{{ total_selecionados|pluralize }}.</p>
+</div>
+
+<div class="br-wizard" step="2">
+  {% include "pca/virada_exercicio.html" with etapa_ativa=2 %}
+  <div class="wizard-form">
+    <div class="wizard-panel" active="active" role="tabpanel" id="tab-ajustar">
+      <form method="post">
+        {% csrf_token %}
+        <div class="wizard-panel-content" tabindex="0">
+          <div class="h3">Ajustar mês previsto e valor estimado</div>
+          {% include "pca/_virada_tabela.html" with modo="ajustar" %}
+          {% if paginador.num_pages > 1 %}
+          <nav class="br-pagination mt-3" aria-label="Paginação do ajuste">
+            <ul class="d-flex flex-wrap">
+              {% for numero_pagina in paginador.page_range %}
+              <li class="mr-1"><a class="page{% if numero_pagina == pagina.number %} active{% endif %}" href="?pagina={{ numero_pagina }}" aria-current="{% if numero_pagina == pagina.number %}page{% else %}false{% endif %}">{{ numero_pagina }}</a></li>
+              {% endfor %}
+            </ul>
+          </nav>
+          {% endif %}
+        </div>
+        <div class="wizard-panel-btn">
+          <a class="br-button wizard-btn-canc" href="{% url 'pca:virada_confirmar_descarte' rascunho.ano_destino %}">Cancelar</a>
+          <button class="br-button primary wizard-btn-next" type="submit" aria-description="Passo 3 de 3 Revisar e concluir">Avançar</button>
+          <a class="br-button secondary wizard-btn-prev" href="{% url 'pca:virada' rascunho.ano_destino %}" aria-description="Passo 1 de 3 Selecionar">Voltar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

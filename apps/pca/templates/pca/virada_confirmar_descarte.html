@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{# descartar rascunho de virada em página própria, nunca modal #}
+{% block titulo %}Descartar virada — PCA {{ rascunho.ano_destino }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Descartar rascunho de virada?</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <div class="br-message warning mb-4">
+      <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">Esta ação apaga toda a seleção e os ajustes feitos.</span>
+        <span class="message-body"> Nenhum processo é copiado para o PCA {{ rascunho.ano_destino }}; o rascunho volta ao estado inicial (nenhum item selecionado).</span>
+      </div>
+    </div>
+    <form method="post" action="{% url 'pca:virada_descartar' rascunho.ano_destino %}">
+      {% csrf_token %}
+      <div class="dsgov-acoes-formulario">
+        <a class="br-button" href="{% url 'pca:virada' rascunho.ano_destino %}">Cancelar</a>
+        <button class="br-button primary" type="submit"><i class="fas fa-trash mr-1" aria-hidden="true"></i>Descartar rascunho</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

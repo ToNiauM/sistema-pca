@@ -1,0 +1,9 @@
+Django>=5.2,<5.3
+psycopg[binary]>=3.2
+django-environ>=0.12
+django-axes>=8.0
+django-htmx>=1.23
+django-ipware>=7.0
+argon2-cffi>=23.1
+whitenoise>=6.9
+gunicorn>=23.0

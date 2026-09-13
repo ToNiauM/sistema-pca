@@ -1,0 +1,43 @@
+# Exemplo de especificação para gerar_app.py (skill dsgov). Formato em references/especificacao.md.
+sistema: Controle de Diárias
+apps:
+  - nome: diarias
+    rotulo: Diárias
+    icone: fas fa-plane
+    modelos:
+      - nome: Servidor
+        rotulo: Servidor
+        rotulo_plural: Servidores
+        campos:
+          - {nome: nome, tipo: texto, max: 150, rotulo: Nome}
+          - {nome: matricula, tipo: texto, max: 20, rotulo: Matrícula, unico: true}
+          - {nome: cargo, tipo: texto, max: 100, rotulo: Cargo, obrigatorio: false}
+          - {nome: unidade, tipo: texto, max: 100, rotulo: Unidade}
+          - {nome: email, tipo: email, rotulo: E-mail, obrigatorio: false}
+          - {nome: ativo, tipo: booleano, rotulo: Ativo, padrao: true}
+        listagem:
+          colunas: [nome, matricula, unidade, ativo]
+          busca: [nome, matricula]
+          ordenacao: nome
+      - nome: Diaria
+        rotulo: Diária
+        rotulo_plural: Diárias
+        campo_str: destino
+        campos:
+          - {nome: servidor, tipo: fk, para: Servidor, rotulo: Servidor, exibir: nome}
+          - {nome: destino, tipo: texto, max: 120, rotulo: Destino}
+          - {nome: motivo, tipo: texto_longo, rotulo: Motivo da viagem}
+          - {nome: data_ida, tipo: data, rotulo: Data de ida}
+          - {nome: data_volta, tipo: data, rotulo: Data de volta}
+          - {nome: valor, tipo: moeda, rotulo: Valor total}
+          - nome: situacao
+            tipo: escolha
+            rotulo: Situação
+            padrao: solicitada
+            opcoes: [[solicitada, Solicitada], [aprovada, Aprovada], [paga, Paga], [cancelada, Cancelada]]
+            status: {solicitada: pendente, aprovada: andamento, paga: concluido, cancelada: cancelado}
+        listagem:
+          colunas: [servidor, destino, data_ida, valor, situacao]
+          busca: [destino, servidor.nome]
+          filtros: [situacao, servidor]
+          ordenacao: -data_ida

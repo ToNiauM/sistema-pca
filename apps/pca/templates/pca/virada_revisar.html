@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{# etapa 3 do wizard: Revisar e concluir, tabela final read-only #}
+{% load dsgov %}
+{% block titulo %}Virada de exercício — Revisar e concluir · PCA {{ rascunho.ano_destino }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Virada de exercício — {{ exercicio_origem.ano }} → {{ rascunho.ano_destino }}</h1>
+</div>
+
+<div class="br-wizard" step="3">
+  {% include "pca/virada_exercicio.html" with etapa_ativa=3 %}
+  <div class="wizard-form">
+    <div class="wizard-panel" active="active" role="tabpanel" id="tab-revisar">
+      <div class="wizard-panel-content" tabindex="0">
+        <div class="h3">Revisar e concluir</div>
+        <dl class="dsgov-detalhe row mb-3">
+          <div class="col-sm-6 col-md-4"><dt>Itens selecionados</dt><dd>{{ total_selecionados|numero }}</dd></div>
+          <div class="col-sm-6 col-md-4"><dt>Valor estimado total</dt><dd>{{ soma_selecionados|moeda }}</dd></div>
+        </dl>
+        {% include "pca/_virada_tabela.html" with modo="revisar" %}
+        {% if paginador.num_pages > 1 %}
+        <nav class="br-pagination mt-3" aria-label="Paginação da revisão">
+          <ul class="d-flex flex-wrap">
+            {% for numero_pagina in paginador.page_range %}
+            <li class="mr-1"><a class="page{% if numero_pagina == pagina.number %} active{% endif %}" href="?pagina={{ numero_pagina }}" aria-current="{% if numero_pagina == pagina.number %}page{% else %}false{% endif %}">{{ numero_pagina }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+      <div class="wizard-panel-btn">
+        <a class="br-button wizard-btn-canc" href="{% url 'pca:virada_confirmar_descarte' rascunho.ano_destino %}">Cancelar</a>
+        <form method="post" action="{% url 'pca:virada_confirmar' rascunho.ano_destino %}" class="d-inline">
+          {% csrf_token %}
+          <button class="br-button primary wizard-btn" type="submit">Concluir virada</button>
+        </form>
+        <a class="br-button secondary wizard-btn-prev" href="{% url 'pca:virada_ajustar' rascunho.ano_destino %}" aria-description="Passo 2 de 3 Ajustar">Voltar</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

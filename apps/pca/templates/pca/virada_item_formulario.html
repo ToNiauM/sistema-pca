@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{# formulário da etapa Ajustar: só mes_previsto_editado e valor_estimado_editado #}
+{% block titulo %}Editar item {{ linha.processo_origem.item_pca }} — Virada {{ rascunho.ano_destino }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Editar item {{ linha.processo_origem.item_pca }}</h1>
+  <p class="text-gray-70 mb-0">{{ linha.processo_origem.descricao_objeto|truncatechars:80 }}</p>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form }}
+      <div class="dsgov-acoes-formulario">
+        <a class="br-button" href="{% url 'pca:virada_ajustar' rascunho.ano_destino %}">Cancelar</a>
+        <button class="br-button primary" type="submit"><i class="fas fa-save mr-1" aria-hidden="true"></i>Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

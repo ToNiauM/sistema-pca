@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{# 404 com copy própria para item inexistente num exercício #}
+{% block titulo %}Processo não encontrado{% endblock %}
+{% block conteudo %}
+<div class="row">
+  <div class="col-12 text-center py-5">
+    <div class="br-message info d-inline-flex text-left">
+      <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">Processo não encontrado.</span>
+        <span class="message-body"> O item {{ item_pca }} não existe no PCA {{ ano }}.</span>
+      </div>
+    </div>
+    <p class="mt-4">
+      <a href="{% url 'pca:tabela' %}{% if querystring_volta %}?{{ querystring_volta }}{% endif %}"
+         class="br-button secondary">‹ Voltar à tabela</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

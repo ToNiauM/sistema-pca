@@ -1,0 +1,22 @@
+{% comment %}Formulário inteiro: erros gerais como br-message, depois cada campo em uma linha (col-12) ou
+na largura pedida via form.fields[x].widget.attrs["col"] (ex.: "col-md-6"). Campos ocultos ao final.{% endcomment %}
+{% if errors and form.non_field_errors %}
+<div class="br-message danger mb-3">
+  <div class="icon"><i class="fas fa-times-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Corrija os erros abaixo.</span>
+    <span class="message-body">{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+  </div>
+</div>
+{% elif errors %}
+<div class="br-message danger mb-3">
+  <div class="icon"><i class="fas fa-times-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert"><span class="message-title">Corrija os campos destacados.</span></div>
+</div>
+{% endif %}
+<div class="row">
+{% for field, errors in fields %}
+  <div class="{{ field.field.widget.attrs.col|default:'col-12' }} mb-3">{{ field.as_field_group }}</div>
+{% endfor %}
+</div>
+{% for field in hidden_fields %}{{ field }}{% endfor %}

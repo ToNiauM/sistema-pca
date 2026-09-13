@@ -1,0 +1,74 @@
+{% load static %}
+<header class="br-header mb-4"{% if not DSGOV.BUSCA_URL_NAME %} data-no-search{% endif %} id="header" data-sticky="data-sticky">
+  <div class="container-lg">
+    <div class="header-top">
+      <div class="header-logo">
+        {% if DSGOV.LOGO %}<img src="{% static DSGOV.LOGO %}" alt="{{ DSGOV.ORGAO }}"/>{% else %}<span class="text-up-02 text-weight-bold text-blue-warm-vivid-70">{{ DSGOV.ORGAO_SIGLA }}</span>{% endif %}
+        <span class="br-divider vertical"></span>
+        <div class="header-sign">{{ DSGOV.ORGAO }}</div>
+      </div>
+      <div class="header-actions">
+        {% if DSGOV.LINKS_ACESSO_RAPIDO %}
+        <div class="header-links dropdown">
+          <button class="br-button circle small" type="button" data-toggle="dropdown" aria-label="Abrir Acesso Rápido"><i class="fas fa-ellipsis-v" aria-hidden="true"></i></button>
+          <div class="br-list">
+            <div class="header"><div class="title">Acesso Rápido</div></div>
+            {% for rotulo, url in DSGOV.LINKS_ACESSO_RAPIDO %}<a class="br-item" href="{{ url }}" target="_blank" rel="noopener">{{ rotulo }}</a>{% endfor %}
+          </div>
+        </div>
+        <span class="br-divider vertical mx-half mx-sm-1"></span>
+        {% endif %}
+        {% if DSGOV.BUSCA_URL_NAME %}
+        <div class="header-search-trigger">
+          <button class="br-button circle" type="button" aria-label="Abrir Busca" data-toggle="search" data-target=".header-search"><i class="fas fa-search" aria-hidden="true"></i></button>
+        </div>
+        {% endif %}
+        <div class="header-login">
+          {% if user.is_authenticated %}
+          <div class="header-avatar">
+            <div class="avatar">
+              <button class="br-sign-in small" type="button" id="avatar-dropdown-trigger" data-toggle="dropdown" data-target="avatar-menu" aria-label="Abrir menu do usuário" aria-haspopup="true">
+                <span class="br-avatar small" title="{{ user }}"><span class="content bg-blue-warm-vivid-70 text-pure-0">{{ user.iniciais }}</span></span>
+                <span class="ml-2 text-gray-80 text-weight-regular d-none d-sm-inline">Olá, <span class="text-weight-semi-bold">{{ user.first_name|default:user.username }}</span></span>
+                <i class="fas fa-caret-down ml-1" aria-hidden="true"></i>
+              </button>
+              <div class="br-list" id="avatar-menu" hidden="hidden" role="menu" aria-labelledby="avatar-dropdown-trigger">
+                <div class="header"><div class="title">{{ user.get_full_name|default:user.username }}</div></div>
+                {% if DSGOV.PERFIL_URL_NAME %}<a class="br-item" href="{% url DSGOV.PERFIL_URL_NAME %}" role="menuitem">Meu perfil</a>{% endif %}
+                {% if user.is_staff %}<a class="br-item" href="/admin/" role="menuitem">Administração</a>{% endif %}
+                <form method="post" action="{% url 'core:logout' %}">{% csrf_token %}<button class="br-item" type="submit" role="menuitem">Sair</button></form>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="header-sign-in">
+            <a class="br-sign-in small" href="{% url 'core:login' %}"><i class="fas fa-user" aria-hidden="true"></i><span class="d-sm-inline">Entrar</span></a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="header-bottom">
+      <div class="header-menu">
+        {# o BRHeader exige este botão com data-target="#main-navigation"; sem login ele fica oculto, não ausente #}
+        <div class="header-menu-trigger{% if not user.is_authenticated %} d-none{% endif %}" id="header-navigation">
+          <button class="br-button small circle" type="button" aria-label="Menu" data-toggle="menu" data-target="#main-navigation" id="navigation"{% if not user.is_authenticated %} tabindex="-1" aria-hidden="true"{% endif %}><i class="fas fa-bars" aria-hidden="true"></i></button>
+        </div>
+        <div class="header-info">
+          <div class="header-title">{{ DSGOV.SISTEMA }}</div>
+          {% if DSGOV.SISTEMA_SUBTITULO %}<div class="header-subtitle">{{ DSGOV.SISTEMA_SUBTITULO }}</div>{% endif %}
+        </div>
+      </div>
+      {% if DSGOV.BUSCA_URL_NAME %}
+      <form class="header-search" id="main-searchbox" tabindex="-1" method="get" action="{% url DSGOV.BUSCA_URL_NAME %}">
+        <div class="br-input has-icon">
+          <label for="busca-header">Texto da pesquisa</label>
+          <input id="busca-header" type="text" name="q" placeholder="O que você procura?" autocomplete="off" value="{% if request.resolver_match.view_name == DSGOV.BUSCA_URL_NAME %}{{ request.GET.q }}{% endif %}"/>
+          <button class="br-button circle small" type="submit" aria-label="Pesquisar"><i class="fas fa-search" aria-hidden="true"></i></button>
+        </div>
+        <button class="br-button circle search-close ml-1" type="button" aria-label="Fechar Busca" data-dismiss="search"><i class="fas fa-times" aria-hidden="true"></i></button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</header>

@@ -1,0 +1,65 @@
+{# accordion "Detalhar composição": participação no PCA e decomposição da Meta #}
+{% load dsgov %}
+<div class="br-accordion mt-2 mb-4" id="acc-detalhar-composicao">
+  <div class="item">
+    <button class="header" type="button" aria-controls="acc-detalhar-composicao-conteudo" aria-expanded="false">
+      <span class="icon"><i class="fas fa-angle-down" aria-hidden="true"></i></span>
+      <span class="title">Detalhar composição</span>
+    </button>
+  </div>
+  <div class="content" id="acc-detalhar-composicao-conteudo">
+    <p class="text-down-01 text-gray-70 mb-2">Participação no PCA e decomposição da Meta (Nova Contratação e Renovação).</p>
+    <div class="br-table small dsgov-matriz">
+      <div class="table-header"></div>
+      <table>
+        <caption>Resumo por unidade — participação no PCA e decomposição da meta</caption>
+        <thead>
+          <tr>
+            <th scope="col" rowspan="2" class="dsgov-rotulo-linha">Unidade</th>
+            <th scope="colgroup" colspan="1" class="dsgov-grupo dsgov-separador">Previsto</th>
+            <th scope="colgroup" colspan="6" class="dsgov-grupo dsgov-separador">Meta do PCA — decomposição detalhada</th>
+          </tr>
+          <tr>
+            <th scope="col" class="dsgov-numero dsgov-separador">% Participação no PCA</th>
+            <th scope="col" class="dsgov-numero dsgov-separador">Em tramitação (meta)</th>
+            <th scope="col" class="dsgov-numero">% Em tramitação (meta)</th>
+            <th scope="col" class="dsgov-numero">No prazo (meta)</th>
+            <th scope="col" class="dsgov-numero">% No prazo (meta)</th>
+            <th scope="col" class="dsgov-numero">Fora do prazo (meta)</th>
+            <th scope="col" class="dsgov-numero">% Fora do prazo (meta)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for linha in linhas %}
+          <tr>
+            <th scope="row" class="dsgov-rotulo-linha"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.uo }}" aria-label="{{ linha.uo }} — abrir a tabela filtrada">{{ linha.uo }}</a></th>
+            <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.total_previsto }}" aria-label="{{ linha.uo }}, Participação no PCA: {{ linha.percentual_no_pca|percentual }} — abrir a tabela filtrada">{{ linha.percentual_no_pca|percentual }}</a></td>
+            <td class="dsgov-numero dsgov-separador text-blue-warm-vivid-70"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.em_tramitacao }}" aria-label="{{ linha.uo }}, Em tramitação (meta): {{ linha.em_tramitacao|numero }} — abrir a tabela filtrada">{{ linha.em_tramitacao|numero }}</a></td>
+            <td class="dsgov-numero text-blue-warm-vivid-70"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.em_tramitacao }}" aria-label="{{ linha.uo }}, % Em tramitação (meta): {{ linha.percentual_em_tramitacao|percentual }} — abrir a tabela filtrada">{{ linha.percentual_em_tramitacao|percentual }}</a></td>
+            <td class="dsgov-numero text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.no_prazo }}" aria-label="{{ linha.uo }}, No prazo (meta): {{ linha.no_prazo|numero }} — abrir a tabela filtrada">{{ linha.no_prazo|numero }}</a></td>
+            <td class="dsgov-numero text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.no_prazo }}" aria-label="{{ linha.uo }}, % No prazo (meta): {{ linha.percentual_no_prazo|percentual }} — abrir a tabela filtrada">{{ linha.percentual_no_prazo|percentual }}</a></td>
+            <td class="dsgov-numero text-red-vivid-50"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.fora_prazo }}" aria-label="{{ linha.uo }}, Fora do prazo (meta): {{ linha.fora_prazo|numero }} — abrir a tabela filtrada">{{ linha.fora_prazo|numero }}</a></td>
+            <td class="dsgov-numero text-red-vivid-50"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.fora_prazo }}" aria-label="{{ linha.uo }}, % Fora do prazo (meta): {{ linha.percentual_fora_prazo|percentual }} — abrir a tabela filtrada">{{ linha.percentual_fora_prazo|percentual }}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8">Nenhum processo no recorte atual.</td></tr>
+          {% endfor %}
+        </tbody>
+        {% if linhas %}
+        <tfoot>
+          <tr>
+            <th scope="row" class="dsgov-rotulo-linha">TOTAL</th>
+            <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.total_previsto }}" aria-label="TOTAL, Participação no PCA: {{ total.percentual_no_pca|percentual }} — abrir a tabela filtrada">{{ total.percentual_no_pca|percentual }}</a></td>
+            <td class="dsgov-numero dsgov-separador text-blue-warm-vivid-70"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.em_tramitacao }}" aria-label="TOTAL, Em tramitação (meta): {{ total.em_tramitacao|numero }} — abrir a tabela filtrada">{{ total.em_tramitacao|numero }}</a></td>
+            <td class="dsgov-numero text-blue-warm-vivid-70"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.em_tramitacao }}" aria-label="TOTAL, % Em tramitação (meta): {{ total.percentual_em_tramitacao|percentual }} — abrir a tabela filtrada">{{ total.percentual_em_tramitacao|percentual }}</a></td>
+            <td class="dsgov-numero text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.no_prazo }}" aria-label="TOTAL, No prazo (meta): {{ total.no_prazo|numero }} — abrir a tabela filtrada">{{ total.no_prazo|numero }}</a></td>
+            <td class="dsgov-numero text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.no_prazo }}" aria-label="TOTAL, % No prazo (meta): {{ total.percentual_no_prazo|percentual }} — abrir a tabela filtrada">{{ total.percentual_no_prazo|percentual }}</a></td>
+            <td class="dsgov-numero text-red-vivid-50"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.fora_prazo }}" aria-label="TOTAL, Fora do prazo (meta): {{ total.fora_prazo|numero }} — abrir a tabela filtrada">{{ total.fora_prazo|numero }}</a></td>
+            <td class="dsgov-numero text-red-vivid-50"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.fora_prazo }}" aria-label="TOTAL, % Fora do prazo (meta): {{ total.percentual_fora_prazo|percentual }} — abrir a tabela filtrada">{{ total.percentual_fora_prazo|percentual }}</a></td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+</div>

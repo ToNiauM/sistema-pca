@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{# confirmação de encerramento em página própria, nunca modal #}
+{% block titulo %}Encerrar exercício {{ exercicio.ano }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Encerrar exercício {{ exercicio.ano }}?</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <div class="br-message warning mb-4">
+      <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">Esta ação não pode ser desfeita.</span>
+        <span class="message-body"> Os processos do exercício {{ exercicio.ano }} permanecerão disponíveis para leitura, mas não poderão mais ser editados.</span>
+      </div>
+    </div>
+    {% if erro %}
+    <div class="br-message danger mb-4">
+      <div class="icon"><i class="fas fa-times-circle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">{{ erro }}</span>
+      </div>
+    </div>
+    {% endif %}
+    <form method="post" action="{% url 'pca:encerrar' exercicio.ano %}">
+      {% csrf_token %}
+      <div class="dsgov-acoes-formulario">
+        <a class="br-button" href="{% url 'pca:gerenciar_exercicios' %}">Cancelar</a>
+        <button class="br-button primary" type="submit"><i class="fas fa-lock mr-1" aria-hidden="true"></i>Confirmar encerramento</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

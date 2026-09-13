@@ -1,0 +1,49 @@
+{% comment %}
+br-select oficial: um input de exibição (sem name, não é postado) + br-list com radios (simples) ou
+checkboxes (múltiplo) que carregam o name e o value do campo. O core.js preenche o input a partir
+do item marcado e cuida de teclado/aria. Opções vêm de field.field.choices; o vazio ("---------")
+vira o placeholder.
+{% endcomment %}
+{% load dsgov %}
+{% with valor=field.value|lista_str %}
+<div class="br-select" {% if multiplo == "multiple" %}multiple="multiple"{% endif %}>
+  <div class="br-input{% if erro %} danger{% endif %}">
+    <label for="{{ field.auto_id }}_exibicao">{{ field.label }}{% if field.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</label>
+    <input id="{{ field.auto_id }}_exibicao" type="text" placeholder="Selecione" autocomplete="off"{% if field.field.disabled %} disabled{% endif %}/>
+    <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+    {% if ajuda %}<p class="text-down-01 text-gray-70 mb-0">{{ ajuda }}</p>{% endif %}
+    {% if erro %}<span class="feedback danger" role="alert"><i class="fas fa-times-circle" aria-hidden="true"></i>{{ erro }}</span>{% endif %}
+  </div>
+  <div class="br-list" tabindex="0">
+    {% if multiplo == "multiple" %}
+    <div class="br-item highlighted" data-all="data-all" tabindex="-1">
+      <div class="br-checkbox">
+        <input id="{{ field.auto_id }}_todos" type="checkbox"/>
+        <label for="{{ field.auto_id }}_todos">Selecionar todos</label>
+      </div>
+    </div>
+    {% endif %}
+    {% for grupo, opcoes, indice in field.field.widget|opcoes_select:valor %}
+      {% for opcao in opcoes %}
+        {% if opcao.value != "" or multiplo != "multiple" %}
+        {% if opcao.value != "" %}
+        <div class="br-item" tabindex="-1">
+          {% if multiplo == "multiple" %}
+          <div class="br-checkbox">
+            <input id="{{ field.auto_id }}_{{ opcao.index }}" name="{{ field.html_name }}" type="checkbox" value="{{ opcao.value }}"{% if opcao.selected %} checked="checked"{% endif %}{% if field.field.disabled %} disabled{% endif %}/>
+            <label for="{{ field.auto_id }}_{{ opcao.index }}">{{ opcao.label }}</label>
+          </div>
+          {% else %}
+          <div class="br-radio">
+            <input id="{{ field.auto_id }}_{{ opcao.index }}" name="{{ field.html_name }}" type="radio" value="{{ opcao.value }}"{% if opcao.selected %} checked="checked"{% endif %}{% if field.field.required %} required{% endif %}{% if field.field.disabled %} disabled{% endif %}/>
+            <label for="{{ field.auto_id }}_{{ opcao.index }}">{{ opcao.label }}</label>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+  </div>
+</div>
+{% endwith %}

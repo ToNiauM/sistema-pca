@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="row">
+  <div class="col-md-8">
+    <p class="text-up-06 text-weight-light text-blue-warm-vivid-70 mb-2">{{ codigo }}</p>
+    <h1>{{ titulo }}</h1>
+    <p>{{ texto }}</p>
+    <a class="br-button primary mt-3" href="{% url 'core:inicio' %}"><i class="fas fa-home mr-1" aria-hidden="true"></i>Voltar ao início</a>
+  </div>
+</div>
+{% endblock %}

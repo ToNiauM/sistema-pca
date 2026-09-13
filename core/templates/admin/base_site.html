@@ -1,0 +1,6 @@
+{% extends "admin/base_site.html" %}
+{# injeta só o style dos tokens de cor institucionais no Admin #}
+{% block extrastyle %}
+{{ block.super }}
+<style>{{ admin_tema_css|safe }}</style>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load dsgov pca_listagem static %}
+
+{# tela Análises: totais, pares gráfico+tabela por dimensão, distribuição mensal, vencimentos #}
+
+{% block titulo %}{{ nome_tela }} — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Análises — PCA {{ exercicio.ano|default:"—" }}</h1>
+</div>
+
+{# totais do exercício: números que não viraram KPI no dashboard, mais planejado/contratado #}
+<div class="br-card mb-4">
+  <div class="card-content">
+    <h2 class="text-up-01 mb-3">Totais do exercício</h2>
+    <dl class="dsgov-detalhe row mb-0">
+      <div class="col-sm-6 col-md-4"><dt>Total previsto</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_a.total.href }}">{{ bloco_a.total.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Cancelados</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_a.cancelados.href }}">{{ bloco_a.cancelados.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Nova contratação</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_a.nova.href }}">{{ bloco_a.nova.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Renovação</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_a.renovacao.href }}">{{ bloco_a.renovacao.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Vigentes</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_a.vigentes.href }}">{{ bloco_a.vigentes.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Meta do exercício</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_a.meta_exercicio.href }}">{{ bloco_a.meta_exercicio.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>No prazo</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_b.no_prazo.href }}">{{ bloco_b.no_prazo.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Processos sobrestados</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_b.sobrestados.href }}">{{ bloco_b.sobrestados.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Próximos do vencimento</dt><dd><a href="{% url 'pca:tabela' %}?{{ bloco_b.proximos_vencimento.href }}">{{ bloco_b.proximos_vencimento.contagem|numero }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Valor planejado</dt><dd><a href="{{ url_filtro_atual }}">{{ soma_filtrada|moeda }}</a></dd></div>
+      <div class="col-sm-6 col-md-4"><dt>Valor contratado</dt><dd><a href="{{ url_filtro_atual }}">{{ soma_contratada|moeda }}</a></dd></div>
+    </dl>
+  </div>
+</div>
+
+{% include "dsgov/_par_analitico.html" with par=grafico_situacao %}
+
+{# ranking por unidade, mais espaço para a tabela a partir de 1280px #}
+{% include "dsgov/_par_analitico.html" with par=unidade_par col_grafico="col-lg-5" col_tabela="col-lg-7" %}
+
+{# Perfil do PCA: dimensão selecionável, GET recarrega gráfico/tabela/título juntos #}
+<h2 class="text-up-01 mb-3">Perfil do PCA</h2>
+<form method="get" class="row align-items-end mb-3 dsgov-nao-imprimir" aria-label="Escolher dimensão do Perfil do PCA">
+  {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+  <div class="col-sm-6 col-md-4">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="perfil_dimensao_exibicao">Dimensão (Perfil do PCA)</label>
+        <input id="perfil_dimensao_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for chave, rotulo in rotulos_perfil.items %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="perfil_dimensao_{{ chave }}" name="perfil_dimensao" type="radio" value="{{ chave }}"{% if chave == perfil_dimensao_selecionada %} checked="checked"{% endif %}/>
+            <label for="perfil_dimensao_{{ chave }}">{{ rotulo }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-12 col-md-4">
+    <button class="br-button secondary" type="submit">Aplicar</button>
+  </div>
+</form>
+{% include "dsgov/_par_analitico.html" with par=perfil_par %}
+
+{# Próximos vencimentos: prazos operacionais (prazo_efetivo), não vigência contratual #}
+<div class="br-card mb-4">
+  <div class="card-content">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+      <h2 class="text-up-01 mb-0">Próximos vencimentos — prazos dos processos</h2>
+      <div class="dsgov-nao-imprimir" role="group" aria-label="Linhas exibidas">
+        <a class="br-button {{ proximos_vencimentos.classe_botao_10 }} small mr-1" href="{% url 'pca:analise' %}?{{ proximos_vencimentos.querystring_10 }}">10</a>
+        <a class="br-button {{ proximos_vencimentos.classe_botao_20 }} small" href="{% url 'pca:analise' %}?{{ proximos_vencimentos.querystring_20 }}">20</a>
+      </div>
+    </div>
+    {% if proximos_vencimentos.linhas %}
+    <div class="br-table small">
+      <div class="responsive">
+      <table>
+        <caption>Próximos vencimentos — prazos dos processos</caption>
+        <thead>
+          <tr>
+            <th scope="col">Item</th>
+            <th scope="col">Objeto</th>
+            <th scope="col">Unidade</th>
+            <th scope="col">Situação</th>
+            <th scope="col">Prazo atual</th>
+            <th scope="col">Dias restantes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for linha in proximos_vencimentos.linhas %}
+          <tr>
+            <td data-th="Item"><a href="{% url 'pca:detalhe_processo' linha.processo.exercicio.ano linha.processo.item_pca %}">{{ linha.processo.item_pca }}</a></td>
+            <td data-th="Objeto">{{ linha.processo.descricao_objeto|truncatechars:60 }}</td>
+            <td data-th="Unidade">{{ linha.processo.unidade_organizacional.nome }}</td>
+            <td data-th="Situação">{% include "pca/_tabela_situacao.html" with p=linha.processo %}</td>
+            <td data-th="Prazo atual">{{ linha.processo.prazo_efetivo|date:"d/m/Y" }}</td>
+            <td data-th="Dias restantes">{{ linha.rotulo_dias }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    {% if proximos_vencimentos.total_no_recorte > proximos_vencimentos.limite %}
+    <p class="text-down-01 text-gray-70 mt-2">Mostrando {{ proximos_vencimentos.limite }} de {{ proximos_vencimentos.total_no_recorte }} processos do recorte.</p>
+    {% endif %}
+    {% else %}
+    <p class="mb-0">Nenhum processo com prazo próximo neste recorte.</p>
+    {% endif %}
+    {% if proximos_vencimentos.total_vencidos %}
+    <p class="text-down-01 mt-2"><a href="{{ proximos_vencimentos.url_vencidos }}">{{ proximos_vencimentos.total_vencidos }} processo{{ proximos_vencimentos.total_vencidos|pluralize }} vencido{{ proximos_vencimentos.total_vencidos|pluralize }}</a>, fora das {{ proximos_vencimentos.limite }} primeiras posições.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% include "dsgov/_par_analitico.html" with par=previsto_entregue_par %}
+
+{# form GET: dimensão/medida da distribuição mensal; exercicio viaja num hidden #}
+<h2 class="text-up-01 mb-3">Distribuição mensal por dimensão</h2>
+<form method="get" class="row align-items-end mb-3 dsgov-nao-imprimir" aria-label="Escolher dimensão e medida da distribuição mensal">
+  {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+  <div class="col-sm-6 col-md-4">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="dimensao_exibicao">Dimensão</label>
+        <input id="dimensao_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for chave, rotulo in rotulos_dimensao.items %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="dimensao_{{ chave }}" name="dimensao" type="radio" value="{{ chave }}"{% if chave == dimensao_selecionada %} checked="checked"{% endif %}/>
+            <label for="dimensao_{{ chave }}">{{ rotulo }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-4">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="medida_exibicao">Medida</label>
+        <input id="medida_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for valor, rotulo in medidas_disponiveis %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="medida_{{ valor }}" name="medida" type="radio" value="{{ valor }}"{% if valor == medida_selecionada %} checked="checked"{% endif %}/>
+            <label for="medida_{{ valor }}">{{ rotulo }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-12 col-md-4">
+    <button class="br-button secondary" type="submit">Aplicar</button>
+  </div>
+</form>
+{% include "dsgov/_par_analitico.html" with par=mesdim_par %}
+
+<h3 class="text-up-01 mb-3">Detalhamento mensal completo</h3>
+<div class="br-table mb-4">
+  <div class="table-header"></div>
+  <table>
+    <caption>{{ dimensao_rotulo_selecionada }} por mês — {{ medida_rotulo_selecionada }} (12 meses)</caption>
+    <thead>
+      <tr>
+        <th scope="col">{{ dimensao_rotulo_selecionada }}</th>
+        {% for ponto in series_mensais.0.pontos %}<th scope="col" class="dsgov-numero">{{ ponto.rotulo_mes }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for serie in series_mensais %}
+      <tr>
+        <td data-th="{{ dimensao_rotulo_selecionada }}">{{ serie.nome }}</td>
+        {% for ponto in serie.pontos %}
+        <td data-th="{{ ponto.rotulo_mes }}" class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ ponto.querystring }}">{{ ponto.valor_exibido }}</a></td>
+        {% endfor %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="13">Nenhum registro nesta dimensão.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include "dsgov/_par_analitico.html" with par=vencimento_par %}
+
+<div class="dsgov-nao-imprimir d-flex flex-wrap align-items-center justify-content-between mt-4">
+  <p class="text-down-01 text-gray-70 mb-0">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+  <div>
+    <button class="br-button secondary mr-2" type="button" onclick="window.print()"><i class="fas fa-print mr-1" aria-hidden="true"></i>Imprimir</button>
+    <a class="br-button secondary" href="{% url 'core:inicio' %}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'dsgov/vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'dsgov/js/echarts-dsgov.js' %}"></script>
+{% endblock %}

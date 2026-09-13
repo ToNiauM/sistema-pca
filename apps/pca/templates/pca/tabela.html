@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{# tela Processos: chips + tabela de colunas dinâmicas em #listagem, trocada por HTMX #}
+{% load dsgov %}
+{% block titulo %}Processos · PCA {{ exercicio.ano }}{% endblock %}
+{% block conteudo %}
+{# flex-wrap evita que título e botão estourem a página em 320px #}
+<div class="d-flex flex-wrap align-items-center mb-4">
+  <div>
+    <h1 class="mb-0">Processos</h1>
+    {# o texto sempre nomeia o exercício efetivamente resolvido pelo servidor #}
+    <p class="text-gray-70 mb-0">PCA {{ exercicio.ano }}</p>
+  </div>
+  <div class="ml-auto">
+    {% if perms.pca.editar_pca %}
+    <a class="br-button primary" href="{% url 'pca:criar_processo' %}"><i class="fas fa-plus mr-1" aria-hidden="true"></i>Novo processo</a>
+    {% endif %}
+  </div>
+</div>
+{# Exportar mora dentro de _tabela_resultado.html (alvo do swap), nunca no cabeçalho estático #}
+
+<form id="filtros-processos" method="get" action="{% url 'pca:tabela' %}"
+      hx-get="{% url 'pca:tabela' %}" hx-target="#listagem" hx-push-url="true"
+      hx-trigger="change, keyup changed delay:300ms from:[name='q']"
+      hx-include="#form-colunas">
+  <input type="hidden" name="exercicio" value="{{ exercicio.ano }}">
+  {# cada campo usa widget.attrs.col para a largura; hx-include preserva a seleção de colunas #}
+  <div class="row align-items-end">
+    {% for campo in filtros_form %}
+      {% if campo.name == "q" or campo.name == "uo" %}
+      <div class="{{ campo.field.widget.attrs.col|default:'col-12' }} mb-3">{{ campo.as_field_group }}</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <div class="row align-items-end">
+    {% for campo in filtros_form %}
+      {% if campo.name == "situacao" or campo.name == "mes" %}
+      <div class="{{ campo.field.widget.attrs.col|default:'col-12' }} mb-3">{{ campo.as_field_group }}</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <div class="br-accordion mb-3" id="acordeao-mais-filtros">
+    <div class="item"{% if mais_filtros_ativo %} active="active"{% endif %}>
+      <button class="header" type="button" aria-controls="acordeao-mais-filtros-conteudo"
+              aria-expanded="{% if mais_filtros_ativo %}true{% else %}false{% endif %}">
+        <span class="icon"><i class="fas fa-angle-down" aria-hidden="true"></i></span>
+        <span class="title">Mais filtros</span>
+      </button>
+    </div>
+    <div class="content" id="acordeao-mais-filtros-conteudo">
+      <div class="row align-items-end">
+        {% for campo in filtros_form %}
+          {% if campo.name != "q" and campo.name != "uo" and campo.name != "situacao" and campo.name != "mes" %}
+          <div class="{{ campo.field.widget.attrs.col|default:'col-12' }} mb-3">{{ campo.as_field_group }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</form>
+
+{# chips de filtro ativo moram dentro de #listagem, mesmo motivo do Exportar #}
+<div id="listagem">
+  {% include "pca/_listagem.html" %}
+</div>
+
+<div id="modal-acompanhamento" class="mt-3"></div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{# listagem simples de reuniões, sem busca/paginação #}
+{% load dsgov %}
+{% block titulo %}Reuniões{% endblock %}
+{% block conteudo %}
+<div class="d-flex align-items-center mb-4">
+  <h1 class="mb-0">Reuniões</h1>
+  <div class="ml-auto">
+    {% if perms.pca.editar_pca %}
+    <a class="br-button primary" href="{% url 'pca:criar_reuniao' %}"><i class="fas fa-plus mr-1" aria-hidden="true"></i>Nova reunião</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="br-table mb-4">
+  <div class="table-header"></div>
+  <table>
+    <caption>Reuniões cadastradas</caption>
+    <thead>
+      <tr>
+        <th scope="col">Data</th>
+        <th scope="col">Condutor</th>
+        <th scope="col">Situação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for reuniao in reunioes %}
+      <tr>
+        <td data-th="Data">{{ reuniao.data|data_br }}</td>
+        <td data-th="Condutor">{% if reuniao.condutor %}{{ reuniao.condutor.get_full_name|default:reuniao.condutor.email }}{% else %}—{% endif %}</td>
+        <td data-th="Situação">
+          {% if reuniao.situacao == "aberta" %}{% tag_status "Aberta" "sucesso" %}{% else %}{% tag_status "Fechada" "neutro" %}{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">Nenhuma reunião cadastrada.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

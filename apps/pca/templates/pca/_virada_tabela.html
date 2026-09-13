@@ -1,0 +1,25 @@
+{# tabela compartilhada pelas 3 etapas do wizard; modo: selecionar/ajustar/revisar #}
+{% load dsgov %}
+<div class="br-table mb-0">
+  <div class="table-header"></div>
+  <table>
+    <caption>Itens da virada</caption>
+    <thead>
+      <tr>
+        {% if modo == "selecionar" %}<th class="column-checkbox" scope="col">Selecionar</th>{% endif %}
+        <th scope="col">Item</th>
+        <th scope="col">Descrição</th>
+        <th scope="col">UO</th>
+        <th scope="col" class="dsgov-numero">Valor estimado</th>
+        <th scope="col">Mês previsto</th>
+        <th scope="col">Situação origem</th>
+        {% if modo == "ajustar" %}<th scope="col" class="dsgov-acoes">Ações</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in pagina %}{% include "pca/_virada_linha.html" %}{% empty %}
+      <tr><td colspan="7">Nenhum item disponível nesta etapa.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load dsgov %}
+{% block titulo %}Início{% endblock %}
+{% block conteudo %}
+<div class="d-flex align-items-center mb-4">
+  <div>
+    <h1 class="mb-0">{{ DSGOV.SISTEMA }}</h1>
+    {% if subtitulo %}<p class="text-gray-70 mb-0 mt-1">{{ subtitulo }}</p>{% endif %}
+  </div>
+</div>
+
+{% if kpis %}
+<div class="row dsgov-linha-cards">
+  {% for kpi in kpis %}{% include "dsgov/_kpi_card.html" %}{% endfor %}
+</div>
+{% endif %}
+
+{% if graficos %}
+<div class="row dsgov-linha-cards">
+  {% for grafico in graficos %}{% include "dsgov/_grafico_card.html" %}{% endfor %}
+</div>
+{% endif %}
+
+{% if pendencias %}
+<div class="row">
+  <div class="col-12">
+    <div class="br-table">
+      <div class="table-header">
+        <div class="top-bar">
+          <div class="table-title">{{ pendencias.titulo }}</div>
+          {% if pendencias.url %}<div class="ml-auto"><a class="br-button small" href="{{ pendencias.url }}">Ver todos <i class="fas fa-angle-right ml-1" aria-hidden="true"></i></a></div>{% endif %}
+        </div>
+      </div>
+      <table>
+        <caption class="sr-only">{{ pendencias.titulo }}</caption>
+        <thead>
+          <tr>{% for col in pendencias.colunas %}<th scope="col"{% if col.tipo == "moeda" or col.tipo == "numero" %} class="dsgov-numero"{% endif %}>{{ col.rotulo }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+          {% for obj in pendencias.objetos %}
+          <tr>{% for col in pendencias.colunas %}<td data-th="{{ col.rotulo }}"{% if col.tipo == "moeda" or col.tipo == "numero" %} class="dsgov-numero"{% endif %}>{% if col.tipo == "status" %}{% tag_status obj|atributo:col.campo obj|atributo:col.chave %}{% elif col.url %}<a href="{{ obj|atributo:col.url }}">{{ obj|exibir:col }}</a>{% else %}{{ obj|exibir:col }}{% endif %}</td>{% endfor %}</tr>
+          {% empty %}
+          <tr><td colspan="{{ pendencias.colunas|length }}">Nenhuma pendência.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if not kpis and not graficos and not pendencias %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="br-message info">
+      <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert"><span class="message-title">Painel em construção.</span><span class="message-body"> Preencha kpis, graficos e pendencias em core/views.py (função inicio) seguindo references/telas/dashboard.md da skill dsgov.</span></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if graficos %}{% load static %}<script src="{% static 'dsgov/vendor/echarts/echarts.min.js' %}"></script><script src="{% static 'dsgov/js/echarts-dsgov.js' %}"></script>{% endif %}
+{% endblock %}

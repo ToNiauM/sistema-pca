@@ -1,0 +1,12 @@
+{% load static %}
+<footer class="br-footer pt-3" id="footer">
+  <div class="container-lg">
+    <div class="logo">
+      {% if DSGOV.LOGO %}<img src="{% static DSGOV.LOGO %}" alt="{{ DSGOV.ORGAO }}"/>{% else %}<span class="text-up-02 text-weight-bold">{{ DSGOV.ORGAO_SIGLA }}</span>{% endif %}
+    </div>
+    <span class="br-divider my-3"></span>
+    <div class="info">
+      <div class="text-down-01 text-medium pb-3">{{ DSGOV.ORGAO }} · {{ DSGOV.SISTEMA }}. {{ DSGOV.RODAPE_TEXTO }}</div>
+    </div>
+  </div>
+</footer>

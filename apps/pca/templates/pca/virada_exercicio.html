@@ -1,0 +1,6 @@
+{# barra de progresso do wizard de virada, incluída pelas páginas de etapa (que fazem {% extends "base.html" %}); requer etapa_ativa (1, 2 ou 3) #}
+<div class="wizard-progress" role="tablist">
+  <button class="wizard-progress-btn" type="button" role="tab" title="Selecionar" disabled="disabled" {% if etapa_ativa >= 1 %}active="active"{% endif %}><span class="info">1. Selecionar</span></button>
+  <button class="wizard-progress-btn" type="button" role="tab" title="Ajustar" disabled="disabled" {% if etapa_ativa >= 2 %}active="active"{% endif %}><span class="info">2. Ajustar</span></button>
+  <button class="wizard-progress-btn" type="button" role="tab" title="Revisar e concluir" disabled="disabled" {% if etapa_ativa >= 3 %}active="active"{% endif %}><span class="info">3. Revisar e concluir</span></button>
+</div>

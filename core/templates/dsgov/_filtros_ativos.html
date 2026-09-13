@@ -1,0 +1,13 @@
+{% load dsgov %}
+{% if filtros_ativos %}
+<div class="dsgov-filtros-ativos mb-3" aria-label="Filtros ativos">
+  {% for param, valor, rotulo in filtros_ativos %}
+  <span class="br-tag interaction">
+    <span>{{ rotulo }}</span>
+    <a class="br-button circle small" href="{% url_com pagina=None %}" aria-label="Remover filtro {{ rotulo }}"
+       hx-get="{% url_com pagina=None %}&{{ param }}=" hx-target="#listagem" hx-push-url="true"><i class="fas fa-times" aria-hidden="true"></i></a>
+  </span>
+  {% endfor %}
+  <a class="br-button small" href="{{ request.path }}" hx-get="{{ request.path }}" hx-target="#listagem" hx-push-url="true"><i class="fas fa-eraser mr-1" aria-hidden="true"></i>Limpar filtros</a>
+</div>
+{% endif %}

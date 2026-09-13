@@ -1,0 +1,65 @@
+{
+  "skill_name": "dsgov",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Preciso de um sistema para controlar as diárias de viagem dos servidores do CFC (Conselho Federal de Contabilidade). Cada diária tem o servidor, destino, motivo, data de ida e volta, valor total e situação (solicitada, aprovada, paga, cancelada). Quero cadastrar servidores, lançar diárias, listar com filtro por situação e servidor, e um painel inicial mostrando quantas estão pendentes de aprovação, o valor total do ano e um gráfico por situação. Regra: a data de volta não pode ser antes da ida, e só diárias aprovadas podem ser pagas. Cria o projeto em ./diarias.",
+      "expected_output": "Projeto Django completo em ./diarias com layout DSGov (header, menu lateral, breadcrumb, footer), login, CRUD de servidores e diárias com tabela paginada e filtros, dashboard com KPIs e gráfico, validação de datas no form, regra de pagamento, verificador passando e testes verdes.",
+      "files": [],
+      "assertions": [
+        "Projeto Django válido: manage.py existe e `manage.py check` sai com código 0",
+        "Login sem autenticação responde 200 e as telas de dashboard, listagem e formulário respondem 200 autenticado",
+        "Layout DSGov completo: HTML renderizado contém br-header, br-menu, br-breadcrumb, br-footer e br-skiplink",
+        "Componentes DSGov nas telas: br-table na listagem, br-button primary na página, br-input/br-select no formulário, nenhum <select> nativo",
+        "Ativos locais: core.min.css do DSGov carregado de /static e nenhum <link>/<script> apontando para http(s) externo",
+        "Verificador da skill (scripts/verificar.py) passa com 0 erros",
+        "Testes automatizados existem e `pytest` sai com código 0",
+        "Formatação pt-BR: valores monetários aparecem como R$ com vírgula decimal e datas como dd/mm/aaaa na listagem",
+        "Capturas de tela: pasta capturas/ com pelo menos 6 PNGs e RESUMO.md presente",
+        "Regra de negócio: POST de diária com data de volta anterior à ida devolve o formulário com erro (não salva)",
+        "Regra de negócio: não é possível marcar como paga uma diária que não esteja aprovada (validação no form/model ou ação)",
+        "Dashboard: contém KPI de pendentes de aprovação, valor total e um gráfico por situação (ECharts com data-grafico ou canvas)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "monta pra mim um protocolo de documentos pro Conselho Regional de Contabilidade do Paraná (CRCPR): cada documento entra com número, tipo (ofício, requerimento, recurso, outros), interessado, assunto, data de entrada, setor responsável e status (recebido, em análise, respondido, arquivado). preciso de listagem com busca por número e interessado, filtro por setor e status, tela de detalhe com botão pra mudar o status (só quem for do setor responsável ou gestor pode), e dashboard com total por status e documentos parados há mais de 15 dias. pasta ./protocolo",
+      "expected_output": "Projeto em ./protocolo no padrão DSGov, módulo protocolo com CRUD, setores como cadastro, ações de status como POST com permissão, dashboard com rosca por status e tabela de parados, verificador passando.",
+      "files": [],
+      "assertions": [
+        "Projeto Django válido: manage.py existe e `manage.py check` sai com código 0",
+        "Login sem autenticação responde 200 e as telas de dashboard, listagem e formulário respondem 200 autenticado",
+        "Layout DSGov completo: HTML renderizado contém br-header, br-menu, br-breadcrumb, br-footer e br-skiplink",
+        "Componentes DSGov nas telas: br-table na listagem, br-button primary na página, br-input/br-select no formulário, nenhum <select> nativo",
+        "Ativos locais: core.min.css do DSGov carregado de /static e nenhum <link>/<script> apontando para http(s) externo",
+        "Verificador da skill (scripts/verificar.py) passa com 0 erros",
+        "Testes automatizados existem e `pytest` sai com código 0",
+        "Formatação pt-BR: valores monetários aparecem como R$ com vírgula decimal e datas como dd/mm/aaaa na listagem",
+        "Capturas de tela: pasta capturas/ com pelo menos 6 PNGs e RESUMO.md presente",
+        "Regra de negócio: usuário de outro setor (não gestor) não consegue mudar o status; usuário do setor responsável consegue",
+        "Dashboard: total por status e lista de documentos parados há mais de 15 dias",
+        "Listagem: busca por número e interessado e filtros por setor e status funcionam via querystring"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Quero um sistema de gestão de contratos para um órgão público (Ministério da Gestão, sigla MGI). Contrato tem número, fornecedor (razão social e CNPJ), objeto, valor global, vigência inicial e final, fiscal responsável e situação (vigente, a vencer, encerrado, rescindido). Preciso de: cadastro de fornecedores, cadastro de contratos, listagem com filtro por situação e fornecedor, e um painel com valor total contratado, contratos vencendo nos próximos 60 dias, gráfico de valor por fornecedor (top 10) e uma tabela dos que vencem em breve. A situação 'a vencer' deve ser calculada automaticamente quando faltarem menos de 90 dias. Cria em ./contratos.",
+      "expected_output": "Projeto em ./contratos no padrão DSGov, módulos fornecedores e contratos, situação calculada por regra, dashboard com 4 KPIs, gráfico de barras horizontais e tabela de vencimentos, formatação pt-BR de moeda e datas, verificador passando.",
+      "files": [],
+      "assertions": [
+        "Projeto Django válido: manage.py existe e `manage.py check` sai com código 0",
+        "Login sem autenticação responde 200 e as telas de dashboard, listagem e formulário respondem 200 autenticado",
+        "Layout DSGov completo: HTML renderizado contém br-header, br-menu, br-breadcrumb, br-footer e br-skiplink",
+        "Componentes DSGov nas telas: br-table na listagem, br-button primary na página, br-input/br-select no formulário, nenhum <select> nativo",
+        "Ativos locais: core.min.css do DSGov carregado de /static e nenhum <link>/<script> apontando para http(s) externo",
+        "Verificador da skill (scripts/verificar.py) passa com 0 erros",
+        "Testes automatizados existem e `pytest` sai com código 0",
+        "Formatação pt-BR: valores monetários aparecem como R$ com vírgula decimal e datas como dd/mm/aaaa na listagem",
+        "Capturas de tela: pasta capturas/ com pelo menos 6 PNGs e RESUMO.md presente",
+        "Regra de negócio: contrato com vigência final a menos de 90 dias aparece como 'a vencer' automaticamente",
+        "Dashboard: valor total contratado, contratos vencendo em 60 dias, gráfico top 10 por fornecedor e tabela de vencimentos",
+        "Cadastro de fornecedores com CNPJ e listagem própria"
+      ]
+    }
+  ]
+}

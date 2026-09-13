@@ -1,0 +1,27 @@
+.git
+.planning
+.env
+*.xlsx
+# Exceção: apps/pca/fixtures/modelo-controle-exemplo.xlsx é a fonte de
+# exemplo do import (fixture anonimizada) e precisa estar dentro da imagem
+# para `docker compose exec web python manage.py importar_pca` funcionar
+# sem bind-mount do host — bind mount violaria o invariante de
+# portabilidade do CLAUDE.md (migração = restaurar dump + .env +
+# `docker compose up -d`, sem passo extra).
+!apps/pca/fixtures/modelo-controle-exemplo.xlsx
+__pycache__
+*.py[cod]
+.venv
+.venv*
+staticfiles
+# Ambiente e build de verificação do MkDocs (Plano 30-04/30-05) — nunca
+# entram na imagem da aplicação; sem esta linha o `COPY . .` levava a
+# árvore inteira do mkdocs-material/venv para dentro de /app, e o
+# verificador DSGov (que varre /app recursivamente) passava a acusar
+# classes CSS dos templates internos do tema Material como se fossem
+# violação do padrão do próprio projeto (falso positivo).
+.venv-docs
+site
+
+# Skill de desenvolvimento: sem função dentro da imagem
+.claude

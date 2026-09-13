@@ -1,0 +1,2 @@
+Ativos congelados pela skill dsgov. Não atualize sem atualizar a skill.
+@govbr-ds/core 3.7.0 · Font Awesome Free 5.15.4 · Rawline (cdngovbr-ds) · Raleway (Google Fonts, variável) · htmx 2.0.10 · Apache ECharts 5.5.0

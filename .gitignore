@@ -1,0 +1,61 @@
+# Arquivos de lock do Office (aparecem enquanto a planilha está aberta)
+~$*
+
+# Sistema operacional
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Ambiente
+.env
+.env.*
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.venv*/
+.venv-test/
+venv/
+
+# Django
+*.log
+staticfiles/
+media/
+
+# Relatórios de conferência do import — gerados em runtime a cada execução
+# de `importar_pca`; só a estrutura do diretório é versionada.
+ops/relatorios/*.md
+
+# Exports pontuais com dados reais de produção (ex.: modelo de reimportação
+# preenchido com o banco atual) — nunca versionados.
+ops/relatorios/dados-atuais/
+
+# Evidência (screenshots/JSON) gerada pelos harnesses de verificação visual
+# em ops/verificacao/ — runtime, regenerada a cada execução.
+ops/verificacao/_evidencia/
+
+# Dumps manuais do banco (pg_dump rodado no host). O serviço `backup` do compose
+# não escreve aqui — ele despeja em /tmp dentro do container e envia para o R2.
+# Dados de produção não entram no versionamento. Ancorado na raiz (`/backups/`)
+# — sem a barra inicial, o padrão bateria em qualquer diretório chamado
+# "backups" em qualquer profundidade, o que nunca é a intenção aqui.
+/backups/
+
+# Mesmo motivo do bloco acima (dump manual, dados reais de produção), mas
+# numa pasta separada de `backups/`. Ancorado na raiz pelo mesmo motivo — sem
+# a barra inicial este padrão capturava `ops/backup/` (código-fonte do
+# serviço `backup` do compose: Dockerfile, backup.sh, retencao.sh...),
+# apagando-o silenciosamente do commit inicial (achado da Task 2, Plano 30-06).
+/backup/
+
+# Documentação técnica (MkDocs) — artefatos de build/venv dedicado, nunca
+# versionados.
+site/
+.venv-docs/
+
+# Backups de editor/script
+*.bak*

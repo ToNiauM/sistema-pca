@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Importar planilha | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Importar planilha do PCA</h1>
+  <p><a class="button" href="{% url 'admin:pca_eventoimportacao_modelo' %}">Baixar modelo de planilha</a></p>
+
+  <form method="post" enctype="multipart/form-data" action="{% url 'admin:pca_eventoimportacao_importar' %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <fieldset class="module aligned">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.errors }}
+          {# tela do Django Admin: input file nativo, accept=".xlsx" vem do form #}
+          {{ field.label_tag }}
+          {{ field }}
+        </div>
+      {% endfor %}
+    </fieldset>
+    <div class="submit-row">
+      <input type="submit" value="Conferir importação" class="default">
+    </div>
+  </form>
+
+  {% if relatorio %}
+    <h2>Relatório de conferência</h2>
+    <pre>{{ relatorio }}</pre>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'admin:pca_eventoimportacao_confirmar' %}">
+      {% csrf_token %}
+      {{ confirmar_form.referencia }}
+      <div class="submit-row">
+        <input type="submit" value="Confirmar e gravar" class="button default">
+      </div>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

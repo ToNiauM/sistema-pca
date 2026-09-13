@@ -1,0 +1,17 @@
+{% load dsgov %}
+{# ativador (número do item) + popover com detalhes do processo #}
+<a class="dsgov-calendario-item text-truncate" href="{% url 'pca:detalhe_processo' evento.processo.exercicio.ano evento.processo.item_pca %}" aria-describedby="popover-calendario-{{ evento.processo.id }}" data-popover-calendario tabindex="0" aria-label="Item {{ evento.processo.item_pca }}: {{ evento.processo.descricao_objeto|truncatechars:40 }}">{{ evento.processo.item_pca }}</a><div class="br-tooltip" role="dialog" aria-modal="false" aria-label="Detalhes do item {{ evento.processo.item_pca }}" data-popover-calendario id="popover-calendario-{{ evento.processo.id }}">
+  <div class="popover-header">
+    <span class="text">Item {{ evento.processo.item_pca }}</span>
+    <span class="subtext">{{ evento.processo.descricao_objeto|truncatechars:60 }}</span>
+  </div>
+  <div class="popover-body">
+    <p class="mb-1">{{ evento.processo.unidade_organizacional.nome }}</p>
+    <p class="mb-1">Valor previsto: {{ evento.processo.valor_estimado|moeda }}</p>
+    {% if evento.processo.valor_contratado is not None %}<p class="mb-0">Valor contratado: {{ evento.processo.valor_contratado|moeda }}</p>{% endif %}
+  </div>
+  <div class="popover-footer">
+    <a class="br-button secondary" href="{% url 'pca:detalhe_processo' evento.processo.exercicio.ano evento.processo.item_pca %}">Ver mais</a>
+    <button class="br-button" type="button" data-fechar-popover-calendario>Fechar detalhes</button>
+  </div>
+</div>

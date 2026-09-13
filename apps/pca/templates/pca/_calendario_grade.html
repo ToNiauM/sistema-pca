@@ -1,0 +1,138 @@
+{% load dsgov pca_listagem %}
+{# grade do calendário: mensal = 1 card, anual = 12 cards; sempre 42 células (6 semanas) #}
+{% if visao_calendario == "mensal" %}
+<div class="dsgov-calendario-mensal">
+  <div class="col-12">
+    <div class="br-card">
+      <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+        <h2 class="text-up-01 mb-0">{{ mes_calendario_rotulo }} {{ exercicio.ano }}</h2>
+        <div class="dsgov-nao-imprimir">
+          {% if mes_anterior %}<a class="br-button mr-2" href="{% url 'pca:calendario' %}?{{ querystring_mes_anterior }}"><i class="fas fa-angle-left mr-1" aria-hidden="true"></i>Mês anterior</a>{% endif %}
+          {% if mes_seguinte %}<a class="br-button" href="{% url 'pca:calendario' %}?{{ querystring_mes_seguinte }}">Próximo mês<i class="fas fa-angle-right ml-1" aria-hidden="true"></i></a>{% endif %}
+        </div>
+      </div>
+      <div class="card-content">
+        <div class="br-table small dsgov-calendario">
+          <div class="table-header"></div>
+          <table>
+            <caption>{{ mes_calendario_rotulo }} de {{ exercicio.ano }}</caption>
+            <thead>
+              <tr>
+                <th scope="col" abbr="Domingo">D</th>
+                <th scope="col" abbr="Segunda">S</th>
+                <th scope="col" abbr="Terça">T</th>
+                <th scope="col" abbr="Quarta">Q</th>
+                <th scope="col" abbr="Quinta">Q</th>
+                <th scope="col" abbr="Sexta">S</th>
+                <th scope="col" abbr="Sábado">S</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for semana in semanas_calendario %}
+              <tr>
+                {% for celula in semana %}
+                <td class="{% if not celula.do_mes %}dsgov-fora-do-mes{% endif %}{% if celula.hoje %} dsgov-hoje{% endif %}">
+                  <strong>{{ celula.data.day }}</strong>
+                  {% if celula.do_mes %}
+                  <ul class="mt-1 mb-0 pl-0">
+                    {% for evento in celula.eventos_visiveis %}
+                    <li class="text-down-01"><span class="br-tag status {{ evento.classe_condicao }} small" title="{{ evento.rotulo_condicao }}" aria-hidden="true"></span> {% include "pca/_calendario_item.html" with evento=evento %}</li>
+                    {% endfor %}
+                  </ul>
+                  {% if celula.eventos_ocultos %}<a class="text-down-01" href="{{ celula.url }}">+{{ celula.eventos_ocultos }}</a>{% endif %}
+                  {% endif %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="br-card mb-4 mt-4">
+  <div class="card-content">
+    <h2 class="text-up-01 mb-3">{{ sem_dia_do_mes.rotulo }} — {{ mes_calendario_rotulo }}</h2>
+    {% for evento in sem_dia_do_mes.eventos %}
+    <p class="mb-2">
+      <a href="{% url 'pca:detalhe_processo' evento.processo.exercicio.ano evento.processo.item_pca %}"><strong>Item {{ evento.processo.item_pca }}</strong> · {{ evento.processo.descricao_objeto|truncatechars:60 }}</a>
+      {% if evento.processo.estado == "cancelado" %}{% tag_status "Cancelado" "cancelado" %}{% else %}{% tag_status evento.processo.situacao_efetiva|rotulo_situacao evento.processo.situacao_efetiva|classe_situacao %}{% endif %}
+      {% if evento.processo.atrasado %}<span class="text-danger">Atrasado há {{ evento.processo.dias_atraso }} dia{{ evento.processo.dias_atraso|pluralize }}</span>{% endif %}
+      {% if evento.data_fora_exercicio %}<br><span class="text-down-01 text-gray-70">Prazo efetivo fora do exercício: {{ evento.processo.prazo_efetivo|date:"d/m/Y" }}</span>{% endif %}
+    </p>
+    {% empty %}
+    <p class="mb-0">Nenhum processo sem dia definido.</p>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="row dsgov-calendario-anual">
+  {% for mes in meses_grade %}
+  <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+    <div class="br-card">
+      <div class="card-header">
+        <h2 class="text-up-01 mb-0"><a href="{% url 'pca:calendario' %}?{{ mes.querystring_abrir }}">{{ mes.rotulo }} {{ exercicio.ano }}</a></h2>
+      </div>
+      <div class="card-content">
+        <div class="br-table small dsgov-calendario">
+          <div class="table-header"></div>
+          <table>
+            <caption>{{ mes.rotulo }} de {{ exercicio.ano }}</caption>
+            <thead>
+              <tr>
+                <th scope="col" abbr="Domingo">D</th>
+                <th scope="col" abbr="Segunda">S</th>
+                <th scope="col" abbr="Terça">T</th>
+                <th scope="col" abbr="Quarta">Q</th>
+                <th scope="col" abbr="Quinta">Q</th>
+                <th scope="col" abbr="Sexta">S</th>
+                <th scope="col" abbr="Sábado">S</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for semana in mes.semanas %}
+              <tr>
+                {% for celula in semana %}
+                <td class="{% if not celula.do_mes %}dsgov-fora-do-mes{% endif %}{% if celula.hoje %} dsgov-hoje{% endif %}">
+                  {% if celula.do_mes and celula.total %}
+                  <a href="{{ celula.url }}" aria-label="{{ celula.data|date:'d/m/Y' }}: {{ celula.total }} processo{{ celula.total|pluralize }}">{{ celula.data.day }}</a>
+                  <div class="text-down-01 dsgov-calendario-itens">
+                    {% for evento in celula.eventos_visiveis %}
+                    <span class="br-tag status {{ evento.classe_condicao }} small" title="{{ evento.rotulo_condicao }}" aria-hidden="true"></span>{% include "pca/_calendario_item.html" with evento=evento %}
+                    {% endfor %}
+                    {% if celula.eventos_ocultos %}<a class="text-down-01" href="{{ celula.url }}">+{{ celula.eventos_ocultos }}</a>{% endif %}
+                  </div>
+                  {% else %}
+                  {{ celula.data.day }}
+                  {% endif %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="br-card mb-4">
+  <div class="card-content">
+    <h2 class="text-up-01 mb-3">{{ sem_mes.rotulo }}</h2>
+    {% for evento in sem_mes.eventos %}
+    <p class="mb-2">
+      <a href="{% url 'pca:detalhe_processo' evento.processo.exercicio.ano evento.processo.item_pca %}"><strong>Item {{ evento.processo.item_pca }}</strong> · {{ evento.processo.descricao_objeto|truncatechars:60 }}</a>
+      {% if evento.processo.estado == "cancelado" %}{% tag_status "Cancelado" "cancelado" %}{% else %}{% tag_status evento.processo.situacao_efetiva|rotulo_situacao evento.processo.situacao_efetiva|classe_situacao %}{% endif %}
+      {% if evento.processo.atrasado %}<span class="text-danger">Atrasado há {{ evento.processo.dias_atraso }} dia{{ evento.processo.dias_atraso|pluralize }}</span>{% endif %}
+    </p>
+    {% empty %}
+    <p class="mb-0">Nenhuma pendência de planejamento.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

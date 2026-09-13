@@ -1,0 +1,14 @@
+{% comment %}kpi = {"rotulo", "valor" (já formatado), "apoio" (texto curto opcional), "icone" (fas fa-*), "url" (opcional)}{% endcomment %}
+<div class="col-sm-6 col-md-3 mb-3">
+  <div class="br-card dsgov-kpi h-100">
+    <div class="card-content">
+      <div class="d-flex align-items-center">
+        <span class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold">{{ kpi.rotulo }}</span>
+        {% if kpi.icone %}<i class="{{ kpi.icone }} ml-auto text-blue-warm-vivid-70" aria-hidden="true"></i>{% endif %}
+      </div>
+      <div class="text-up-03 text-weight-semi-bold text-gray-80 mt-2">{{ kpi.valor }}</div>
+      {% if kpi.apoio %}<div class="text-down-01 text-gray-70 mt-1">{{ kpi.apoio }}</div>{% endif %}
+      {% if kpi.url %}<a class="text-down-01 mt-1" href="{{ kpi.url }}">Ver detalhes <i class="fas fa-angle-right" aria-hidden="true"></i></a>{% endif %}
+    </div>
+  </div>
+</div>

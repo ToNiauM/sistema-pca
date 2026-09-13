@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{# resumo por unidade: matriz de 4 grupos (Previsto/Por tipo/Situação dos ativos/Meta), abas Absolutos/Percentuais renderizadas no servidor #}
+{% load dsgov %}
+{% block titulo %}{{ nome_tela }} — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Resumo por unidade — PCA {{ exercicio.ano|default:"—" }}</h1>
+</div>
+
+<h2 class="text-up-01 mb-3">Resumo por unidade organizacional</h2>
+
+<div class="br-tab" data-counter="false">
+  <nav class="tab-nav" aria-label="Modo da matriz">
+    <ul role="tablist">
+      <li class="tab-item active" role="presentation">
+        <button type="button" class="tab-item" role="tab" id="tab-abs" data-panel="painel-abs" aria-controls="painel-abs" aria-selected="true"><span class="name">Absolutos</span></button>
+      </li>
+      <li class="tab-item" role="presentation">
+        <button type="button" class="tab-item" role="tab" id="tab-pct" data-panel="painel-pct" aria-controls="painel-pct" aria-selected="false"><span class="name">Percentuais</span></button>
+      </li>
+    </ul>
+  </nav>
+  <div class="tab-content">
+    <div class="tab-panel active" id="painel-abs" role="tabpanel" aria-labelledby="tab-abs">
+      <div class="br-table small dsgov-matriz">
+        <div class="table-header"></div>
+        <table>
+          <caption>Resumo por unidade — valores absolutos</caption>
+          <thead>
+            <tr>
+              <th scope="col" rowspan="2" class="dsgov-rotulo-linha">Unidade</th>
+              <th scope="colgroup" colspan="3" class="dsgov-grupo dsgov-separador">Previsto</th>
+              <th scope="colgroup" colspan="4" class="dsgov-grupo dsgov-separador">Por tipo</th>
+              <th scope="colgroup" colspan="4" class="dsgov-grupo dsgov-separador">Situação dos ativos</th>
+              <th scope="colgroup" colspan="2" class="dsgov-grupo dsgov-separador">Meta do PCA</th>
+            </tr>
+            <tr>
+              <th scope="col" class="dsgov-numero dsgov-separador">Total previsto</th>
+              <th scope="col" class="dsgov-numero">Cancelados</th>
+              <th scope="col" class="dsgov-numero dsgov-destaque">Ativos</th>
+              <th scope="col" class="dsgov-numero dsgov-separador"><abbr title="Nova Contratação">NC</abbr></th>
+              <th scope="col" class="dsgov-numero"><abbr title="Renovação">RN</abbr></th>
+              <th scope="col" class="dsgov-numero"><abbr title="Vigente">VG</abbr></th>
+              <th scope="col" class="dsgov-numero">Outros tipos</th>
+              <th scope="col" class="dsgov-numero dsgov-separador">Concluídos</th>
+              <th scope="col" class="dsgov-numero">Em tramitação</th>
+              <th scope="col" class="dsgov-numero">No prazo</th>
+              <th scope="col" class="dsgov-numero">Atrasados</th>
+              <th scope="col" class="dsgov-numero dsgov-separador dsgov-destaque">Meta</th>
+              <th scope="col" class="dsgov-numero">Concluído (meta)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for linha in linhas %}
+            <tr>
+              <th scope="row" class="dsgov-rotulo-linha"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.uo }}" aria-label="{{ linha.uo }} — abrir a tabela filtrada">{{ linha.uo }}</a></th>
+              <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.total_previsto }}" aria-label="{{ linha.uo }}, Total previsto: {{ linha.total_previsto|numero }} — abrir a tabela filtrada">{{ linha.total_previsto|numero }}</a></td>
+              <td class="dsgov-numero text-gray-70"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.cancelados }}" aria-label="{{ linha.uo }}, Cancelados: {{ linha.cancelados|numero }} — abrir a tabela filtrada">{{ linha.cancelados|numero }}</a></td>
+              <td class="dsgov-numero dsgov-destaque"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.ativos }}" aria-label="{{ linha.uo }}, Ativos: {{ linha.ativos|numero }} — abrir a tabela filtrada">{{ linha.ativos|numero }}</a></td>
+              <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.nova }}" aria-label="{{ linha.uo }}, Nova Contratação: {{ linha.nova|numero }} — abrir a tabela filtrada">{{ linha.nova|numero }}</a></td>
+              <td class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.renovacao }}" aria-label="{{ linha.uo }}, Renovação: {{ linha.renovacao|numero }} — abrir a tabela filtrada">{{ linha.renovacao|numero }}</a></td>
+              <td class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.vigente }}" aria-label="{{ linha.uo }}, Vigente: {{ linha.vigente|numero }} — abrir a tabela filtrada">{{ linha.vigente|numero }}</a></td>
+              <td class="dsgov-numero">{{ linha.outros_tipos|numero }}</td>
+              <td class="dsgov-numero dsgov-separador text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.concluido }}" aria-label="{{ linha.uo }}, Concluídos: {{ linha.concluido|numero }} — abrir a tabela filtrada">{{ linha.concluido|numero }}</a></td>
+              <td class="dsgov-numero text-blue-warm-vivid-70">{{ linha.em_tramitacao_ativos|numero }}</td>
+              <td class="dsgov-numero text-green-cool-vivid-50">{{ linha.no_prazo_ativos|numero }}</td>
+              <td class="dsgov-numero text-red-vivid-50">{{ linha.atrasado_ativos|numero }}</td>
+              <td class="dsgov-numero dsgov-separador dsgov-destaque"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.meta }}" aria-label="{{ linha.uo }}, Meta: {{ linha.meta|numero }} — abrir a tabela filtrada">{{ linha.meta|numero }}</a></td>
+              <td class="dsgov-numero text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.concluido_meta }}" aria-label="{{ linha.uo }}, Concluído (meta): {{ linha.concluido_meta|numero }} — abrir a tabela filtrada">{{ linha.concluido_meta|numero }}</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="14">Nenhum processo no recorte atual.</td></tr>
+            {% endfor %}
+          </tbody>
+          {% if linhas %}
+          <tfoot>
+            <tr>
+              <th scope="row" class="dsgov-rotulo-linha">TOTAL</th>
+              <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.total_previsto }}" aria-label="TOTAL, Total previsto: {{ total.total_previsto|numero }} — abrir a tabela filtrada">{{ total.total_previsto|numero }}</a></td>
+              <td class="dsgov-numero text-gray-70"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.cancelados }}" aria-label="TOTAL, Cancelados: {{ total.cancelados|numero }} — abrir a tabela filtrada">{{ total.cancelados|numero }}</a></td>
+              <td class="dsgov-numero dsgov-destaque"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.ativos }}" aria-label="TOTAL, Ativos: {{ total.ativos|numero }} — abrir a tabela filtrada">{{ total.ativos|numero }}</a></td>
+              <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.nova }}" aria-label="TOTAL, Nova Contratação: {{ total.nova|numero }} — abrir a tabela filtrada">{{ total.nova|numero }}</a></td>
+              <td class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.renovacao }}" aria-label="TOTAL, Renovação: {{ total.renovacao|numero }} — abrir a tabela filtrada">{{ total.renovacao|numero }}</a></td>
+              <td class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.vigente }}" aria-label="TOTAL, Vigente: {{ total.vigente|numero }} — abrir a tabela filtrada">{{ total.vigente|numero }}</a></td>
+              <td class="dsgov-numero">{{ total.outros_tipos|numero }}</td>
+              <td class="dsgov-numero dsgov-separador text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.concluido }}" aria-label="TOTAL, Concluídos: {{ total.concluido|numero }} — abrir a tabela filtrada">{{ total.concluido|numero }}</a></td>
+              <td class="dsgov-numero text-blue-warm-vivid-70">{{ total.em_tramitacao_ativos|numero }}</td>
+              <td class="dsgov-numero text-green-cool-vivid-50">{{ total.no_prazo_ativos|numero }}</td>
+              <td class="dsgov-numero text-red-vivid-50">{{ total.atrasado_ativos|numero }}</td>
+              <td class="dsgov-numero dsgov-separador dsgov-destaque"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.meta }}" aria-label="TOTAL, Meta: {{ total.meta|numero }} — abrir a tabela filtrada">{{ total.meta|numero }}</a></td>
+              <td class="dsgov-numero text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.concluido_meta }}" aria-label="TOTAL, Concluído (meta): {{ total.concluido_meta|numero }} — abrir a tabela filtrada">{{ total.concluido_meta|numero }}</a></td>
+            </tr>
+          </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+    <div class="tab-panel" id="painel-pct" role="tabpanel" aria-labelledby="tab-pct">
+      <div class="br-table small dsgov-matriz">
+        <div class="table-header"></div>
+        <table>
+          <caption>Resumo por unidade — valores percentuais</caption>
+          <thead>
+            <tr>
+              <th scope="col" rowspan="2" class="dsgov-rotulo-linha">Unidade</th>
+              <th scope="colgroup" colspan="2" class="dsgov-grupo dsgov-separador">Previsto</th>
+              <th scope="colgroup" colspan="4" class="dsgov-grupo dsgov-separador">Por tipo</th>
+              <th scope="colgroup" colspan="4" class="dsgov-grupo dsgov-separador">Situação dos ativos</th>
+              <th scope="colgroup" colspan="2" class="dsgov-grupo dsgov-separador">Meta do PCA</th>
+            </tr>
+            <tr>
+              <th scope="col" class="dsgov-numero dsgov-separador">Cancelados</th>
+              <th scope="col" class="dsgov-numero dsgov-destaque">Ativos</th>
+              <th scope="col" class="dsgov-numero dsgov-separador"><abbr title="Nova Contratação">NC</abbr></th>
+              <th scope="col" class="dsgov-numero"><abbr title="Renovação">RN</abbr></th>
+              <th scope="col" class="dsgov-numero"><abbr title="Vigente">VG</abbr></th>
+              <th scope="col" class="dsgov-numero">Outros tipos</th>
+              <th scope="col" class="dsgov-numero dsgov-separador">Concluídos</th>
+              <th scope="col" class="dsgov-numero">Em tramitação</th>
+              <th scope="col" class="dsgov-numero">No prazo</th>
+              <th scope="col" class="dsgov-numero">Atrasados</th>
+              <th scope="col" class="dsgov-numero dsgov-separador dsgov-destaque">Meta</th>
+              <th scope="col" class="dsgov-numero">Concluído (meta)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for linha in linhas %}
+            <tr>
+              <th scope="row" class="dsgov-rotulo-linha"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.uo }}" aria-label="{{ linha.uo }} — abrir a tabela filtrada">{{ linha.uo }}</a></th>
+              <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.cancelados }}" aria-label="{{ linha.uo }}, Cancelados: {{ linha.percentual_cancelados|percentual }} — abrir a tabela filtrada">{{ linha.percentual_cancelados|percentual }}</a></td>
+              <td class="dsgov-numero dsgov-destaque"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.ativos }}" aria-label="{{ linha.uo }}, Ativos: {{ linha.percentual_ativos|percentual }} — abrir a tabela filtrada">{{ linha.percentual_ativos|percentual }}</a></td>
+              <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.nova }}" aria-label="{{ linha.uo }}, Nova Contratação: {{ linha.percentual_nova|percentual }} — abrir a tabela filtrada">{{ linha.percentual_nova|percentual }}</a></td>
+              <td class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.renovacao }}" aria-label="{{ linha.uo }}, Renovação: {{ linha.percentual_renovacao|percentual }} — abrir a tabela filtrada">{{ linha.percentual_renovacao|percentual }}</a></td>
+              <td class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.vigente }}" aria-label="{{ linha.uo }}, Vigente: {{ linha.percentual_vigente|percentual }} — abrir a tabela filtrada">{{ linha.percentual_vigente|percentual }}</a></td>
+              <td class="dsgov-numero">{{ linha.percentual_outros_tipos|percentual }}</td>
+              <td class="dsgov-numero dsgov-separador text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.concluido }}" aria-label="{{ linha.uo }}, Concluídos: {{ linha.percentual_concluido|percentual }} — abrir a tabela filtrada">{{ linha.percentual_concluido|percentual }}</a></td>
+              <td class="dsgov-numero text-blue-warm-vivid-70">{{ linha.percentual_em_tramitacao_ativos|percentual }}</td>
+              <td class="dsgov-numero text-green-cool-vivid-50">{{ linha.percentual_no_prazo_ativos|percentual }}</td>
+              <td class="dsgov-numero text-red-vivid-50">{{ linha.percentual_atrasado_ativos|percentual }}</td>
+              <td class="dsgov-numero dsgov-separador dsgov-destaque"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.meta }}" aria-label="{{ linha.uo }}, Meta: {{ linha.percentual_meta|percentual }} — abrir a tabela filtrada">{{ linha.percentual_meta|percentual }}</a></td>
+              <td class="dsgov-numero text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ linha.hrefs.concluido_meta }}" aria-label="{{ linha.uo }}, Concluído (meta): {{ linha.percentual_concluido_meta|percentual }} — abrir a tabela filtrada">{{ linha.percentual_concluido_meta|percentual }}</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="13">Nenhum processo no recorte atual.</td></tr>
+            {% endfor %}
+          </tbody>
+          {% if linhas %}
+          <tfoot>
+            <tr>
+              <th scope="row" class="dsgov-rotulo-linha">TOTAL</th>
+              <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.cancelados }}" aria-label="TOTAL, Cancelados: {{ total.percentual_cancelados|percentual }} — abrir a tabela filtrada">{{ total.percentual_cancelados|percentual }}</a></td>
+              <td class="dsgov-numero dsgov-destaque"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.ativos }}" aria-label="TOTAL, Ativos: {{ total.percentual_ativos|percentual }} — abrir a tabela filtrada">{{ total.percentual_ativos|percentual }}</a></td>
+              <td class="dsgov-numero dsgov-separador"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.nova }}" aria-label="TOTAL, Nova Contratação: {{ total.percentual_nova|percentual }} — abrir a tabela filtrada">{{ total.percentual_nova|percentual }}</a></td>
+              <td class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.renovacao }}" aria-label="TOTAL, Renovação: {{ total.percentual_renovacao|percentual }} — abrir a tabela filtrada">{{ total.percentual_renovacao|percentual }}</a></td>
+              <td class="dsgov-numero"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.vigente }}" aria-label="TOTAL, Vigente: {{ total.percentual_vigente|percentual }} — abrir a tabela filtrada">{{ total.percentual_vigente|percentual }}</a></td>
+              <td class="dsgov-numero">{{ total.percentual_outros_tipos|percentual }}</td>
+              <td class="dsgov-numero dsgov-separador text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.concluido }}" aria-label="TOTAL, Concluídos: {{ total.percentual_concluido|percentual }} — abrir a tabela filtrada">{{ total.percentual_concluido|percentual }}</a></td>
+              <td class="dsgov-numero text-blue-warm-vivid-70">{{ total.percentual_em_tramitacao_ativos|percentual }}</td>
+              <td class="dsgov-numero text-green-cool-vivid-50">{{ total.percentual_no_prazo_ativos|percentual }}</td>
+              <td class="dsgov-numero text-red-vivid-50">{{ total.percentual_atrasado_ativos|percentual }}</td>
+              <td class="dsgov-numero dsgov-separador dsgov-destaque"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.meta }}" aria-label="TOTAL, Meta: {{ total.percentual_meta|percentual }} — abrir a tabela filtrada">{{ total.percentual_meta|percentual }}</a></td>
+              <td class="dsgov-numero text-green-cool-vivid-50"><a href="{% url 'pca:tabela' %}?{{ total.hrefs.concluido_meta }}" aria-label="TOTAL, Concluído (meta): {{ total.percentual_concluido_meta|percentual }} — abrir a tabela filtrada">{{ total.percentual_concluido_meta|percentual }}</a></td>
+            </tr>
+          </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="text-down-01 text-gray-70 mt-2 mb-4">NC = Nova Contratação · RN = Renovação · VG = Vigente</p>
+
+{% include "pca/_resumo_uo_detalhamento.html" %}
+
+<div class="dsgov-nao-imprimir d-flex flex-wrap align-items-center justify-content-between">
+  <p class="text-down-01 text-gray-70 mb-0">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+  <div>
+    <a class="br-button secondary mr-2" href="{% url 'pca:exportar_resumo_uo_xlsx' %}?{{ querystring_filtros }}"><i class="fas fa-file-excel mr-1" aria-hidden="true"></i>Exportar XLSX</a>
+    <button class="br-button secondary mr-2" type="button" onclick="window.print()"><i class="fas fa-print mr-1" aria-hidden="true"></i>Imprimir</button>
+    <a class="br-button secondary" href="{% url 'core:inicio' %}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+  </div>
+</div>
+{% endblock %}

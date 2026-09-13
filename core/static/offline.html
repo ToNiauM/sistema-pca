@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sem conexão · PCA</title>
+<style>
+  /* Autocontido de propósito: o service worker precacheia e serve esta
+     página com zero acesso à rede, sem folha de estilo externa, {% static %}
+     ou imagem. Hex literal inevitável (sem <link>, não há var(--token) para
+     resolver aqui) — mesmos valores do azul e dos tons de superfície/texto
+     do govbr-ds. */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: #f8f8f8;
+    padding-top: 48px;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #333333;
+  }
+  .cartao {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    height: fit-content;
+    margin: 0 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  .cartao-corpo {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #555555;
+    line-height: 1.5;
+  }
+  button {
+    align-self: flex-start;
+    background: #1351b4;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #155bcb;
+  }
+</style>
+</head>
+<body>
+  <div class="cartao">
+    <div class="cartao-corpo">
+      <h1>Sem conexão</h1>
+      <p>Não foi possível carregar esta página porque o dispositivo está sem conexão com a internet. Os dados exibidos aqui não são atualizados automaticamente — tente novamente quando a conexão for restabelecida.</p>
+      <button type="button" onclick="location.reload()">Tentar novamente</button>
+    </div>
+  </div>
+</body>
+</html>

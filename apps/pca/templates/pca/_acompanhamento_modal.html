@@ -1,0 +1,34 @@
+{# modal carregado via hx-get, já chega "active"; sem JS próprio #}
+<div class="br-scrim-util foco active" id="scrim-acompanhamento" data-scrim="true">
+  <div class="br-modal medium" role="dialog" aria-modal="true" aria-labelledby="titulo-acompanhamento">
+    <div class="br-modal-header">
+      <div class="modal-title" id="titulo-acompanhamento">Registrar acompanhamento — Item {{ processo.item_pca }}</div>
+    </div>
+    <div class="br-modal-body">
+      {% if compromisso_vigente %}
+      {# aviso de leitura do compromisso vigente #}
+      <div class="br-message info">
+        <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+        <div class="content" role="alert">
+          <span class="message-title">Prazo atual:</span>
+          <span class="message-body"> {{ compromisso_vigente.frase }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {# form já desenha non_field_errors como br-message danger #}
+      <form method="post" id="form-acompanhamento"
+            action="{% url 'pca:acompanhamento_modal' processo.exercicio.ano processo.item_pca %}"
+            hx-post="{% url 'pca:acompanhamento_modal' processo.exercicio.ano processo.item_pca %}"
+            hx-target="#modal-acompanhamento" hx-swap="innerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="versao" value="{{ versao }}">
+        <input type="hidden" name="querystring_retorno" value="{{ querystring_retorno }}">
+        {{ form }}
+      </form>
+    </div>
+    <div class="br-modal-footer justify-content-end">
+      <a class="br-button secondary" href="{% url 'pca:detalhe_processo' processo.exercicio.ano processo.item_pca %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}">Cancelar</a>
+      <button class="br-button primary ml-2" type="submit" form="form-acompanhamento">Registrar</button>
+    </div>
+  </div>
+</div>

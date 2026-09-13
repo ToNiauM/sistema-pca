@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{# calendário: grade de 7 colunas, controles num form GET só, sem HTMX #}
+{% load dsgov pca_listagem %}
+{% block titulo %}Calendário · PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Calendário — PCA {{ exercicio.ano|default:"—" }}</h1>
+</div>
+
+<form method="get" class="row align-items-end mb-2" aria-label="Controles do calendário">
+  <div class="col-sm-6 col-md-3 mb-3">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="visao_exibicao">Visão</label>
+        <input id="visao_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="visao_mensal" name="visao" type="radio" value="mensal"{% if visao_calendario == "mensal" %} checked="checked"{% endif %}/>
+            <label for="visao_mensal">Mensal</label>
+          </div>
+        </div>
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="visao_anual" name="visao" type="radio" value="anual"{% if visao_calendario == "anual" %} checked="checked"{% endif %}/>
+            <label for="visao_anual">Anual</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if visao_calendario == "mensal" %}
+  <div class="col-sm-6 col-md-3 mb-3">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="mes_exibicao">Mês</label>
+        <input id="mes_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for mes in meses %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="mes_calendario_{{ mes.numero }}" name="mes_calendario" type="radio" value="{{ mes.numero }}"{% if mes.numero == mes_calendario %} checked="checked"{% endif %}/>
+            <label for="mes_calendario_{{ mes.numero }}">{{ mes.rotulo }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if exercicios_disponiveis %}
+  <div class="col-sm-6 col-md-3 mb-3">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="exercicio_exibicao_calendario">Exercício</label>
+        <input id="exercicio_exibicao_calendario" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for ex in exercicios_disponiveis %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="exercicio_{{ ex.ano }}" name="exercicio" type="radio" value="{{ ex.ano }}"{% if exercicio and ex.ano == exercicio.ano %} checked="checked"{% endif %}/>
+            <label for="exercicio_{{ ex.ano }}">{{ ex.ano }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-sm-6 col-md-3 mb-3">
+    <div class="br-select" multiple="multiple">
+      <div class="br-input">
+        <label for="situacao_calendario_exibicao">Situação</label>
+        <input id="situacao_calendario_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        <div class="br-item highlighted" data-all="data-all" tabindex="-1">
+          <div class="br-checkbox">
+            <input id="condicao_legenda_todos" name="condicao_legenda_todos" type="checkbox"/>
+            <label for="condicao_legenda_todos">Selecionar todos</label>
+          </div>
+        </div>
+        {% for item in condicoes_calendario %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-checkbox">
+            <input id="condicao_legenda_{{ forloop.counter }}" name="condicao_legenda" type="checkbox" value="{{ item.token }}"{% if item.marcado %} checked="checked"{% endif %}/>
+            <label for="condicao_legenda_{{ forloop.counter }}">{{ item.rotulo }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% for chave, valor in filtros_ocultos_calendario %}<input type="hidden" name="{{ chave }}" value="{{ valor }}">{% endfor %}
+
+  <div class="col-12 mb-3">
+    <button class="br-button" type="submit">Aplicar</button>
+  </div>
+</form>
+
+<div class="d-flex flex-wrap align-items-center mb-4" aria-label="Legenda de condições">
+  {% for item in condicoes_calendario %}
+  <span class="br-tag status {{ item.classe }} small mr-1" title="{{ item.rotulo }}" aria-hidden="true"></span>
+  <span class="mr-3 text-down-01">{{ item.rotulo }}</span>
+  {% endfor %}
+</div>
+
+{% include "pca/_calendario_grade.html" %}
+
+<div class="dsgov-nao-imprimir mt-4">
+  <a class="br-button secondary" href="{% url 'core:inicio' %}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+</div>
+{% endblock %}

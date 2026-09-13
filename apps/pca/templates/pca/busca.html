@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{# busca global: todos os exercícios (ou um só, se exercicio= vier explícito); sem HTMX, recarga inteira #}
+{% load dsgov %}
+{% block titulo %}Busca{% if termo %} · {{ termo }}{% endif %}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Busca</h1>
+  <p class="text-gray-70 mb-0">Pesquisa em todos os exercícios do PCA.</p>
+</div>
+
+<form method="get" class="row align-items-end mb-4" aria-label="Formulário de busca">
+  <div class="col-12 col-md-6 mb-3">
+    <div class="br-input">
+      <label for="busca-resultado-q">Termo</label>
+      <input id="busca-resultado-q" type="text" name="q" value="{{ termo }}" maxlength="200"
+             placeholder="Item, objeto, unidade, valor, data, situação...">
+    </div>
+  </div>
+  {% if exercicios_disponiveis %}
+  <div class="col-12 col-md-4 mb-3">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="exercicio_exibicao_busca">Exercício</label>
+        <input id="exercicio_exibicao_busca" type="text" placeholder="Todos os exercícios" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="exercicio_busca_todos" name="exercicio" type="radio" value=""{% if not exercicio_selecionado %} checked="checked"{% endif %}/>
+            <label for="exercicio_busca_todos">Todos os exercícios</label>
+          </div>
+        </div>
+        {% for ex in exercicios_disponiveis %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="exercicio_busca_{{ ex.ano }}" name="exercicio" type="radio" value="{{ ex.ano }}"{% if exercicio_selecionado and ex.ano == exercicio_selecionado.ano %} checked="checked"{% endif %}/>
+            <label for="exercicio_busca_{{ ex.ano }}">{{ ex.ano }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="col-12 col-md-2 mb-3">
+    <button class="br-button primary" type="submit"><i class="fas fa-search mr-1" aria-hidden="true"></i>Pesquisar</button>
+  </div>
+</form>
+
+{% for aviso in avisos %}
+<div class="br-message warning mb-3">
+  <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert"><span class="message-body">{{ aviso }}</span></div>
+</div>
+{% endfor %}
+
+{% if not termo %}
+<div class="br-message info">
+  <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Digite um termo para pesquisar.</span>
+    <span class="message-body">A busca cobre item, descrição, unidade, valores, datas, situação e demais campos do processo, em todos os exercícios.</span>
+  </div>
+</div>
+{% elif not pagina.object_list %}
+<div class="br-message info">
+  <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Nenhum processo encontrado para "{{ termo }}".</span>
+  </div>
+</div>
+{% else %}
+<div class="br-table small">
+  <div class="table-header">
+    <div class="top-bar">
+      <div class="table-title">{{ total_encontrado }} processo{{ total_encontrado|pluralize }} encontrado{{ total_encontrado|pluralize }}</div>
+    </div>
+  </div>
+  <div class="responsive">
+  <table>
+    <caption>Resultados da busca por "{{ termo }}"</caption>
+    <thead>
+      <tr>
+        <th scope="col">Exercício</th>
+        <th scope="col">Item</th>
+        <th scope="col">Objeto</th>
+        <th scope="col">Unidade</th>
+        <th scope="col">Situação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in pagina.object_list %}
+      <tr>
+        <td data-th="Exercício">{{ p.exercicio.ano }}</td>
+        <td data-th="Item"><a href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}">{{ p.item_pca }}</a></td>
+        <td data-th="Objeto">{{ p.descricao_objeto|truncatechars:120 }}</td>
+        <td data-th="Unidade">{{ p.unidade_organizacional.nome|ou_traco }}</td>
+        <td data-th="Situação">{% include "pca/_tabela_situacao.html" %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% if pagina.paginator.num_pages > 1 %}
+  <div class="table-footer">
+    <nav class="br-pagination" aria-label="Paginação da busca">
+      <ul class="d-flex flex-wrap">
+        {% for numero_pagina in pagina.paginator.page_range %}
+        <li class="mr-1"><a class="page{% if numero_pagina == pagina.number %} active{% endif %}" href="{% url_com pagina=numero_pagina %}" aria-current="{% if numero_pagina == pagina.number %}page{% else %}false{% endif %}">{{ numero_pagina }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

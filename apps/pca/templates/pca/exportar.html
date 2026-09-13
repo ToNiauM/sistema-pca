@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{# exportar processos: filtros hidden só para transparência; POST responde com o arquivo direto #}
+{% block titulo %}Exportar processos{% endblock %}
+{% block conteudo %}
+<div class="d-flex align-items-center mb-4">
+  <h1 class="mb-0">Exportar processos</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <form method="post" action="{% url 'pca:exportar' %}{% if querystring_filtros %}?{{ querystring_filtros }}{% endif %}">
+      {% csrf_token %}
+      {% for chave, valor in filtros_hidden %}
+        <input type="hidden" name="{{ chave }}" value="{{ valor }}">
+      {% endfor %}
+      {{ form }}
+      {% include "dsgov/_acoes_formulario.html" %}
+    </form>
+  </div>
+</div>
+{% endblock %}

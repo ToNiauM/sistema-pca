@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{# criar reunião; sucesso redireciona para pca:reuniao_listagem #}
+{% block titulo %}Nova reunião{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Nova reunião</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form }}
+      <div class="dsgov-acoes-formulario">
+        <a class="br-button" href="{% url 'pca:reuniao_listagem' %}">Cancelar</a>
+        <button class="br-button primary" type="submit"><i class="fas fa-save mr-1" aria-hidden="true"></i>Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

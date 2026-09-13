@@ -1,0 +1,8 @@
+{# badge de situação: cancelado sobrepõe tudo; sobrestado soma uma segunda tag #}
+{% load dsgov pca_listagem %}
+{% if p.estado == "cancelado" %}
+{% tag_status "Cancelado" "cancelado" %}
+{% else %}
+{% tag_status p.situacao_efetiva|rotulo_situacao p.situacao_efetiva|classe_situacao %}
+{% endif %}
+{% if p.sobrestado %}{% tag_status "Sobrestado" "alerta" %}{% endif %}

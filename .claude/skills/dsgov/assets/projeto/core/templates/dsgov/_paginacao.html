@@ -1,0 +1,45 @@
+{% load dsgov %}
+<nav class="br-pagination" aria-label="paginação" data-total="{{ total }}" data-current="{{ pagina.number }}" data-per-page="{{ por_pagina }}">
+  <div class="pagination-per-page">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="por-pagina-exibicao">Exibir</label>
+        <input id="por-pagina-exibicao" type="text" placeholder=" " autocomplete="off"/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for opcao in opcoes_por_pagina %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="por-pagina-{{ opcao }}" type="radio" name="por_pagina_opcao" value="{{ opcao }}"{% if opcao == por_pagina %} checked="checked"{% endif %}
+                   hx-get="{% url_com por_pagina=opcao pagina=None %}" hx-params="none" hx-target="{{ alvo }}" hx-push-url="true" hx-trigger="change"/>
+            <label for="por-pagina-{{ opcao }}">{{ opcao }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <span class="br-divider d-none d-sm-block mx-3"></span>
+  <div class="pagination-information d-none d-sm-flex"><span class="current">{{ inicio }}</span>&ndash;<span class="per-page">{{ fim }}</span>&nbsp;de&nbsp;<span class="total">{{ total }}</span>&nbsp;{% if total == 1 %}item{% else %}itens{% endif %}</div>
+  <div class="pagination-arrows ml-auto">
+    {% if pagina.has_previous %}
+    <a class="br-button circle" href="{% url_com pagina=pagina.previous_page_number %}" hx-get="{% url_com pagina=pagina.previous_page_number %}" hx-target="{{ alvo }}" hx-push-url="true" aria-label="Voltar página"><i class="fas fa-angle-left" aria-hidden="true"></i></a>
+    {% else %}
+    <button class="br-button circle" type="button" disabled aria-label="Voltar página"><i class="fas fa-angle-left" aria-hidden="true"></i></button>
+    {% endif %}
+    <ul class="d-none d-md-flex">
+      {% for p in paginas %}
+        {% if p == reticencias %}<li class="pagination-ellipsis"><button class="br-button circle" type="button" disabled aria-hidden="true"><i class="fas fa-ellipsis-h" aria-hidden="true"></i></button></li>
+        {% elif p == pagina.number %}<li><a class="page active" aria-label="Página {{ p }}" aria-current="page" href="{% url_com pagina=p %}">{{ p }}</a></li>
+        {% else %}<li><a class="page" aria-label="Página {{ p }}" href="{% url_com pagina=p %}" hx-get="{% url_com pagina=p %}" hx-target="{{ alvo }}" hx-push-url="true">{{ p }}</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+    {% if pagina.has_next %}
+    <a class="br-button circle" href="{% url_com pagina=pagina.next_page_number %}" hx-get="{% url_com pagina=pagina.next_page_number %}" hx-target="{{ alvo }}" hx-push-url="true" aria-label="Página seguinte"><i class="fas fa-angle-right" aria-hidden="true"></i></a>
+    {% else %}
+    <button class="br-button circle" type="button" disabled aria-label="Página seguinte"><i class="fas fa-angle-right" aria-hidden="true"></i></button>
+    {% endif %}
+  </div>
+</nav>

@@ -1,0 +1,87 @@
+{# tabela de processos: exportar XLSX + seletor de colunas ficam dentro de #listagem (senão perdem o filtro atual no swap HTMX) #}
+{% load dsgov pca_listagem %}
+<div class="d-flex justify-content-end mb-2">
+  <a class="br-button secondary small"
+     href="{% url 'pca:exportar_xlsx' %}?{{ querystring_filtros }}{% for chave in colunas_selecionadas %}&colunas={{ chave }}{% endfor %}">
+    <i class="fas fa-file-excel mr-1" aria-hidden="true"></i>Exportar XLSX
+  </a>
+</div>
+<div class="br-accordion mb-3" id="acordeao-colunas">
+  <div class="item">
+    <button class="header" type="button" aria-controls="acordeao-colunas-conteudo" aria-expanded="false">
+      <span class="icon"><i class="fas fa-angle-down" aria-hidden="true"></i></span>
+      <span class="title">Colunas</span>
+    </button>
+  </div>
+  <div class="content" id="acordeao-colunas-conteudo">
+    <form id="form-colunas" hx-get="{% url 'pca:tabela' %}" hx-target="#listagem"
+          hx-push-url="true" hx-include="#filtros-processos">
+      <input type="hidden" name="exercicio" value="{{ exercicio.ano }}">
+      {% for secao_nome, colunas_secao in colunas_por_secao %}
+      <fieldset class="mb-3">
+        <legend>{{ secao_nome }}</legend>
+        <div class="row">
+          {% for col in colunas_secao %}
+          <div class="col-12 col-md-6 col-lg-4 mb-2">
+            <div class="br-checkbox{% if col.chave in colunas_obrigatorias %} disabled{% endif %}">
+              <input id="coluna-{{ col.chave }}" name="colunas" type="checkbox" value="{{ col.chave }}"
+                     {% if col.chave in colunas_selecionadas %}checked="checked"{% endif %}
+                     {% if col.chave in colunas_obrigatorias %}disabled="disabled"{% endif %}>
+              <label for="coluna-{{ col.chave }}">{{ col.rotulo }}</label>
+            </div>
+            {% if col.chave in colunas_obrigatorias %}
+            <input type="hidden" name="colunas" value="{{ col.chave }}">
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endfor %}
+      <button class="br-button secondary small mr-2" type="submit">Aplicar colunas</button>
+      <a class="br-button small" href="{% url 'pca:tabela' %}?{{ querystring_colunas_padrao }}"
+         hx-get="{% url 'pca:tabela' %}?{{ querystring_colunas_padrao }}"
+         hx-target="#listagem" hx-push-url="true">Restaurar padrão</a>
+    </form>
+  </div>
+</div>
+{% if pagina.object_list %}
+<div class="br-table small">
+  <div class="table-header">
+    <div class="top-bar">
+      <div class="table-title">{{ pagina.paginator.count }} processo{{ pagina.paginator.count|pluralize }}</div>
+    </div>
+  </div>
+  <div class="responsive">
+  <table>
+    <caption>Processos do PCA {{ exercicio.ano }}</caption>
+    <thead>
+      <tr>
+        {% for cab in cabecalhos_dinamicos %}
+        <th scope="col"{% if cab.tipo == "numero" or cab.tipo == "moeda" %} class="dsgov-numero"{% endif %}>
+          {% if cab.ordenavel %}{% ordenar_por_tabela cab.chave cab.rotulo %}{% else %}{{ cab.rotulo }}{% endif %}
+        </th>
+        {% endfor %}
+        <th scope="col">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in pagina.object_list %}
+        {% include "pca/_tabela_linha.html" %}
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="table-footer">
+    {% paginacao pagina "#listagem" %}
+  </div>
+</div>
+<p class="text-down-01 text-gray-70 mt-2">Soma do valor estimado (resultado filtrado): <strong>{{ soma_filtrada|moeda }}</strong></p>
+{% else %}
+<div class="br-message info">
+  <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Nenhum processo com esses filtros.</span>
+    <span class="message-body">A combinação atual não retorna nenhum dos {{ total_geral }} processos do PCA {{ exercicio.ano }}. Remova um filtro para ampliar o resultado.</span>
+  </div>
+</div>
+{% endif %}

@@ -1,0 +1,29 @@
+{% comment %}par = {"titulo", "subtitulo" (opcional), "grafico": {mesmo contrato de opcoes/id/resumo/alto de _grafico_card.html, SEM "tabela" nem "acoes"}, "tabela": core.graficos.tabela_dados(colunas, linhas)}. Aceita col_grafico/col_tabela opcionais via {% include ... with col_grafico="col-lg-5" col_tabela="col-lg-7" %} — default col-md-6 nos dois, sempre com col-12 no mobile (empilha < 992, lado a lado >= 992, D-28-13). A tabela é SEMPRE visível — nunca br-accordion (D-28-14); _grafico_card.html continua sendo o card de "Ver dados" recolhido para os demais usos.{% endcomment %}
+<div class="br-card mb-4">
+  <div class="card-header">
+    <div class="text-weight-semi-bold text-up-01">{{ par.titulo }}</div>
+    {% if par.subtitulo %}<div class="text-down-01 text-gray-70">{{ par.subtitulo }}</div>{% endif %}
+  </div>
+  <div class="card-content">
+    <div class="row">
+      <div class="col-12 {{ col_grafico|default:'col-md-6' }} mb-3">
+        {{ par.grafico.opcoes|json_script:par.grafico.id }}
+        <div class="{% if par.grafico.alto %}dsgov-grafico-alto{% else %}dsgov-grafico{% endif %}" data-grafico="{{ par.grafico.id }}" role="img" aria-label="{{ par.grafico.resumo }}"></div>
+      </div>
+      <div class="col-12 {{ col_tabela|default:'col-md-6' }} mb-3">
+        <div class="br-table small">
+          <div class="table-header"></div>
+          <table>
+            <caption class="sr-only">{{ par.titulo }} — dados</caption>
+            <thead><tr>{% for c in par.tabela.colunas %}<th scope="col"{% if not forloop.first %} class="dsgov-numero"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+            <tbody>
+              {% for linha in par.tabela.linhas %}
+              <tr>{% for cel in linha %}<td{% if not forloop.first %} class="dsgov-numero"{% endif %} data-th="{{ par.tabela.colunas|slice:forloop.counter|last }}">{% if cel.url %}<a href="{{ cel.url }}">{{ cel.valor }}</a>{% else %}{{ cel.valor }}{% endif %}</td>{% endfor %}</tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

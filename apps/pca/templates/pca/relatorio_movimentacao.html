@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{# relatório de movimentação entre duas datas; filtros por GET, recarga inteira #}
+{% load dsgov static %}
+{% block titulo %}{{ titulo_arquivo }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Relatório de Acompanhamento do Plano de Contratações Anual</h1>
+</div>
+
+<div class="dsgov-nao-imprimir">
+  <form method="get" class="row align-items-end mb-2" aria-label="Filtros do relatório de movimentação">
+    {% if exercicios_disponiveis %}
+    <div class="col-sm-6 col-md-3 mb-3">
+      <div class="br-select">
+        <div class="br-input">
+          <label for="exercicio_exibicao_relatorio">Exercício</label>
+          <input id="exercicio_exibicao_relatorio" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+          <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+        </div>
+        <div class="br-list" tabindex="0">
+          {% for ex in exercicios_disponiveis %}
+          <div class="br-item" tabindex="-1">
+            <div class="br-radio">
+              <input id="exercicio_relatorio_{{ ex.ano }}" name="exercicio" type="radio" value="{{ ex.ano }}"{% if exercicio and ex.ano == exercicio.ano %} checked="checked"{% endif %}/>
+              <label for="exercicio_relatorio_{{ ex.ano }}">{{ ex.ano }}</label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if reunioes %}
+    <div class="col-sm-6 col-md-3 mb-3">
+      <div class="br-select">
+        <div class="br-input">
+          <label for="reuniao_exibicao_relatorio">Reunião</label>
+          <input id="reuniao_exibicao_relatorio" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+          <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+        </div>
+        <div class="br-list" tabindex="0">
+          {% for item in reunioes %}
+          <div class="br-item" tabindex="-1">
+            <div class="br-radio">
+              <input id="reuniao_relatorio_{{ item.pk }}" name="reuniao" type="radio" value="{{ item.pk }}"{% if item.pk|stringformat:"s" == reuniao_selecionada_id %} checked="checked"{% endif %}/>
+              <label for="reuniao_relatorio_{{ item.pk }}">Reunião de {{ item.data|data_br }}</label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="col-sm-6 col-md-2 mb-3">
+      <div class="br-input">
+        <label for="de">De</label>
+        <input id="de" type="date" name="de" value="{{ de|date:'Y-m-d' }}"/>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-2 mb-3">
+      <div class="br-input">
+        <label for="ate">Até</label>
+        <input id="ate" type="date" name="ate" value="{{ ate|date:'Y-m-d' }}"/>
+      </div>
+    </div>
+
+    <div class="col-12 mb-3">
+      <button class="br-button" type="submit">Aplicar filtro</button>
+    </div>
+  </form>
+</div>
+
+{% if relatorio is None %}
+<div class="br-message warning">
+  <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Nenhum exercício cadastrado.</span>
+  </div>
+</div>
+{% else %}
+
+<div class="dsgov-relatorio-timbrado">
+  {% if DSGOV.LOGO %}<img src="{% static DSGOV.LOGO %}" alt=""/>{% endif %}
+  <span>{{ orgao }}</span>
+</div>
+
+<template id="relatorio-corpo-copiavel">{% include "pca/_relatorio_movimentacao_corpo.html" with relatorio=relatorio %}</template>
+
+<div class="dsgov-relatorio">
+  <p>Movimentação do PCA {{ relatorio.exercicio.ano }} entre {{ relatorio.de|data_br }} e {{ relatorio.ate|data_br }}.</p>
+
+  {% for bloco in relatorio.blocos %}
+  <div class="br-card mb-4">
+    <div class="card-content">
+      <h2 class="text-up-01 mb-3">{{ bloco.titulo }}</h2>
+      {% if bloco.itens %}
+      <div class="br-table small">
+        <div class="table-header"></div>
+        <table>
+          <caption class="sr-only">{{ bloco.titulo }}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">Descrição</th>
+              <th scope="col">Unidade</th>
+              <th scope="col">Movimentação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in bloco.itens %}
+            <tr>
+              <td data-th="Item"><a href="{% url 'pca:detalhe_processo' item.processo.exercicio.ano item.processo.item_pca %}">{{ item.processo.item_pca }}</a></td>
+              <td data-th="Descrição">{{ item.processo.descricao_objeto|truncatechars:60 }}</td>
+              <td data-th="Unidade">{{ item.processo.unidade_organizacional.nome }}</td>
+              <td data-th="Movimentação">
+                {{ item.frase_principal }}{% if item.automatico %} <span class="br-tag small">automático</span>{% endif %}
+                {% if item.frases_extra %}
+                <ul class="text-down-01 mb-0">
+                  {% for frase in item.frases_extra %}<li>{{ frase }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if bloco.soma_valor is not None %}
+      <p class="text-up-01 mb-0 mt-2"><strong>Total: {{ bloco.soma_valor|moeda }}</strong></p>
+      {% endif %}
+      {% else %}
+      <p>{{ bloco.mensagem_vazio }}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="text-down-01 text-gray-70 mb-3">
+  <p class="mb-0">Gerado em {{ relatorio.gerado_em|data_br }} por {{ relatorio.gerado_por }}</p>
+  <p class="mb-0">{{ DSGOV.RODAPE_TIMBRADO }}</p>
+</div>
+
+<div class="dsgov-nao-imprimir d-flex flex-wrap align-items-center justify-content-end">
+  <div>
+    <button class="br-button secondary mr-2" type="button" onclick="copiarRelatorio()"><i class="fas fa-copy mr-1" aria-hidden="true"></i>Copiar relatório</button>
+    <button class="br-button secondary mr-2" type="button" onclick="window.print()"><i class="fas fa-print mr-1" aria-hidden="true"></i>Imprimir / salvar PDF</button>
+    <a class="br-button secondary" href="{% url 'core:inicio' %}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copiarRelatorio() {
+  var modelo = document.getElementById("relatorio-corpo-copiavel");
+  if (!modelo) {
+    return;
+  }
+  var fragmento = modelo.content.cloneNode(true);
+  var envoltorio = document.createElement("div");
+  envoltorio.appendChild(fragmento);
+  var html = envoltorio.innerHTML;
+  var texto = envoltorio.textContent.replace(/\n{2,}/g, "\n\n").trim();
+
+  function avisarSucesso() {
+    window.alert("Relatório copiado.");
+  }
+
+  function exibirFragmentoSelecionavel() {
+    var anterior = document.getElementById("relatorio-corpo-copiavel-visivel");
+    if (anterior) {
+      anterior.parentNode.removeChild(anterior);
+    }
+    var visivel = document.createElement("div");
+    visivel.id = "relatorio-corpo-copiavel-visivel";
+    visivel.appendChild(modelo.content.cloneNode(true));
+    document.body.appendChild(visivel);
+    window.alert(
+      "Não foi possível copiar automaticamente. Selecione o conteúdo " +
+      "abaixo com Ctrl+A (ou Cmd+A) e copie com Ctrl+C."
+    );
+    var selecao = window.getSelection();
+    var intervalo = document.createRange();
+    intervalo.selectNodeContents(visivel);
+    selecao.removeAllRanges();
+    selecao.addRange(intervalo);
+    visivel.scrollIntoView();
+  }
+
+  function copiarSoTexto() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto).then(avisarSucesso, exibirFragmentoSelecionavel);
+    } else {
+      exibirFragmentoSelecionavel();
+    }
+  }
+
+  if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+    var item = new ClipboardItem({
+      "text/html": new Blob([html], {type: "text/html"}),
+      "text/plain": new Blob([texto], {type: "text/plain"})
+    });
+    navigator.clipboard.write([item]).then(avisarSucesso, copiarSoTexto);
+  } else {
+    copiarSoTexto();
+  }
+}
+</script>
+{% endblock %}

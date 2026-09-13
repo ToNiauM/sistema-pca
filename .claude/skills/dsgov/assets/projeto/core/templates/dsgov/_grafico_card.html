@@ -1,0 +1,42 @@
+{% comment %}grafico = {"id", "titulo", "subtitulo", "opcoes" (dict ECharts), "resumo" (aria-label), "alto" (bool), "col" (default col-md-6), "tabela" (opcional, core.graficos.tabela_dados — vira "Ver dados" recolhido), "acoes" (opcional: HTML de um form GET já renderizado à direita do título)}{% endcomment %}
+<div class="{{ grafico.col|default:'col-sm-12 col-md-6' }} mb-3">
+  <div class="br-card h-100">
+    <div class="card-header">
+      <div class="d-flex align-items-center">
+        <div>
+          <div class="text-weight-semi-bold text-up-01">{{ grafico.titulo }}</div>
+          {% if grafico.subtitulo %}<div class="text-down-01 text-gray-70">{{ grafico.subtitulo }}</div>{% endif %}
+        </div>
+        {% if grafico.acoes %}<div class="ml-auto">{{ grafico.acoes }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="card-content">
+      {{ grafico.opcoes|json_script:grafico.id }}
+      <div class="{% if grafico.alto %}dsgov-grafico-alto{% else %}dsgov-grafico{% endif %}" data-grafico="{{ grafico.id }}" role="img" aria-label="{{ grafico.resumo }}"></div>
+      {% if grafico.tabela %}
+      <div class="br-accordion mt-2" id="acc-{{ grafico.id }}">
+        <div class="item">
+          <button class="header" type="button" aria-controls="acc-{{ grafico.id }}-dados" aria-expanded="false">
+            <span class="icon"><i class="fas fa-angle-down" aria-hidden="true"></i></span>
+            <span class="title">Ver dados</span>
+          </button>
+        </div>
+        <div class="content" id="acc-{{ grafico.id }}-dados">
+          <div class="br-table small">
+            <div class="table-header"></div>
+            <table>
+              <caption class="sr-only">{{ grafico.titulo }} — dados</caption>
+              <thead><tr>{% for c in grafico.tabela.colunas %}<th scope="col"{% if not forloop.first %} class="dsgov-numero"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+              <tbody>
+                {% for linha in grafico.tabela.linhas %}
+                <tr>{% for cel in linha %}<td{% if not forloop.first %} class="dsgov-numero"{% endif %} data-th="{{ grafico.tabela.colunas|slice:forloop.counter|last }}">{% if cel.url %}<a href="{{ cel.url }}">{{ cel.valor }}</a>{% else %}{{ cel.valor }}{% endif %}</td>{% endfor %}</tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+{% load dsgov %}
+{# fragmento cru para colar no SEI: tags HTML puras, sem style; esta tabela não usa br-table de propósito #}
+<h2>Relatório de Acompanhamento do Plano de Contratações Anual</h2>
+<p><strong>Movimentação do PCA {{ relatorio.exercicio.ano }} entre {{ relatorio.de|data_br }} e {{ relatorio.ate|data_br }}.</strong></p>
+{% for bloco in relatorio.blocos %}
+<h3>{{ bloco.titulo }}</h3>
+{% if bloco.itens %}
+<table>
+<thead>
+<tr><th>Item</th><th>Descrição</th><th>Unidade</th><th>Movimentação</th></tr>
+</thead>
+<tbody>
+{% for item in bloco.itens %}
+<tr>
+<td>{{ item.processo.item_pca }}</td>
+<td>{{ item.processo.descricao_objeto }}</td>
+<td>{{ item.processo.unidade_organizacional.nome }}</td>
+<td>{{ item.frase_principal }}{% if item.automatico %} <strong>(automático)</strong>{% endif %}{% if item.frases_extra %}<ul>{% for f in item.frases_extra %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% if bloco.soma_valor is not None %}
+<p><strong>Total: {{ bloco.soma_valor|moeda }}</strong></p>
+{% endif %}
+{% else %}
+<p>{{ bloco.mensagem_vazio }}</p>
+{% endif %}
+{% endfor %}

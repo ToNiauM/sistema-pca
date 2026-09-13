@@ -1,0 +1,40 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block titulo %}{{ titulo|default:DSGOV.SISTEMA }}{% endblock %} — {{ DSGOV.SISTEMA }}</title>
+  <meta name="theme-color" content="#1351b4"/>
+  <link rel="stylesheet" href="{% static 'dsgov/css/fontes.css' %}"/>
+  <link rel="stylesheet" href="{% static 'dsgov/vendor/govbr-ds/core.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'dsgov/vendor/fontawesome/css/all.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'dsgov/css/dsgov.css' %}"/>
+  {% block head %}{% endblock %}
+</head>
+<body>
+<div class="template-base">
+  {% include "dsgov/_skiplink.html" %}
+  {% include "dsgov/_header.html" %}
+  <main class="d-flex flex-fill mb-5" id="main">
+    <div class="container-lg d-flex">
+      <div class="row">
+        {% include "dsgov/_menu.html" %}
+        <div class="col mb-5">
+          {% include "dsgov/_breadcrumb.html" %}
+          <div class="main-content pl-sm-3 mt-4" id="main-content">
+            {% include "dsgov/_mensagens.html" %}
+            {% block conteudo %}{% endblock %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  {% include "dsgov/_footer.html" %}
+  <div class="br-cookiebar default d-none" tabindex="-1"></div>
+</div>
+<script src="{% static 'dsgov/vendor/govbr-ds/core.min.js' %}"></script>
+<script src="{% static 'dsgov/vendor/htmx/htmx.min.js' %}"></script>
+<script src="{% static 'dsgov/js/dsgov.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

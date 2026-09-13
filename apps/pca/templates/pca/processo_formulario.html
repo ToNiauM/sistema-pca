@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{# criar e editar processo, mesmo template; criação usa {{ form }} direto, edição agrupa por fieldset #}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex align-items-center mb-4">
+  <h1 class="mb-0">{{ titulo }}</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    {% if secoes_form and form.non_field_errors %}
+    {# erro geral reproduzido aqui porque {{ form }} não é chamado com fieldsets #}
+    <div class="br-message danger mb-3">
+      <div class="icon"><i class="fas fa-times-circle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">Corrija os erros abaixo.</span>
+        <span class="message-body">{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+      </div>
+    </div>
+    {% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if processo %}<input type="hidden" name="versao" value="{{ versao }}">{% endif %}
+      <input type="hidden" name="querystring_retorno" value="{{ querystring_retorno }}">
+      {% if secoes_form %}
+      {% if formset %}{{ formset.management_form }}{% endif %}
+      {% for secao in secoes_form %}
+      <fieldset class="mb-4">
+        <legend>{{ secao.titulo }}</legend>
+        <div class="row">
+          {% for campo in secao.campos %}
+          <div class="{{ campo.field.widget.attrs.col|default:'col-12' }} mb-3">{{ campo.as_field_group }}</div>
+          {% endfor %}
+        </div>
+        {% if secao.titulo == "Processo" and formset %}
+        {# números SEI editam dentro deste fieldset, persistem junto com o Salvar do processo #}
+        <div class="mt-3">
+          <p class="label mb-2">Números SEI</p>
+          {% if formset.non_form_errors %}
+          <div class="br-message danger mb-3">
+            <div class="icon"><i class="fas fa-times-circle fa-lg" aria-hidden="true"></i></div>
+            <div class="content" role="alert">
+              <span class="message-title">Corrija os números SEI duplicados.</span>
+              <span class="message-body">{% for erro in formset.non_form_errors %}{{ erro }} {% endfor %}</span>
+            </div>
+          </div>
+          {% endif %}
+          <div class="br-table">
+            <div class="table-header"></div>
+            <table>
+              <caption class="sr-only">Números SEI do processo</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Nº do processo SEI</th>
+                  <th scope="col">Excluir</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sei_form in formset %}
+                <tr>
+                  <td data-th="Nº do processo SEI">
+                    {{ sei_form.id }}
+                    {% if sei_form.non_field_errors %}
+                    <span class="feedback danger mt-1" role="alert"><i class="fas fa-times-circle" aria-hidden="true"></i>{% for erro in sei_form.non_field_errors %}{{ erro }} {% endfor %}</span>
+                    {% endif %}
+                    {{ sei_form.numero_sei.as_field_group }}
+                  </td>
+                  <td data-th="Excluir">{{ sei_form.DELETE.as_field_group }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+      </fieldset>
+      {% endfor %}
+      {% for campo in form.hidden_fields %}{{ campo }}{% endfor %}
+      {% else %}
+      {{ form }}
+      {% endif %}
+      {% include "dsgov/_acoes_formulario.html" %}
+    </form>
+  </div>
+</div>
+{% endblock %}

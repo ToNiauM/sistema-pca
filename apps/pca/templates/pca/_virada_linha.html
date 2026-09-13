@@ -1,0 +1,23 @@
+{% load dsgov %}
+<tr>
+  {% if modo == "selecionar" %}
+  <td>
+    <div class="br-checkbox hidden-label">
+      <input id="item-{{ linha.processo_origem.item_pca }}" name="selecionados" type="checkbox" value="{{ linha.processo_origem.item_pca }}" aria-label="Selecionar item {{ linha.processo_origem.item_pca }}"{% if linha.selecionado %} checked="checked"{% endif %}>
+      <label for="item-{{ linha.processo_origem.item_pca }}">Selecionar item {{ linha.processo_origem.item_pca }}</label>
+    </div>
+    <input type="hidden" name="item_pagina" value="{{ linha.processo_origem.item_pca }}">
+  </td>
+  {% endif %}
+  <td data-th="Item">{{ linha.processo_origem.item_pca }}</td>
+  <td data-th="Descrição">{{ linha.processo_origem.descricao_objeto|truncatechars:60 }}</td>
+  <td data-th="UO">{{ linha.processo_origem.unidade_organizacional.nome }}</td>
+  <td data-th="Valor estimado" class="dsgov-numero">{{ linha.valor_estimado_editado|moeda }}</td>
+  <td data-th="Mês previsto">{{ linha.mes_previsto_editado|default_if_none:"—" }}</td>
+  <td data-th="Situação origem">{{ linha.processo_origem.get_situacao_display }}</td>
+  {% if modo == "ajustar" %}
+  <td data-th="Ações" class="dsgov-acoes">
+    <a class="br-button circle small" href="{% url 'pca:virada_item_editar' linha.rascunho.ano_destino linha.processo_origem.item_pca %}" aria-label="Editar item {{ linha.processo_origem.item_pca }}"><i class="fas fa-pen" aria-hidden="true"></i></a>
+  </td>
+  {% endif %}
+</tr>
