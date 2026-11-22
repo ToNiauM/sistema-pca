@@ -1,0 +1,66 @@
+site_name: Manual do PCA CFC
+site_description: Manual do usuário do PCA CFC — acompanhamento do Plano de Contratações Anual do Conselho Federal de Contabilidade.
+site_url: https://toniaum.github.io/sistema-pca/
+copyright: Conselho Federal de Contabilidade · PCA CFC
+docs_dir: docs
+
+theme:
+  name: material
+  language: pt-BR
+  logo: assets/cfc.png
+  favicon: assets/cfc.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Modo escuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Modo claro
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - toc.follow
+
+# O --strict só barra a publicação no que vem como aviso: por isso tudo aqui é warn.
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Início: index.md
+  - Para as áreas:
+      - Entrar no sistema: areas/entrar.md
+      - Página inicial e menu: areas/inicio.md
+      - Consultar os itens: areas/consultar.md
+      - Acompanhar o andamento: areas/acompanhar.md
+      - Solicitações: areas/solicitacoes.md
+  - Para a diretoria:
+      - Alçadas e contadores: diretoria/index.md
+      - Avaliar solicitações: diretoria/avaliar.md
+      - Inclusão de itens e efeitos da aprovação: diretoria/aprovacao.md
+      - Relatório da reunião e análises: diretoria/relatorio.md
+  - Glossário: glossario.md

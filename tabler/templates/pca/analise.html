@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% load ui pca_ui static %}
+{% comment %}
+Análises › Painel (casca Tabler). Mesmos dados, links e formulários GET da versão anterior; só o desenho muda.
+Totais em três cartões (carteira, execução, valores); valores em forma curta (moeda_curta), o exato no title.
+Cada gráfico no partial ui/_par_analitico.html (só título e gráfico, dados em "Ver dados"), três e dois por linha.
+{% endcomment %}
+
+{% block titulo %}{{ nome_tela }} — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+
+
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Análises</div>
+      <h1 class="page-title">Painel — PCA {{ exercicio.ano|default:"—" }}</h1>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <button class="btn" type="button" onclick="window.print()"><i class="ti ti-printer me-2" aria-hidden="true"></i>Imprimir</button>
+        <a class="btn btn-ghost-secondary" href="{% url 'core:inicio' %}"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% comment %} Os 9 números que não viraram KPI no Início, mais planejado/contratado — cada número é um link para Processos. {% endcomment %}
+<h2 class="visually-hidden">Totais do exercício</h2>
+<div class="row row-cards mb-3">
+  <div class="col-12 col-xl-6">
+    <div class="card h-100">
+      <div class="card-header"><h3 class="card-title"><i class="ti ti-briefcase me-2 text-primary" aria-hidden="true"></i>Carteira do exercício</h3></div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6 col-sm-4"><div class="subheader">Total previsto</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_a.total.href }}">{{ bloco_a.total.contagem|numero }}</a></div></div>
+          <div class="col-6 col-sm-4"><div class="subheader">Nova contratação</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_a.nova.href }}">{{ bloco_a.nova.contagem|numero }}</a></div></div>
+          <div class="col-6 col-sm-4"><div class="subheader">Renovação</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_a.renovacao.href }}">{{ bloco_a.renovacao.contagem|numero }}</a></div></div>
+          <div class="col-6 col-sm-4"><div class="subheader">Vigentes</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_a.vigentes.href }}">{{ bloco_a.vigentes.contagem|numero }}</a></div></div>
+          <div class="col-6 col-sm-4"><div class="subheader">Meta do exercício</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_a.meta_exercicio.href }}">{{ bloco_a.meta_exercicio.contagem|numero }}</a></div></div>
+          <div class="col-6 col-sm-4"><div class="subheader">Cancelados</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_a.cancelados.href }}">{{ bloco_a.cancelados.contagem|numero }}</a></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card h-100">
+      <div class="card-header"><h3 class="card-title"><i class="ti ti-clock me-2 text-azure" aria-hidden="true"></i>Execução</h3></div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-sm-4 col-xl-12"><div class="subheader">No prazo</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_b.no_prazo.href }}">{{ bloco_b.no_prazo.contagem|numero }}</a></div></div>
+          <div class="col-12 col-sm-4 col-xl-12"><div class="subheader">Processos sobrestados</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_b.sobrestados.href }}">{{ bloco_b.sobrestados.contagem|numero }}</a></div></div>
+          <div class="col-12 col-sm-4 col-xl-12"><div class="subheader">Próximos do vencimento</div><div class="h2 mb-0 mt-1"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ bloco_b.proximos_vencimento.href }}">{{ bloco_b.proximos_vencimento.contagem|numero }}</a></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card h-100">
+      <div class="card-header"><h3 class="card-title"><i class="ti ti-coin me-2 text-green" aria-hidden="true"></i>Valores</h3></div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6 col-md-12">
+            <div class="subheader">Valor planejado</div>
+            <div class="h2 mb-0 mt-1 text-nowrap"><a class="text-reset" href="{{ url_filtro_atual }}" title="{{ soma_filtrada|moeda }}">{{ soma_filtrada|moeda_curta }}</a></div>
+          </div>
+          <div class="col-6 col-md-12">
+            <div class="subheader">Valor contratado</div>
+            <div class="h2 mb-0 mt-1 text-nowrap"><a class="text-reset" href="{{ url_filtro_atual }}" title="{{ soma_contratada|moeda }}">{{ soma_contratada|moeda_curta }}</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% comment %} Cada gráfico só com título e gráfico (dados em "Ver dados"): três na primeira linha, depois dois por linha.
+Ordem das seções: situação, unidade, perfil, próximos vencimentos, previsto × entregue, distribuição, vencimentos. {% endcomment %}
+<div class="row row-cards mb-3">
+  <div class="col-12 col-md-6 col-xl-4">{% include "ui/_par_analitico.html" with par=grafico_situacao %}</div>
+  <div class="col-12 col-md-6 col-xl-4">{% include "ui/_par_analitico.html" with par=unidade_par %}</div>
+  <div class="col-12 col-md-6 col-xl-4">{% include "ui/_par_analitico.html" with par=perfil_par titulo="Perfil do PCA" acoes="pca/_analise_form_perfil.html" %}</div>
+</div>
+
+{% comment %} Próximos vencimentos: prazos operacionais (prazo_efetivo); some para quem não tem pca.view_acompanhamento (contexto None). {% endcomment %}
+{% if proximos_vencimentos %}
+<div class="card mb-3">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">Próximos vencimentos — prazos dos processos</h2>
+      {% if proximos_vencimentos.total_no_recorte > proximos_vencimentos.limite %}<div class="card-subtitle">Mostrando {{ proximos_vencimentos.limite }} de {{ proximos_vencimentos.total_no_recorte }}</div>{% endif %}
+    </div>
+    <div class="card-actions d-print-none">
+      <div class="btn-group" role="group" aria-label="Linhas exibidas">
+        <a class="btn btn-sm{% if proximos_vencimentos.limite == 10 %} active{% endif %}" href="{% url 'pca:analise' %}?{{ proximos_vencimentos.querystring_10 }}"{% if proximos_vencimentos.limite == 10 %} aria-current="true"{% endif %}>10</a>
+        <a class="btn btn-sm{% if proximos_vencimentos.limite == 20 %} active{% endif %}" href="{% url 'pca:analise' %}?{{ proximos_vencimentos.querystring_20 }}"{% if proximos_vencimentos.limite == 20 %} aria-current="true"{% endif %}>20</a>
+      </div>
+    </div>
+  </div>
+  {% if proximos_vencimentos.linhas %}
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover mb-0">
+      <caption class="visually-hidden">Próximos vencimentos — prazos dos processos</caption>
+      <thead>
+        <tr>
+          <th scope="col">Item</th>
+          <th scope="col">Objeto</th>
+          <th scope="col" class="d-none d-md-table-cell">Unidade</th>
+          <th scope="col" class="d-none d-lg-table-cell">Situação</th>
+          <th scope="col" class="text-end">Prazo atual</th>
+          <th scope="col" class="text-end">Dias restantes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in proximos_vencimentos.linhas %}
+        <tr>
+          <td><a class="fw-medium" href="{% url 'pca:detalhe_processo' linha.processo.exercicio.ano linha.processo.item_pca %}">{{ linha.processo.item_pca }}</a></td>
+          <td>
+            <span title="{{ linha.processo.descricao_objeto }}">{{ linha.processo.descricao_objeto|truncatechars:60 }}</span>
+            <div class="d-md-none small text-secondary">{{ linha.processo.unidade_organizacional.nome }}</div>
+          </td>
+          <td class="d-none d-md-table-cell text-secondary">{{ linha.processo.unidade_organizacional.nome }}</td>
+          <td class="d-none d-lg-table-cell text-nowrap">
+            {% if linha.processo.estado == "cancelado" %}{% tag_status "Cancelado" "cancelado" %}{% else %}{% tag_status linha.processo.situacao_efetiva|rotulo_situacao linha.processo.situacao_efetiva|classe_situacao %}{% endif %}
+            {% if linha.processo.sobrestado %}{% tag_status "Sobrestado" "alerta" %}{% endif %}
+          </td>
+          <td class="text-end text-nowrap">{{ linha.processo.prazo_efetivo|date:"d/m/Y" }}</td>
+          <td class="text-end text-nowrap">{{ linha.rotulo_dias }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body"><p class="text-secondary mb-0">Nenhum processo com prazo próximo neste recorte.</p></div>
+  {% endif %}
+  {% if proximos_vencimentos.total_vencidos %}
+  <div class="card-footer py-2 small">
+    <i class="ti ti-alert-triangle text-red me-1" aria-hidden="true"></i><a href="{{ proximos_vencimentos.url_vencidos }}">{{ proximos_vencimentos.total_vencidos }} processo{{ proximos_vencimentos.total_vencidos|pluralize }} vencido{{ proximos_vencimentos.total_vencidos|pluralize }}</a>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="row row-cards mb-3">
+  <div class="col-12 col-lg-6">{% include "ui/_par_analitico.html" with par=previsto_entregue_par %}</div>
+  <div class="col-12 col-lg-6">{% include "ui/_par_analitico.html" with par=mesdim_par titulo="Distribuição mensal por dimensão" acoes="pca/_analise_form_mesdim.html" %}</div>
+  <div class="col-12">{% include "ui/_par_analitico.html" with par=vencimento_par %}</div>
+</div>
+
+{% comment %} Dados no fim: a matriz completa de 12 meses da distribuição mensal escolhida acima. {% endcomment %}
+<div class="card mb-3">
+  <div class="card-header">
+    <h3 class="card-title">Detalhamento mensal — {{ dimensao_rotulo_selecionada }} ({{ medida_rotulo_selecionada }})</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover mb-0">
+      <caption class="visually-hidden">{{ dimensao_rotulo_selecionada }} por mês — {{ medida_rotulo_selecionada }} (12 meses)</caption>
+      <thead>
+        <tr>
+          <th scope="col">{{ dimensao_rotulo_selecionada }}</th>
+          {% for ponto in series_mensais.0.pontos %}<th scope="col" class="text-end">{{ ponto.rotulo_mes }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for serie in series_mensais %}
+        <tr>
+          <td class="text-nowrap">{{ serie.nome }}</td>
+          {% for ponto in serie.pontos %}
+          <td class="text-end text-nowrap"><a class="text-reset" href="{% url 'pca:tabela' %}?{{ ponto.querystring }}">{{ ponto.valor_exibido }}</a></td>
+          {% endfor %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="13" class="text-secondary">Nenhum registro nesta dimensão.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="text-secondary small mt-3 mb-0 d-print-none">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'tabler/vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'tabler/js/echarts-pca.js' %}"></script>
+{% endblock %}

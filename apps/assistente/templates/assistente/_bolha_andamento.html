@@ -1,0 +1,21 @@
+{% comment %}
+Bolha de progresso do pseudo-streaming: poll
+htmx a cada 700ms com o core 2.0.10 puro (sem extensão SSE, sem JS
+próprio). `texto_parcial_html` já vem do renderizador fechado
+(`renderizacao.py`) — nunca texto cru do modelo. Ao concluir/errar/lease
+vencido, `assistente:andamento` responde com `HX-Location` e esta bolha
+inteira é substituída pela área re-renderizada — o polling cessa porque o
+elemento com `hx-trigger` deixa de existir. O link "Atualizar" é o
+fallback sem JavaScript: continua funcionando por GET normal.
+{% endcomment %}
+<div id="bolha-andamento" class="bg-gray-2 rounder-lg p-2x"
+     hx-get="{% url 'assistente:andamento' requisicao_id %}"
+     hx-trigger="load delay:400ms, every 700ms"
+     hx-target="this"
+     hx-swap="outerHTML">
+  {% if texto_parcial_html %}<div class="mb-1">{{ texto_parcial_html }}</div>{% endif %}
+  <p class="d-flex align-items-center text-gray-70 text-down-01 mb-0">
+    <span class="br-loading small mr-1" role="progressbar" aria-label="Assistente processando"></span>{{ etapa }}
+  </p>
+  <p class="mt-1 mb-0"><a class="br-button secondary small" href="{{ destino_pagina }}">Atualizar</a></p>
+</div>

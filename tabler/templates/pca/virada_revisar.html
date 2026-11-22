@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% comment %}Etapa 3 da virada: Revisar e concluir. Totais + tabela final só leitura; "Concluir virada" faz POST direto para pca:virada_confirmar.{% endcomment %}
+{% load ui %}
+{% block titulo %}Virada de exercício — Revisar e concluir · PCA {{ rascunho.ano_destino }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Virada de exercício · Etapa 3 de 3</div>
+      <h1 class="page-title">Virada de exercício — {{ exercicio_origem.ano }} → {{ rascunho.ano_destino }}</h1>
+    </div>
+  </div>
+</div>
+
+{% include "pca/virada_exercicio.html" with etapa_ativa=3 %}
+
+<div class="card" id="tab-revisar">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">Revisar e concluir</h2>
+      <div class="card-subtitle">Confira os itens que serão copiados para o PCA {{ rascunho.ano_destino }}.</div>
+    </div>
+  </div>
+  <div class="card-body border-bottom">
+    <div class="datagrid">
+      <div class="datagrid-item"><div class="datagrid-title">Origem</div><div class="datagrid-content">PCA {{ exercicio_origem.ano }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Destino</div><div class="datagrid-content">PCA {{ rascunho.ano_destino }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Itens selecionados</div><div class="datagrid-content h3 mb-0">{{ total_selecionados|numero }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Valor estimado total</div><div class="datagrid-content h3 mb-0">{{ soma_selecionados|moeda }}</div></div>
+    </div>
+  </div>
+  {% include "pca/_virada_tabela.html" with modo="revisar" %}
+  {% if paginador.num_pages > 1 %}
+  <nav class="d-flex flex-wrap align-items-center gap-2 px-3 py-2 border-top" aria-label="Paginação da revisão">
+    <span class="text-secondary small">Página {{ pagina.number }} de {{ paginador.num_pages }}</span>
+    <ul class="pagination pagination-sm flex-wrap m-0 ms-auto">
+      {% for numero_pagina in paginador.page_range %}
+      <li class="page-item{% if numero_pagina == pagina.number %} active{% endif %}"><a class="page-link" href="?pagina={{ numero_pagina }}" aria-current="{% if numero_pagina == pagina.number %}page{% else %}false{% endif %}">{{ numero_pagina }}</a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
+  <div class="card-footer">
+  <div class="row g-2 align-items-center">
+    <div class="col-12 col-md order-last order-md-first text-center text-md-start"><a class="btn btn-link link-secondary px-0" href="{% url 'pca:virada_confirmar_descarte' rascunho.ano_destino %}">Cancelar</a></div>
+    <div class="col-12 col-md-auto order-md-last">
+      <form method="post" action="{% url 'pca:virada_confirmar' rascunho.ano_destino %}">
+        {% csrf_token %}
+        <button class="btn btn-primary w-100" type="submit"><i class="ti ti-check me-2" aria-hidden="true"></i>Concluir virada</button>
+      </form>
+    </div>
+    <div class="col-12 col-md-auto"><a class="btn w-100" href="{% url 'pca:virada_ajustar' rascunho.ano_destino %}" aria-description="Passo 2 de 3 Ajustar"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar</a></div>
+  </div>
+  </div>
+</div>
+{% endblock %}

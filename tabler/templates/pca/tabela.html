@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% comment %}
+Tela Processos (tabler) — mesma mecânica da versão original: o formulário `#filtros-processos` fica FORA do alvo e
+troca só `#listagem` por HTMX (chips, tabela, paginação, colunas, exportar e o modal moram dentro de `#listagem`,
+para nunca ficarem presos à carga inicial). Filtros em 2 faixas: a principal (Busca, Unidade, Situação, Mês
+previsto) e "Mais filtros" (recolhido, abre só no clique; o botão mostra a contagem). Nenhum `name=` mudou.
+{% endcomment %}
+{% load ui %}
+{% block titulo %}Processos · PCA {{ exercicio.ano }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">PCA {{ exercicio.ano }}</div>
+      <h1 class="page-title">Processos</h1>
+    </div>
+    {% comment %} "Ocultar filtros"/"Mostrar filtros" recolhe o cartão de filtros (collapse do
+    Bootstrap); a escolha fica guardada no navegador de cada pessoa (pca-tabler.js) e, sem escolha, o cartão abre a
+    partir de 1280px e nasce recolhido abaixo disso.{% endcomment %}
+    <div class="col-auto">
+      <div class="btn-list">
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#painel-filtros"
+                aria-controls="painel-filtros" aria-expanded="true" data-alternar-filtros
+                data-rotulo-aberto="Ocultar filtros" data-rotulo-fechado="Mostrar filtros"><i class="ti ti-filter me-2" aria-hidden="true"></i><span data-rotulo>Ocultar filtros</span></button>
+        {% if perms.pca.editar_pca %}
+        <a class="btn btn-primary" href="{% url 'pca:criar_processo' %}"><i class="ti ti-plus me-2" aria-hidden="true"></i>Novo processo</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="collapse show d-print-none" id="painel-filtros">
+<div class="card mb-3">
+  <div class="card-body p-3">
+    <form id="filtros-processos" method="get" action="{% url 'pca:tabela' %}"
+          hx-get="{% url 'pca:tabela' %}" hx-target="#listagem" hx-push-url="true"
+          hx-trigger="change, keyup changed delay:300ms from:[name='q']"
+          hx-include="#form-colunas, #estado-vista" hx-history="false" aria-label="Filtros dos processos">
+      <input type="hidden" name="exercicio" value="{{ exercicio.ano }}">
+      <div class="row g-2 align-items-end">
+        {% for campo in filtros_form %}
+          {% if campo.name == "q" %}
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label mb-1" for="{{ campo.auto_id }}">{{ campo.label }}</label>
+            <div class="input-icon">
+              <span class="input-icon-addon"><i class="ti ti-search" aria-hidden="true"></i></span>
+              <input class="form-control" type="text" name="{{ campo.html_name }}" id="{{ campo.auto_id }}"
+                     value="{{ campo.value|default_if_none:'' }}" placeholder="Item, objeto, unidade, nº SEI…" autocomplete="off">
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+        {% for campo in filtros_form %}
+          {% if campo.name == "uo" %}
+          <div class="col-12 col-sm-6 col-lg-3">{% include "pca/_tabela_filtro_campo.html" %}</div>
+          {% endif %}
+        {% endfor %}
+        {% for campo in filtros_form %}
+          {% if campo.name == "situacao" or campo.name == "mes" %}
+          <div class="col-12 col-sm-6 col-lg-3">{% include "pca/_tabela_filtro_campo.html" %}</div>
+          {% endif %}
+        {% endfor %}
+        <div class="col-12 col-sm-6 col-lg-3" id="acordeao-mais-filtros">
+          <button class="btn w-100 collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#acordeao-mais-filtros-conteudo" aria-controls="acordeao-mais-filtros-conteudo" aria-expanded="false">
+            <i class="ti ti-adjustments-horizontal me-1" aria-hidden="true"></i><span data-contagem-mais>Mais filtros{% if mais_filtros_ativo %} ({{ mais_filtros_contagem }}){% endif %}</span>
+          </button>
+        </div>
+      </div>
+      <div class="collapse" id="acordeao-mais-filtros-conteudo">
+        <div class="row g-2 align-items-end border-top mt-3 pt-1">
+          {% for campo in filtros_form %}
+            {% if campo.name != "q" and campo.name != "uo" and campo.name != "situacao" and campo.name != "mes" and campo.widget_type != "checkbox" %}
+            <div class="col-12 col-sm-6 col-lg-3" data-mais-filtro>{% include "pca/_tabela_filtro_campo.html" %}</div>
+            {% endif %}
+          {% endfor %}
+          {% for campo in filtros_form %}
+            {% if campo.widget_type == "checkbox" %}
+            <div class="col-12 col-sm-6 col-lg-3 pb-2" data-mais-filtro>{% include "pca/_tabela_filtro_campo.html" %}</div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<div id="listagem">
+  {% include "pca/_listagem.html" %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Filtros da tela Processos: (1) resumo dos menus de escolha múltipla ("Todas", "A, B" ou "3 selecionadas");
+   (2) depois de cada troca de #listagem, o formulário volta a espelhar a URL — assim remover um chip ou
+   "Limpar filtros" também desmarca o controle correspondente (o formulário fica fora do alvo do HTMX). */
+(function () {
+  var form = document.getElementById("filtros-processos");
+  if (!form) return;
+  function resumir(caixa) {
+    var marcados = Array.from(caixa.querySelectorAll('input[type="checkbox"]:checked')).map(function (c) {
+      return c.parentNode.querySelector("span").textContent.trim();
+    });
+    var alvo = caixa.querySelector("[data-resumo]");
+    var vazio = caixa.dataset.vazio || "Todas";
+    alvo.textContent = !marcados.length ? vazio : (marcados.length <= 2 ? marcados.join(", ") : marcados.length + (vazio === "Todos" ? " selecionados" : " selecionadas"));
+    alvo.classList.toggle("text-secondary", !marcados.length);
+  }
+  function contarMais() {
+    var n = 0;
+    form.querySelectorAll("[data-mais-filtro]").forEach(function (bloco) {
+      bloco.querySelectorAll("input, select").forEach(function (el) {
+        if (el.type === "checkbox") { if (el.checked) n++; } else if (el.value) n++;
+      });
+    });
+    var rotulo = form.querySelector("[data-contagem-mais]");
+    if (rotulo) rotulo.textContent = "Mais filtros" + (n ? " (" + n + ")" : "");
+  }
+  function todos() { form.querySelectorAll("[data-filtro-multi]").forEach(resumir); }
+  form.addEventListener("change", function (ev) {
+    var caixa = ev.target.closest("[data-filtro-multi]");
+    if (caixa) resumir(caixa);
+    contarMais();
+  });
+  function espelharUrl(caminho) {
+    var params;
+    try { params = new URL(caminho, location.origin).searchParams; } catch (e) { return; }
+    Array.from(form.elements).forEach(function (el) {
+      if (!el.name || el.type === "hidden" || (el === document.activeElement && el.type === "text")) return;
+      var valores = params.getAll(el.name);
+      if (el.type === "checkbox") {
+        el.checked = el.closest("[data-filtro-multi]") ? valores.indexOf(el.value) !== -1 : valores.some(function (v) { return v !== "" && v !== "0" && v !== "false"; });
+      } else {
+        el.value = valores.length ? valores[0] : "";
+      }
+    });
+    todos(); contarMais();
+  }
+  document.body.addEventListener("htmx:pushedIntoHistory", function (ev) { espelharUrl(ev.detail.path); });
+  todos();
+})();
+</script>
+{% endblock %}

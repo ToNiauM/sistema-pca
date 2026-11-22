@@ -1,0 +1,24 @@
+{% load ui pca_ui %}
+<tr{% if modo == "selecionar" and linha.selecionado %} class="table-active"{% endif %}>
+  {% if modo == "selecionar" %}
+  <td>
+    <input class="form-check-input m-0 align-middle" id="item-{{ linha.processo_origem.item_pca }}" name="selecionados" type="checkbox" value="{{ linha.processo_origem.item_pca }}" data-selecao="virada" aria-label="Selecionar item {{ linha.processo_origem.item_pca }}"{% if linha.selecionado %} checked="checked"{% endif %}>
+    <input type="hidden" name="item_pagina" value="{{ linha.processo_origem.item_pca }}">
+  </td>
+  {% endif %}
+  <td class="fw-medium text-nowrap">{% if modo == "selecionar" %}<label class="mb-0" for="item-{{ linha.processo_origem.item_pca }}">{{ linha.processo_origem.item_pca }}</label>{% else %}{{ linha.processo_origem.item_pca }}{% endif %}</td>
+  <td>
+    <div>{{ linha.processo_origem.descricao_objeto|truncatechars:60 }}</div>
+    <div class="small text-secondary d-lg-none">{{ linha.processo_origem.unidade_organizacional.nome }}<span class="d-md-none"> · mês {{ linha.mes_previsto_editado|nome_mes|default_if_none:"—" }}</span></div>
+    <div class="small fw-medium d-sm-none">{{ linha.valor_estimado_editado|moeda }}</div>
+  </td>
+  <td class="d-none d-lg-table-cell text-secondary">{{ linha.processo_origem.unidade_organizacional.nome }}</td>
+  <td class="text-end text-nowrap d-none d-sm-table-cell">{{ linha.valor_estimado_editado|moeda }}</td>
+  <td class="d-none d-md-table-cell"{% if linha.mes_previsto_editado %} data-valor="{{ linha.mes_previsto_editado }}"{% endif %}>{{ linha.mes_previsto_editado|nome_mes|default_if_none:"—" }}</td>
+  <td class="d-none d-xl-table-cell text-secondary">{{ linha.processo_origem.get_situacao_display }}</td>
+  {% if modo == "ajustar" %}
+  <td class="text-end">
+    <a class="btn btn-sm btn-icon btn-ghost-primary" href="{% url 'pca:virada_item_editar' linha.rascunho.ano_destino linha.processo_origem.item_pca %}" aria-label="Editar item {{ linha.processo_origem.item_pca }}" title="Editar"><i class="ti ti-pencil" aria-hidden="true"></i></a>
+  </td>
+  {% endif %}
+</tr>

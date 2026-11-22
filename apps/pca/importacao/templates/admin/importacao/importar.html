@@ -1,0 +1,51 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Importar planilha | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Importar planilha do PCA</h1>
+  <p><a class="button" href="{% url 'admin:pca_eventoimportacao_modelo' %}">Baixar modelo de planilha</a></p>
+
+  <form method="post" enctype="multipart/form-data" action="{% url 'admin:pca_eventoimportacao_importar' %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <fieldset class="module aligned">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.errors }}
+          {% comment %}
+          Fase 26 — `<br-upload>` (webcomponent) saiu junto com
+          `@govbr-ds/webcomponents` (inventário zero). Esta tela é
+          Django Admin de verdade (estende `admin/base_site.html`, rotas
+          `admin:*`, movida para `templates/admin/importacao/` para o
+          verificador do padrão DSGov a reconhecer por `IGNORAR_DIRS` e não tentar
+          aplicar o padrão DSGov aqui) — o `<input type="file">` nativo que
+          `{{ field }}` já produz para um `forms.FileField` sempre funcionou
+          sem o componente; `accept=".xlsx"` continua garantido pelo widget
+          do form (`apps/pca/importacao/forms.py`), não pelo template.
+          {% endcomment %}
+          {{ field.label_tag }}
+          {{ field }}
+        </div>
+      {% endfor %}
+    </fieldset>
+    <div class="submit-row">
+      <input type="submit" value="Conferir importação" class="default">
+    </div>
+  </form>
+
+  {% if relatorio %}
+    <h2>Relatório de conferência</h2>
+    <pre>{{ relatorio }}</pre>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'admin:pca_eventoimportacao_confirmar' %}">
+      {% csrf_token %}
+      {{ confirmar_form.referencia }}
+      <div class="submit-row">
+        <input type="submit" value="Confirmar e gravar" class="button default">
+      </div>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load dsgov sei_links %}
+{% block titulo %}Item {{ p.item_pca }} — {{ p.descricao_objeto|truncatechars:60 }}{% endblock %}
+{% block conteudo %}
+{% comment %}
+Ficha no padrão da página de edital do PNCP (aprovado em 14/10/2026): cabeçalho com
+título, última atualização, tags e as três ações; grade "Rótulo: valor" (Planejamento + Processo) com
+o compromisso vigente (prazo inicial · prazo atual) numa linha só; cartões de valor nas cores do PNCP;
+abas br-tab para Acompanhamentos e Execução contratual/Publicação. Nada do que existia saiu: mesmas
+guardas (`pode_editar`, `pode_ver_acompanhamento`, `pode_ver_analises`, `pode_excluir_acompanhamento`),
+mesma timeline "Ver mais", mesmo Voltar/Anterior/Próximo com a querystring da tabela.
+{% endcomment %}
+<div class="d-flex flex-wrap align-items-end justify-content-between border-bottom pb-3 mb-4" data-item-pca="{{ p.item_pca }}" data-exercicio="{{ p.exercicio.ano }}">
+  <div class="mb-2">
+    <h1 class="mb-1">Item {{ p.item_pca }}/{{ p.exercicio.ano }}</h1>
+    <p class="mb-2"><em>Última atualização {{ p.atualizado_em|data_br }}</em></p>
+    <p class="mb-0">
+      {% tag_status rotulo_status chave_status %}
+      {% if p.situacao_manual and p.estado != "cancelado" %}<span class="br-tag" title="Escolhida manualmente: as regras automáticas não a alteram. Libera-se no Admin (desmarcar “situação manual”)."><i class="fas fa-lock mr-1" aria-hidden="true"></i><span>Situação manual{% if p.situacao_regra %} · pelas regras: {{ p.get_situacao_regra_display }}{% endif %}</span></span>{% endif %}
+      <span class="br-tag"><span>{{ p.tipo.nome }}</span></span>
+      {% if p.origem %}
+      <span class="br-tag"><a href="{% url 'pca:detalhe_processo' p.origem.exercicio.ano p.origem.item_pca %}" aria-label="Ver item {{ p.origem.item_pca }} do PCA {{ p.origem.exercicio.ano }} que originou este processo">Continuação do item {{ p.origem.item_pca }}/{{ p.origem.exercicio.ano }}</a></span>
+      {% endif %}
+    </p>
+  </div>
+  {% if pode_editar or pode_solicitar %}
+  {% comment %}
+  As três ações do item lado a lado no topo, como na página do PNCP (antes "Alterar situação" e
+  "Registrar acompanhamento" ficavam na linha de título dos acompanhamentos).
+  Mesmas rotas, mesmo `hx-get`/`hx-target="#modal-acompanhamento"`, mesma querystring.
+  Fase 43 — "Solicitar alteração" (só para a unidade do item): ação secundária (o "Editar" é o único
+  `br-button primary` da ficha).
+  {% endcomment %}
+  <div class="d-flex flex-wrap align-items-center mb-2">
+    {% if pode_solicitar %}
+    <a class="br-button secondary mr-2 mb-2" href="{{ url_solicitar }}">
+      <i class="fas fa-paper-plane mr-1" aria-hidden="true"></i>Solicitar alteração
+    </a>
+    {% endif %}
+    {% if pode_editar %}
+    <a class="br-button secondary mr-2 mb-2" href="{% url 'pca:transicao_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">
+      <i class="fas fa-exchange-alt mr-1" aria-hidden="true"></i>Alterar situação
+    </a>
+    <button class="br-button secondary mr-2 mb-2" type="button"
+            hx-get="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}"
+            hx-target="#modal-acompanhamento" hx-swap="innerHTML">
+      <i class="fas fa-calendar-check mr-1" aria-hidden="true"></i>Registrar acompanhamento
+    </button>
+    <a class="br-button primary mb-2" href="{% url 'pca:editar_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">
+      <i class="fas fa-pen mr-1" aria-hidden="true"></i>Editar
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<div id="modal-acompanhamento"></div>
+
+{% comment %}
+Grade "Rótulo: valor" (Planejamento + Processo), quantas colunas couberem; texto longo (Objeto,
+Justificativa, Números SEI) na linha toda. Valor ausente é sempre "Não informado".
+{% endcomment %}
+<section class="dsgov-pares mb-4" aria-label="Informações do item">
+  {% for secao in secoes %}{% if secao.titulo == "Planejamento" or secao.titulo == "Processo" %}
+  {% for linha in secao.linhas %}{% if not linha_prazo_inicial or linha.rotulo != linha_prazo_inicial.rotulo %}
+  <p class="{% if linha.largo %}dsgov-par-largo{% endif %}"><strong>{{ linha.rotulo }}:</strong> {{ linha.valor|linkar_sei|linebreaksbr }}{% if linha.complemento %} <span class="text-base">{{ linha.complemento }}</span>{% endif %}{% if linha.pendencia %} <span class="br-tag is-warning text-pure-100"><span>{{ linha.pendencia }}</span></span>{% endif %}</p>
+  {% endif %}{% endfor %}
+  {% endif %}{% endfor %}
+  {% if linha_prazo_inicial %}
+  <p class="dsgov-par-largo"><strong>Compromisso vigente:</strong> Prazo inicial {{ linha_prazo_inicial.valor }}{% if linha_prazo_inicial.complemento %} <span class="text-base">{{ linha_prazo_inicial.complemento }}</span>{% endif %} · Prazo atual {{ prazo_atual_ficha.valor }}{% if prazo_atual_ficha.complemento %} <span class="text-base">{{ prazo_atual_ficha.complemento }}</span>{% endif %}</p>
+  {% endif %}
+</section>
+
+{% comment %}
+Cartões de valor nas cores dos cartões "valor estimado/homologado" do PNCP (tokens do DS, dsgov.css).
+"Não informado" só quando o valor é `None`.
+{% endcomment %}
+<section class="dsgov-cartoes-valor mb-5" aria-label="Valores do item">
+  <div class="dsgov-cartao-valor dsgov-cartao-valor-estimado">
+    <span class="dsgov-cartao-valor-rotulo">Valor total estimado do item</span>
+    <span>{{ valor_previsto_ficha }}</span>
+  </div>
+  <div class="dsgov-cartao-valor dsgov-cartao-valor-contratado">
+    <span class="dsgov-cartao-valor-rotulo">Valor total contratado do item</span>
+    <span>{{ valor_contratado_ficha }}</span>
+  </div>
+</section>
+
+<div class="br-tab mb-4">
+  <nav class="tab-nav" aria-label="Seções do item">
+    <ul role="tablist">
+      {% if pode_ver_acompanhamento %}
+      <li class="tab-item active" title="Acompanhamentos" role="presentation">
+        <button type="button" role="tab" id="aba-acompanhamentos" data-panel="acompanhamentos" aria-controls="acompanhamentos" aria-selected="true"><span class="name">Acompanhamentos ({{ timeline_total }})</span></button>
+      </li>
+      {% endif %}
+      <li class="tab-item{% if not pode_ver_acompanhamento %} active{% endif %}" title="Execução contratual e publicação" role="presentation">
+        <button type="button" role="tab" id="aba-execucao" data-panel="execucao" aria-controls="execucao" aria-selected="{% if pode_ver_acompanhamento %}false{% else %}true{% endif %}"><span class="name">Execução contratual e publicação</span></button>
+      </li>
+      {% if pode_ver_solicitacoes %}
+      <li class="tab-item" title="Solicitações da unidade para este item" role="presentation">
+        <button type="button" role="tab" id="aba-solicitacoes" data-panel="solicitacoes" aria-controls="solicitacoes" aria-selected="false"><span class="name">Solicitações ({{ solicitacoes_ficha|length }})</span></button>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  <div class="tab-content">
+    {% if pode_ver_acompanhamento %}
+    <div class="tab-panel active pt-3" id="acompanhamentos" role="tabpanel" aria-labelledby="aba-acompanhamentos">
+      <h2 class="sr-only">Acompanhamentos e prazos</h2>
+      <div class="br-table">
+        <div class="table-header"></div>
+        <table>
+          <caption class="sr-only">Histórico de acompanhamentos do item {{ p.item_pca }}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Data</th>
+              <th scope="col">Reunião</th>
+              <th scope="col">Prazo registrado</th>
+              <th scope="col">Observação</th>
+              <th scope="col">Autor</th>
+              {% if pode_excluir_acompanhamento %}<th scope="col" class="dsgov-acoes">Ações</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in timeline_exibida %}
+            <tr>
+              <td data-th="Data">{{ item.referencia_data|data_br }}</td>
+              <td data-th="Reunião">{% if item.reuniao %}Reunião de {{ item.reuniao.data|data_br }}{% else %}—{% endif %}</td>
+              <td data-th="Prazo registrado">{{ item.prazo_prometido|data_br }}</td>
+              <td data-th="Observação">{% if item.prazo_prometido %}{{ item.frase_compromisso|linkar_sei }}{% else %}{{ item.situacao_informada|default:item.evento|ou_traco|linkar_sei }}{% endif %}</td>
+              <td data-th="Autor">{% if item.reuniao.condutor %}{{ item.reuniao.condutor.get_full_name|default:item.reuniao.condutor.email }}{% else %}—{% endif %}</td>
+              {% if pode_excluir_acompanhamento %}
+              <td data-th="Ações" class="dsgov-acoes">
+                <a class="br-button secondary small" href="{% url 'pca:acompanhamento_excluir_confirmar' p.exercicio.ano p.item_pca item.pk %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">Excluir</a>
+              </td>
+              {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="{% if pode_excluir_acompanhamento %}6{% else %}5{% endif %}">Nenhum acompanhamento registrado.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if timeline_total > 5 %}
+      <p class="mt-2">
+        {% if timeline_ocultos > 0 %}
+        <a class="br-button secondary small" href="{{ url_ver_mais }}">Ver mais ({{ timeline_ocultos }})</a>
+        {% else %}
+        <a class="br-button secondary small" href="{{ url_ver_menos }}">Ver menos</a>
+        {% endif %}
+        <span class="text-down-01 text-gray-70">Mostrando os {{ timeline_exibida|length }} mais recentes de {{ timeline_total }}</span>
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+    <div class="tab-panel{% if not pode_ver_acompanhamento %} active{% endif %} pt-3" id="execucao" role="tabpanel" aria-labelledby="aba-execucao">
+      {% for secao in secoes %}{% if secao.titulo != "Planejamento" and secao.titulo != "Processo" %}
+      {% if secao.titulo == "Execução contratual" and aviso_valor_mensal %}
+      {% comment %}
+      Fase 36 — aviso de coerência de 5% entre valor_mensal × meses de vigência e
+      valor_contratado. SINALIZADO, nunca bloqueia o save; só aparece com os 4 campos preenchidos.
+      {% endcomment %}
+      <div class="br-message warning mb-3">
+        <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+        <div class="content" role="alert"><span class="message-body">{{ aviso_valor_mensal }}</span></div>
+      </div>
+      {% endif %}
+      <h2 class="text-up-01 mb-3">{{ secao.titulo }}</h2>
+      <div class="dsgov-pares mb-3">
+        {% for linha in secao.linhas %}
+        <p class="{% if linha.largo %}dsgov-par-largo{% endif %}"><strong>{{ linha.rotulo }}:</strong> {{ linha.valor|linkar_sei|linebreaksbr }}{% if linha.complemento %} <span class="text-base">{{ linha.complemento }}</span>{% endif %}{% if linha.pendencia %} <span class="br-tag is-warning text-pure-100"><span>{{ linha.pendencia }}</span></span>{% endif %}</p>
+        {% endfor %}
+      </div>
+      {% if secao.titulo == "Execução contratual" and pode_ver_analises %}
+      {% comment %}
+      Fase 37 (spec §5 item 6) — "de onde veio este número?" a partir da ficha, sem
+      abrir o Admin; só para quem tem `pca.ver_analises`.
+      {% endcomment %}
+      <p class="mb-4">
+        <a class="br-button secondary" href="{% url 'pca:analise_fluxo_memoria' p.item_pca %}?exercicio={{ p.exercicio.ano }}">
+          <i class="fas fa-calculator mr-1" aria-hidden="true"></i>Memória de cálculo
+        </a>
+      </p>
+      {% endif %}
+      {% endif %}{% endfor %}
+    </div>
+    {% if pode_ver_solicitacoes %}
+    <div class="tab-panel pt-3" id="solicitacoes" role="tabpanel" aria-labelledby="aba-solicitacoes">
+      <h2 class="sr-only">Solicitações do item</h2>
+      {% include "solicitacoes/_ficha_aba.html" %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<p class="text-down-01 text-gray-70 mt-3">Atualizado em {{ p.atualizado_em|data_br }}</p>
+<div class="d-flex flex-wrap align-items-center">
+  <a class="br-button secondary" href="{% url 'pca:tabela' %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}#item-{{ p.pk }}">
+    <i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar
+  </a>
+  {% if anterior %}
+  <a class="br-button ml-2" href="{% url 'pca:detalhe_processo' anterior.ano anterior.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">‹ Anterior</a>
+  {% endif %}
+  {% if proximo %}
+  <a class="br-button ml-2" href="{% url 'pca:detalhe_processo' proximo.ano proximo.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">Próximo ›</a>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% if trilha %}
+<nav class="br-breadcrumb" aria-label="Trilha de navegação">
+  <ol class="crumb-list" role="list">
+    <li class="crumb home"><a class="br-button circle" href="{% url 'core:inicio' %}"><span class="sr-only">Página inicial</span><i class="fas fa-home" aria-hidden="true"></i></a></li>
+    {% for rotulo, url in trilha %}
+      {% if url %}
+      <li class="crumb"><i class="icon fas fa-chevron-right" aria-hidden="true"></i><a href="{{ url }}">{{ rotulo }}</a></li>
+      {% else %}
+      <li class="crumb" data-active="active"><i class="icon fas fa-chevron-right" aria-hidden="true"></i><span tabindex="0" aria-current="page">{{ rotulo }}</span></li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+</nav>
+{% endif %}

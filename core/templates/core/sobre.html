@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% comment %}
+Fase 26 — texto institucional herdado da Fase 25
+(`apps/pca/templates/pca/inicio.html`, seções "Sobre o PCA CFC"/"Como usar
+este sistema", commit `4eb029df319e8382b4069af5d3af505a379e2892~1`, antes
+de apagado pelo plano). Sem ações — só leitura.
+{% endcomment %}
+{% block titulo %}Sobre o sistema{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Sobre o sistema</h1>
+</div>
+<div class="row">
+  <div class="col-md-6 mb-4">
+    <div class="br-card">
+      <div class="card-content">
+        <h2 class="text-up-01 mb-3">Sobre o PCA CFC</h2>
+        <p class="mb-0">
+          O PCA organiza o planejamento das contratações do Conselho Federal
+          de Contabilidade. Este sistema permite consultar os itens e
+          acompanhar prazos, situação e execução contratual.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 mb-4">
+    <div class="br-card">
+      <div class="card-content">
+        <h2 class="text-up-01 mb-3">Como usar este sistema</h2>
+        <ul class="mb-0">
+          <li><a href="{% url 'pca:tabela' %}">Consultar processos</a> — veja cada item do PCA e sua situação.</li>
+          <li><a href="{% url 'core:inicio' %}">Ver indicadores</a> — acompanhe o progresso do exercício.</li>
+          <li><a href="{% url 'pca:calendario' %}">Consultar prazos</a> — localize entregas ao longo do ano.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

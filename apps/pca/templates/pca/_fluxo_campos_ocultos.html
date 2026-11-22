@@ -1,0 +1,7 @@
+{% comment %}Campos ocultos que todo POST do Fluxo de caixa leva para voltar à mesma visão (exercício, cenário, índice,
+unidade e recorte). Sem marcação visual: vale para as duas cascas.{% endcomment %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+<input type="hidden" name="cenario" value="{{ cenario_selecionado }}"/>
+<input type="hidden" name="indice" value="{{ indice_selecionado }}"/>
+{% if uo_selecionada %}<input type="hidden" name="uo" value="{{ uo_selecionada }}"/>{% endif %}
+{% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+{% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}

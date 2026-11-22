@@ -1,0 +1,38 @@
+{% comment %}Um campo do formulário de filtros da tela Processos (tabler). Escolha múltipla vira um menu suspenso com
+caixas de seleção (mesmo `name` repetido por valor, igual ao select múltiplo); o resumo do botão é atualizado
+pelo script de `pca/tabela.html`. Demais tipos: controles compactos do Tabler.{% endcomment %}
+{% load ui %}
+{% with tipo=campo.widget_type %}
+{% if tipo == "selectmultiple" %}
+<div class="dropdown" data-filtro-multi data-vazio="{% if campo.name == 'tipo' or campo.name == 'mes' or campo.name == 'estado' %}Todos{% else %}Todas{% endif %}">
+  <label class="form-label mb-1" for="{{ campo.auto_id }}">{{ campo.label }}</label>
+  <button class="form-select text-start text-truncate" type="button" id="{{ campo.auto_id }}"
+          data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+    <span data-resumo>{% spaceless %}
+      {% for opcao in campo %}{% if opcao.data.selected %}<span data-sel>{{ opcao.choice_label }}</span>{% endif %}{% endfor %}
+    {% endspaceless %}</span>
+  </button>
+  <div class="dropdown-menu dropdown-menu-scrollable w-100 py-1" aria-labelledby="{{ campo.auto_id }}">
+    {% for opcao in campo %}
+    <label class="dropdown-item text-wrap gap-2 py-1 mb-0">
+      <input class="form-check-input m-0 flex-shrink-0" type="checkbox" name="{{ campo.html_name }}" value="{{ opcao.data.value }}"{% if opcao.data.selected %} checked{% endif %}>
+      <span>{{ opcao.choice_label }}</span>
+    </label>
+    {% empty %}
+    <span class="dropdown-item-text text-secondary small">Sem opções</span>
+    {% endfor %}
+  </div>
+</div>
+{% elif tipo == "checkbox" %}
+<label class="form-check mb-0 py-1">
+  {{ campo|widget_classe:"form-check-input" }}
+  <span class="form-check-label">{{ campo.label }}</span>
+</label>
+{% elif tipo == "select" %}
+<label class="form-label mb-1" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+{{ campo|widget_classe:"form-select" }}
+{% else %}
+<label class="form-label mb-1" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+{{ campo|widget_classe:"form-control" }}
+{% endif %}
+{% endwith %}

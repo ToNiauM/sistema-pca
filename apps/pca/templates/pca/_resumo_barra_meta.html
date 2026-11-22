@@ -1,0 +1,7 @@
+{% load dsgov %}{% comment %}
+Andamento da meta de uma linha do Resumo (`l`), sob o nome da unidade — casca DSGov. A casca Tabler desenha aqui
+uma barra empilhada (concluídos/em tramitação/no prazo/atrasados) com `style="width:…%"`; o DSGov 3.7.0 não tem
+barra de progresso e o padrão DSGov proíbe style inline e CSS próprio, então a mesma leitura vira texto: % da meta
+concluída e, quando houver, os atrasados. Os quatro números continuam clicáveis nas colunas do passo 3.
+Duas linhas curtas (e não uma longa), para a coluna Unidade não alargar a matriz.
+{% endcomment %}<div class="text-down-01 text-gray-70 text-weight-regular">{% if l.meta %}<div><span class="br-tag status bg-success small" aria-hidden="true"></span> {{ l.percentual_concluido_meta|percentual }} da meta</div>{% if l.fora_prazo %}<div class="text-red-vivid-50">{{ l.fora_prazo|numero }} atrasado{{ l.fora_prazo|pluralize }}</div>{% endif %}{% else %}sem meta{% endif %}</div>

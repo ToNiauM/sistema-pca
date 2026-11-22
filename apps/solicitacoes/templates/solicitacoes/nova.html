@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load dsgov %}
+{% block titulo %}Nova solicitação{% endblock %}
+{% block conteudo %}
+{% comment %}
+Fase 43 — "Nova solicitação". Dois caminhos: alterar ou cancelar um item (passo 1: escolher o
+item entre os das unidades do usuário; passo 2: as linhas do pedido, só com os campos que o item aceita) e
+incluir item novo. Campo preenchido = campo pedido; cancelamento é pedido à parte e exclusivo. Servidor decide
+tudo (sem JS): o formulário do passo 1 é um GET para `?processo=<ano>/<item>`, o mesmo endereço do botão
+"Solicitar alteração" da ficha do item.
+{% endcomment %}
+<div class="d-flex align-items-center mb-3">
+  <h1 class="mb-0">Nova solicitação</h1>
+</div>
+<p class="mb-3">Peça à equipe do PCA ou à diretoria uma mudança em um item do seu plano. Cada parte do pedido é decidida por quem tem alçada para ela, e você acompanha tudo em Minhas solicitações.</p>
+
+<div class="d-flex flex-wrap mb-4" role="group" aria-label="Tipo de solicitação">
+  <a class="br-button{% if modo == 'alteracao' %} secondary{% endif %} mr-2 mb-2" href="{{ url_nova }}"{% if modo == 'alteracao' %} aria-current="page"{% endif %}>Alterar ou cancelar um item</a>
+  <a class="br-button{% if modo == 'inclusao' %} secondary{% endif %} mb-2" href="{{ url_inclusao }}"{% if modo == 'inclusao' %} aria-current="page"{% endif %}>Incluir item novo</a>
+</div>
+
+{% if sem_unidade %}
+<div class="br-message warning mb-4">
+  <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Você ainda não está vinculado a nenhuma unidade.</span>
+    <span class="message-body"> Peça à equipe do PCA para vincular o seu usuário à unidade organizacional; sem isso não é possível fazer solicitações.</span>
+  </div>
+</div>
+{% elif modo == "alteracao" %}
+
+<div class="row">
+  <div class="col-lg-8">
+    <form method="get" action="{{ url_nova }}" aria-label="Escolher o item" class="mb-4">
+      <div class="row align-items-end">
+        <div class="col-md-8 mb-3">{{ form_item.processo.as_field_group }}</div>
+        <div class="col-md-4 mb-3"><button class="br-button secondary" type="submit"><i class="fas fa-search mr-1" aria-hidden="true"></i>Escolher item</button></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if item %}
+<div class="br-card mb-4">
+  <div class="card-header">
+    <div class="d-flex flex-wrap align-items-center">
+      <span class="text-weight-semi-bold text-up-02">{{ item.rotulo }}</span>
+      <span class="ml-3">{% tag_status item.situacao item.chave %}</span>
+      <a class="ml-auto" href="{{ item.url }}">Ver a ficha do item</a>
+    </div>
+  </div>
+  <div class="card-content">
+    <p class="mb-3">{{ item.objeto }}</p>
+    <div class="dsgov-pares">
+      <p><strong>Unidade:</strong> {{ item.unidade }}</p>
+      <p><strong>Prazo de entrega atual:</strong> {{ item.prazo }}</p>
+      <p><strong>Mês previsto:</strong> {{ item.mes }}</p>
+      <p><strong>Valor estimado:</strong> {{ item.valor }}</p>
+    </div>
+  </div>
+</div>
+
+{% if item_fechado %}
+<div class="br-message warning mb-4">
+  <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert"><span class="message-title">Este item não aceita pedidos.</span><span class="message-body"> {{ item_fechado }}</span></div>
+</div>
+{% endif %}
+{% if cancelamento_em_analise %}
+<div class="br-message info mb-4">
+  <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert"><span class="message-title">Há um pedido de cancelamento em análise neste item.</span><span class="message-body"> Aguarde a decisão para fazer outro pedido.</span></div>
+</div>
+{% elif em_analise %}
+<div class="br-message info mb-4">
+  <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert"><span class="message-title">Já há pedido em análise para:</span><span class="message-body"> {{ em_analise|join:", " }}. Esses campos ficam de fora até a decisão.</span></div>
+</div>
+{% endif %}
+
+{% if form %}
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="br-message danger mb-3">
+    <div class="icon"><i class="fas fa-times-circle fa-lg" aria-hidden="true"></i></div>
+    <div class="content" role="alert">
+      <span class="message-title">Corrija os erros abaixo.</span>
+      <span class="message-body">{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+    </div>
+  </div>
+  {% endif %}
+  <fieldset class="mb-4">
+    <legend>O que mudar</legend>
+    <p class="text-down-01 text-gray-70">Preencha só o que quer alterar. Os campos em branco ficam como estão.</p>
+    {% for linha in linhas %}
+    <div class="row align-items-start mb-3">
+      <div class="col-md-3 mb-2">
+        <p class="text-weight-semi-bold mb-1">{{ linha.rotulo }}</p>
+        <p class="text-down-01 mb-0">Hoje: {{ linha.hoje }}</p>
+      </div>
+      <div class="col-md-6 mb-2">{{ linha.campo.as_field_group }}</div>
+      <div class="col-md-3 mb-2"><span class="br-tag"><span>Decide: {{ linha.decide }}</span></span></div>
+    </div>
+    {% endfor %}
+  </fieldset>
+  {% if pode_cancelar %}
+  <fieldset class="mb-4">
+    <legend>Cancelamento</legend>
+    <p class="text-down-01 text-gray-70">O cancelamento é pedido sozinho, sem outras alterações no mesmo pedido.</p>
+    <div class="row align-items-start">
+      <div class="col-md-9 mb-2">{{ form.cancelamento.as_field_group }}</div>
+      <div class="col-md-3 mb-2"><span class="br-tag"><span>Decide: Diretoria</span></span></div>
+    </div>
+  </fieldset>
+  {% endif %}
+  {% if avisos %}
+  <div class="br-message info mb-4">
+    <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+    <div class="content" role="alert"><span class="message-title">Para quem vai cada parte.</span><span class="message-body"> {% for aviso in avisos %}{{ aviso }} {% endfor %}Cada parte pode ser decidida em momentos diferentes.</span></div>
+  </div>
+  {% endif %}
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="mb-3">{{ form.justificativa.as_field_group }}</div>
+      <div class="mb-3">{{ form.numero_sei.as_field_group }}</div>
+    </div>
+  </div>
+  {% include "dsgov/_acoes_formulario.html" with rotulo_salvar="Enviar solicitação" %}
+</form>
+{% endif %}
+{% endif %}
+
+{% elif modo == "inclusao" %}
+<div class="row">
+  <div class="col-lg-8">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form }}
+      {% if avisos %}
+      <div class="br-message info mb-4">
+        <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+        <div class="content" role="alert"><span class="message-title">Para quem vai o pedido.</span><span class="message-body"> {{ avisos|join:" " }} O item só recebe número no PCA quando a inclusão for aprovada.</span></div>
+      </div>
+      {% endif %}
+      {% include "dsgov/_acoes_formulario.html" with rotulo_salvar="Enviar solicitação" %}
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

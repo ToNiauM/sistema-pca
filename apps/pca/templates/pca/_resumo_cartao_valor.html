@@ -1,0 +1,5 @@
+{% load dsgov %}{% comment %}Um valor do cartão por unidade (celular): rótulo, número que abre a /tabela filtrada e o % pequeno embaixo. Parâmetros: col, rotulo, n, pct, href, uo, cor; titulo (opcional) vira <abbr title> do rótulo.{% endcomment %}<div class="{{ col }} mb-2">
+  <div class="text-down-02 text-gray-70">{% if titulo %}<abbr title="{{ titulo }}">{{ rotulo }}</abbr>{% else %}{{ rotulo }}{% endif %}</div>
+  <a class="text-weight-semi-bold{% if not n %} text-gray-70{% elif cor %} {{ cor }}{% endif %}" href="{% url 'pca:tabela' %}?{{ href }}" aria-label="{{ uo }}, {{ titulo|default:rotulo }}: {{ n|numero }} — abrir a tabela filtrada">{{ n|numero }}</a>
+  {% if n %}<div class="text-down-02 text-gray-70">{{ pct|percentual }}</div>{% endif %}
+</div>

@@ -1,0 +1,13 @@
+{% comment %} Distribuição mensal por dimensão: form GET (dimensão/medida); exercicio viaja num hidden. Troca ao escolher (Aplicar só sem JavaScript, como o seletor de exercício do Início). Vai no cabeçalho do cartão (ui/_par_analitico.html, acoes). {% endcomment %}
+<form method="get" class="d-flex align-items-center gap-2" aria-label="Escolher dimensão e medida da distribuição mensal">
+  {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+  <label class="visually-hidden" for="dimensao">Dimensão</label>
+  <select class="form-select form-select-sm w-auto" onchange="this.form.submit()" id="dimensao" name="dimensao">
+    {% for chave, rotulo in rotulos_dimensao.items %}<option value="{{ chave }}"{% if chave == dimensao_selecionada %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+  </select>
+  <label class="visually-hidden" for="medida">Medida</label>
+  <select class="form-select form-select-sm w-auto" onchange="this.form.submit()" id="medida" name="medida">
+    {% for valor, rotulo in medidas_disponiveis %}<option value="{{ valor }}"{% if valor == medida_selecionada %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+  </select>
+  <noscript><button class="btn btn-sm" type="submit">Aplicar</button></noscript>
+</form>

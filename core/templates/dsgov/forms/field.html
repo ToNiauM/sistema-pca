@@ -1,0 +1,69 @@
+{% comment %}
+Um campo Django → um componente DSGov. Decide pelo tipo do widget (field.widget_type).
+Estados: erro = classe `danger` + span.feedback; ajuda = <p class="text-down-01 text-gray-70"> (classe do DS).
+{% endcomment %}
+{% with tipo=field.widget_type erro=field.errors.0 ajuda=field.help_text %}
+{% if tipo == "checkbox" %}
+  <div class="br-checkbox{% if erro %} invalid{% endif %}">
+    {{ field }}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  </div>
+  {% if ajuda %}<p class="text-down-01 text-gray-70 mb-0">{{ ajuda }}</p>{% endif %}
+  {% if erro %}<span class="feedback danger mt-1" role="alert" id="{{ field.auto_id }}_erro"><i class="fas fa-times-circle" aria-hidden="true"></i>{{ erro }}</span>{% endif %}
+
+{% elif tipo == "radioselect" %}
+  <fieldset aria-describedby="{% if ajuda %}{{ field.auto_id }}_ajuda{% endif %}{% if erro %} {{ field.auto_id }}_erro{% endif %}">
+    <legend class="label mb-0">{{ field.label }}{% if field.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</legend>
+    {% if ajuda %}<p class="text-down-01 text-gray-70" id="{{ field.auto_id }}_ajuda">{{ ajuda }}</p>{% endif %}
+    {% for opcao in field %}
+    <div class="br-radio{% if erro %} invalid{% endif %}">
+      {{ opcao.tag }}
+      <label for="{{ opcao.id_for_label }}">{{ opcao.choice_label }}</label>
+    </div>
+    {% endfor %}
+    {% if erro %}<span class="feedback danger mt-1" role="alert" id="{{ field.auto_id }}_erro"><i class="fas fa-times-circle" aria-hidden="true"></i>{{ erro }}</span>{% endif %}
+  </fieldset>
+
+{% elif tipo == "checkboxselectmultiple" %}
+  <fieldset>
+    <legend class="label mb-0">{{ field.label }}</legend>
+    {% if ajuda %}<p class="text-down-01 text-gray-70">{{ ajuda }}</p>{% endif %}
+    {% for opcao in field %}
+    <div class="br-checkbox{% if erro %} invalid{% endif %}">
+      {{ opcao.tag }}
+      <label for="{{ opcao.id_for_label }}">{{ opcao.choice_label }}</label>
+    </div>
+    {% endfor %}
+    {% if erro %}<span class="feedback danger mt-1" role="alert"><i class="fas fa-times-circle" aria-hidden="true"></i>{{ erro }}</span>{% endif %}
+  </fieldset>
+
+{% elif tipo == "select" or tipo == "selectmultiple" or tipo == "nullbooleanselect" %}
+  {% include "dsgov/forms/select.html" with field=field erro=erro ajuda=ajuda multiplo=tipo|slice:"6:14" %}
+
+{% elif tipo == "textarea" %}
+  <div class="br-textarea{% if erro %} danger{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</label>
+    {{ field }}
+    {% if ajuda %}<p class="text-down-01 text-gray-70 mb-0" id="{{ field.auto_id }}_ajuda">{{ ajuda }}</p>{% endif %}
+    {% if erro %}<span class="feedback danger" role="alert" id="{{ field.auto_id }}_erro"><i class="fas fa-times-circle" aria-hidden="true"></i>{{ erro }}</span>{% endif %}
+  </div>
+
+{% elif tipo == "clearablefile" or tipo == "file" %}
+  <div class="br-upload{% if erro %} danger{% endif %}">
+    <label class="upload-label" for="{{ field.id_for_label }}"><span>{{ field.label }}</span></label>
+    {{ field }}
+    <div class="upload-list"></div>
+    {% if field.value and tipo == "clearablefile" %}<p class="text-down-01 text-gray-70 mb-0">Arquivo atual: {{ field.value }}</p>{% endif %}
+    {% if ajuda %}<p class="text-down-01 text-gray-70 mb-0">{{ ajuda }}</p>{% endif %}
+    {% if erro %}<span class="feedback danger" role="alert"><i class="fas fa-times-circle" aria-hidden="true"></i>{{ erro }}</span>{% endif %}
+  </div>
+
+{% else %}
+  <div class="br-input{% if erro %} danger{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</label>
+    {{ field }}
+    {% if ajuda %}<p class="text-down-01 text-gray-70 mb-0" id="{{ field.auto_id }}_ajuda">{{ ajuda }}</p>{% endif %}
+    {% if erro %}<span class="feedback danger" role="alert" id="{{ field.auto_id }}_erro"><i class="fas fa-times-circle" aria-hidden="true"></i>{{ erro }}</span>{% endif %}
+  </div>
+{% endif %}
+{% endwith %}

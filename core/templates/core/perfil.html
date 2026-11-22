@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% comment %}
+Área "Meu perfil": avatar-letra (references/componentes/
+avatar.md, densidade média), e-mail, nome/sobrenome editáveis ({{ form }} via
+DSGovFormRenderer + dsgov/_acoes_formulario.html, único `br-button primary` da
+página), atalho para trocar senha e o botão Sair (POST em core:logout, mesmo
+form de dsgov/_header.html). Sem foto de perfil nesta versão — ver
+core/forms/perfil.py.
+{% endcomment %}
+{% block titulo %}Meu perfil{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Meu perfil</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <div class="br-card mb-4">
+      <div class="card-content">
+        <div class="d-flex align-items-center mb-4">
+          <span class="br-avatar medium" title="{{ user.get_full_name|default:user.email }}"><span class="content bg-blue-warm-vivid-70 text-pure-0">{{ user.iniciais }}</span></span>
+          <div class="ml-3">
+            <p class="text-up-01 text-weight-semi-bold mb-0">{{ user.get_full_name|default:"Sem nome cadastrado" }}</p>
+            <p class="mb-0">{{ user.email }}</p>
+          </div>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          {{ form }}
+          {% include "dsgov/_acoes_formulario.html" with url_cancelar=url_cancelar rotulo_salvar="Salvar" %}
+        </form>
+      </div>
+    </div>
+    <div class="br-card mb-4">
+      <div class="card-content">
+        <h2 class="text-up-01 mb-3">Senha</h2>
+        <a class="br-button secondary" href="{% url 'core:trocar_senha' %}"><i class="fas fa-key mr-1" aria-hidden="true"></i>Trocar senha</a>
+      </div>
+    </div>
+    <div class="br-card mb-4">
+      <div class="card-content">
+        <h2 class="text-up-01 mb-3">Sessão</h2>
+        <form method="post" action="{% url 'core:logout' %}">
+          {% csrf_token %}
+          <button class="br-button secondary" type="submit"><i class="fas fa-sign-out-alt mr-1" aria-hidden="true"></i>Sair</button>
+        </form>
+      </div>
+    </div>
+    <div class="br-card">
+      <div class="card-content">
+        <h2 class="text-up-01 mb-3">Token de API (extensões SEI Pro)</h2>
+        <p>Gere um token pessoal para autenticar a extensão SEI Pro no navegador. Gerar um novo
+          token revoga automaticamente o anterior.</p>
+        {% if token_gerado %}
+        <div class="br-message warning mb-3">
+          <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+          <div class="content" role="alert">
+            <span class="message-title">Guarde este token agora.</span>
+            <span class="message-body"> Ele não será mostrado de novo.</span>
+          </div>
+        </div>
+        <div class="br-input mb-3">
+          <label for="token-gerado">Token de API</label>
+          <input id="token-gerado" type="text" value="{{ token_gerado }}" readonly>
+        </div>
+        {% endif %}
+        {% if token_ativo %}
+        <p>Token ativo desde {{ token_ativo.criado_em|date:"d/m/Y" }}.</p>
+        {% else %}
+        <p>Nenhum token ativo.</p>
+        {% endif %}
+        <form method="post" action="{% url 'core:token_gerar' %}" class="d-inline">
+          {% csrf_token %}
+          <button class="br-button secondary" type="submit"><i class="fas fa-key mr-1" aria-hidden="true"></i>Gerar token</button>
+        </form>
+        {% if token_ativo %}
+        <form method="post" action="{% url 'core:token_revogar' %}" class="d-inline">
+          {% csrf_token %}
+          <button class="br-button secondary" type="submit"><i class="fas fa-ban mr-1" aria-hidden="true"></i>Revogar token</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

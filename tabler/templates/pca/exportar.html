@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% comment %}Exportar processos (tabler) — página de compatibilidade (a tabela baixa o XLSX direto). POST responde com o arquivo.{% endcomment %}
+{% block titulo %}Exportar processos{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Processos</div>
+      <h1 class="page-title">Exportar processos</h1>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Planilha XLSX</h2>
+          <div class="card-subtitle">Os filtros atuais da tabela são aplicados ao arquivo.</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'pca:exportar' %}{% if querystring_filtros %}?{{ querystring_filtros }}{% endif %}">
+          {% csrf_token %}
+          {% for chave, valor in filtros_hidden %}
+            <input type="hidden" name="{{ chave }}" value="{{ valor }}">
+          {% endfor %}
+          {{ form }}
+          {% include "ui/_acoes_formulario.html" %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

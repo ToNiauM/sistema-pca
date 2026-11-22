@@ -1,0 +1,33 @@
+{% comment %}
+Fase 26 — tabela compartilhada pelas 3 etapas do
+wizard, sem edição inline (nenhum campo editável direto na célula — a
+Fase 17/22 tinha isso, tira). `modo`:
+  - "selecionar" (etapa 1) — checkbox por linha (`br-checkbox hidden-label`)
+    + hidden `item_pagina` para o POST de página inteira.
+  - "ajustar" (etapa 2) — sem checkbox; ação "Editar" por linha.
+  - "revisar" (etapa 3) — sem checkbox, sem ação (read-only).
+{% endcomment %}
+{% load dsgov %}
+<div class="br-table mb-0">
+  <div class="table-header"></div>
+  <table>
+    <caption>Itens da virada</caption>
+    <thead>
+      <tr>
+        {% if modo == "selecionar" %}<th class="column-checkbox" scope="col">Selecionar</th>{% endif %}
+        <th scope="col">Item</th>
+        <th scope="col">Descrição</th>
+        <th scope="col">UO</th>
+        <th scope="col" class="dsgov-numero">Valor estimado</th>
+        <th scope="col">Mês previsto</th>
+        <th scope="col">Situação origem</th>
+        {% if modo == "ajustar" %}<th scope="col" class="dsgov-acoes">Ações</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in pagina %}{% include "pca/_virada_linha.html" %}{% empty %}
+      <tr><td colspan="7">Nenhum item disponível nesta etapa.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

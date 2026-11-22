@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% load l10n ui static %}
+{% comment %}
+Análises › Fluxo de caixa (casca Tabler). A tela se lê de cima para baixo como uma história:
+  1. Visão — unidade, o que entra na conta (cenário), índice de reajuste e qual projeção (oficial/simulação);
+  2. Resumo — quanto o PCA vai custar no horizonte, QUANDO (restante do ano · ano seguinte · 4 anos depois,
+     blocos que somam o total) e DE ONDE vem (as 4 camadas, do mais certo ao mais estimado);
+  3. Ano a ano e mês a mês — gráficos empilhados com o total escrito em cima; clicar abre o recorte;
+  4. Recorte (ano/mês clicado) — total, composição e as contratações, com as ações de simulação por item;
+  5. Por unidade — quem pesa mais no fluxo;
+  6. Como ler — o que é cada camada, as premissas usadas e os itens que ficaram de fora.
+Formulários, ações e dados são os mesmos da outra casca; a view monta `resumo`, `leituras` e `alertas_dados`.
+{% endcomment %}
+
+{% block titulo %}Fluxo de caixa — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Análises</div>
+      <h1 class="page-title">Fluxo de caixa — PCA {{ exercicio.ano|default:"—" }}</h1>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <div class="dropdown">
+          <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="ti ti-download me-2" aria-hidden="true"></i>Exportar</button>
+          <div class="dropdown-menu dropdown-menu-end">
+            <a class="dropdown-item" href="{% url 'pca:analise_fluxo_xlsx' %}?{{ querystring_xlsx }}"><i class="ti ti-file-spreadsheet me-2" aria-hidden="true"></i>Planilha completa (XLSX)</a>
+            <a class="dropdown-item" href="{% url 'pca:analise_fluxo_csv' %}?{{ querystring_csv }}"><i class="ti ti-file-type-csv me-2" aria-hidden="true"></i>Parcelas, uma por linha (CSV)</a>
+          </div>
+        </div>
+        <button class="btn" type="button" onclick="window.print()"><i class="ti ti-printer me-2" aria-hidden="true"></i>Imprimir</button>
+        <a class="btn btn-ghost-secondary" href="{% url 'pca:analise' %}"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if comparacao_ativa %}
+<div class="alert alert-warning d-print-none mb-3" role="alert">
+  <div class="d-flex flex-wrap gap-3">
+    <div><i class="ti ti-flask alert-icon" aria-hidden="true"></i></div>
+    <div class="flex-fill">
+      <h4 class="alert-title">Você está vendo uma simulação{% if cenario_selecionado_obj %}: {{ cenario_selecionado_obj.nome }}{% endif %} — {{ variaveis_alteradas|length }} mudança(s) em relação ao oficial</h4>
+      {% if variaveis_alteradas %}<ul class="mb-0 ps-3">{% for variavel in variaveis_alteradas %}<li>{{ variavel }}</li>{% endfor %}</ul>{% endif %}
+    </div>
+    <div class="align-self-center ms-auto">
+      <form method="post" action="{% url 'pca:analise_fluxo_voltar_oficial' %}">
+        {% csrf_token %}{% include "pca/_fluxo_campos_ocultos.html" %}
+        <button class="btn btn-sm" type="submit"><i class="ti ti-arrow-back-up me-1" aria-hidden="true"></i>Voltar ao oficial</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ---------- 1. Visão ---------- #}
+<div class="card mb-3 d-print-none">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end" aria-label="Escolher o que o fluxo de caixa mostra">
+      {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+      {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+      {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+      <div class="col-12 col-sm-6 col-xl-3">
+        <label class="form-label small text-secondary mb-1" for="uo">Unidade</label>
+        <select class="form-select form-select-sm" id="uo" name="uo">
+          <option value=""{% if not uo_selecionada %} selected{% endif %}>Todas as unidades</option>
+          {% for unidade in unidades %}<option value="{{ unidade.pk }}"{% if unidade.pk == uo_selecionada %} selected{% endif %}>{{ unidade.nome }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <label class="form-label small text-secondary mb-1" for="cenario">O que entra na conta</label>
+        <select class="form-select form-select-sm" id="cenario" name="cenario">
+          {% for valor, rotulo in cenarios %}<option value="{{ valor }}"{% if valor == cenario_selecionado %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-sm-3 col-xl-2">
+        <label class="form-label small text-secondary mb-1 text-nowrap" for="indice">Reajuste por</label>
+        <select class="form-select form-select-sm" id="indice" name="indice">
+          {% for valor in indices %}<option value="{{ valor }}"{% if valor == indice_selecionado %} selected{% endif %}>{{ valor }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-sm-3 col-xl-2">
+        <label class="form-label small text-secondary mb-1" for="sim">Projeção</label>
+        <select class="form-select form-select-sm" id="sim" name="sim">
+          <option value="oficial"{% if sim == "oficial" %} selected{% endif %}>Oficial</option>
+          <option value="rascunho"{% if sim == "rascunho" %} selected{% endif %}>Minha simulação (rascunho)</option>
+          {% for cenario_item in cenarios_salvos %}<option value="{{ cenario_item.pk }}"{% if sim == cenario_item.pk|stringformat:"d" %} selected{% endif %}>Salva: {{ cenario_item.nome }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-2 d-flex gap-2">
+        <button class="btn btn-sm btn-primary" type="submit"><i class="ti ti-refresh me-1" aria-hidden="true"></i>Atualizar</button>
+        <a class="btn btn-sm btn-ghost-secondary{% if simulacao_ativa_sessao %} position-relative{% endif %}" data-bs-toggle="collapse" href="#fluxo-simular-conteudo" role="button" aria-expanded="false" aria-controls="fluxo-simular-conteudo"><i class="ti ti-flask me-1" aria-hidden="true"></i>Simular{% if simulacao_ativa_sessao %}<span class="badge bg-yellow ms-1" title="Há um rascunho de simulação">●</span>{% endif %}</a>
+      </div>
+    </form>
+  </div>
+
+  {# Simular: índices por ano e tempo até contratar; ações por item ficam na lista do recorte #}
+  <div class="collapse border-top" id="fluxo-simular-conteudo">
+    <div class="card-body">
+      <form method="post" action="{% url 'pca:analise_fluxo_simular' %}" class="row g-2 align-items-end" aria-label="Simular índices e tempo até contratar">
+        {% csrf_token %}{% include "pca/_fluxo_campos_ocultos.html" %}
+        {% for ano, percentual in indices_horizonte %}
+        <div class="col-6 col-sm-4 col-md-2">
+          <label class="form-label small text-secondary mb-1 text-nowrap" for="indice_sim_{{ ano }}">Índice {{ ano }} (%)</label>
+          <input class="form-control form-control-sm" id="indice_sim_{{ ano }}" type="number" step="0.01" name="indice_{{ ano }}" value="{{ percentual|default_if_none:''|unlocalize }}"/>
+        </div>
+        {% endfor %}
+        <div class="col-6 col-sm-4 col-md-3">
+          <label class="form-label small text-secondary mb-1 text-nowrap" for="lead_time_sim" title="Lead time: dias entre o mês previsto e a assinatura do contrato">Tempo até contratar (dias)</label>
+          <input class="form-control form-control-sm" id="lead_time_sim" type="number" step="1" min="0" max="3650" name="lead_time_dias" value="{{ lead_time_mediano_dias_exibicao }}"/>
+        </div>
+        <div class="col-12 col-md-auto">
+          <button class="btn btn-sm" type="submit"><i class="ti ti-player-play me-1" aria-hidden="true"></i>Simular</button>
+        </div>
+      </form>
+    </div>
+    {% if simulacao_ativa_sessao %}
+    <div class="card-footer py-2 d-flex flex-wrap align-items-end gap-2">
+      <form method="post" action="{% url 'pca:analise_fluxo_cenario_salvar_como' %}" class="d-flex flex-wrap align-items-end gap-2" aria-label="Salvar rascunho como cenário">
+        {% csrf_token %}{% include "pca/_fluxo_campos_ocultos.html" %}
+        <div>
+          <label class="form-label small text-secondary mb-1" for="cenario_salvar_nome">Salvar o rascunho com um nome</label>
+          <input class="form-control form-control-sm" id="cenario_salvar_nome" type="text" name="nome" maxlength="100" required="required" placeholder="Ex.: IPCA 5% em 2027"/>
+        </div>
+        <button class="btn btn-sm" type="submit"><i class="ti ti-device-floppy me-1" aria-hidden="true"></i>Salvar como novo</button>
+      </form>
+      <form method="post" action="{% url 'pca:analise_fluxo_voltar_oficial' %}" class="ms-auto">
+        {% csrf_token %}{% include "pca/_fluxo_campos_ocultos.html" %}
+        <button class="btn btn-sm btn-ghost-secondary" type="submit"><i class="ti ti-trash me-1" aria-hidden="true"></i>Descartar rascunho</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if cenario_selecionado_obj %}
+  <div class="card-footer d-flex flex-wrap align-items-center gap-2 py-2" aria-label="Simulação salva selecionada">
+    <span class="me-auto small">
+      <i class="ti ti-bookmark me-1 text-primary" aria-hidden="true"></i>Simulação salva: <strong>{{ cenario_selecionado_obj.nome }}</strong>
+      <span class="text-secondary">({{ cenario_selecionado_obj.autor.get_full_name|default:cenario_selecionado_obj.autor.email }}, {{ cenario_selecionado_obj.atualizado_em|date:"d/m/Y H:i" }})</span>
+    </span>
+    <form method="post" action="{% url 'pca:analise_fluxo_cenario_carregar' cenario_selecionado_obj.pk %}">
+      {% csrf_token %}{% include "pca/_fluxo_campos_ocultos.html" %}
+      <button class="btn btn-sm" type="submit">Carregar no rascunho</button>
+    </form>
+    {% if pode_editar_cenario_selecionado %}
+    <form method="post" action="{% url 'pca:analise_fluxo_cenario_salvar' cenario_selecionado_obj.pk %}">
+      {% csrf_token %}{% include "pca/_fluxo_campos_ocultos.html" %}
+      <button class="btn btn-sm" type="submit">Salvar (sobrescrever com o rascunho atual)</button>
+    </form>
+    <a class="btn btn-sm btn-ghost-danger" href="{% url 'pca:analise_fluxo_cenario_excluir_confirmar' cenario_selecionado_obj.pk %}?exercicio={{ exercicio.ano }}"><i class="ti ti-trash me-1" aria-hidden="true"></i>Excluir</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{# ---------- 2. Resumo: quanto, quando e de onde ---------- #}
+<h2 class="visually-hidden">Resumo do fluxo de caixa</h2>
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-4 align-items-stretch">
+      <div class="col-12 col-xl-4">
+        <div class="subheader mb-1">Quanto o PCA {{ exercicio.ano }} vai custar · {{ resumo.periodo }}</div>
+        <div class="display-6 fw-bold lh-1 mb-2 text-nowrap" title="{{ resumo.total }}">{{ resumo.total_curto }}</div>
+        {% if resumo.comparacao %}<div class="small text-warning mb-2">{{ resumo.comparacao }}</div>{% endif %}
+        <div class="text-secondary"><span class="text-blue fw-bold">{{ resumo.percentual_contratado }}</span> já contratado · {{ resumo.percentual_projetado }} ainda é projeção</div>
+      </div>
+      <div class="col-12 col-xl-8">
+        <div class="row g-3 h-100">
+          {% for bloco in resumo.blocos %}
+          <div class="col-12 col-md-4">
+            <div class="card card-sm h-100 bg-body-tertiary border-0">
+              <div class="card-body">
+                <div class="d-flex align-items-baseline gap-2">
+                  <div class="fw-bold">{{ bloco.rotulo }}</div>
+                  <div class="small text-secondary ms-auto">{{ bloco.percentual }}</div>
+                </div>
+                <div class="small text-secondary mb-2">{{ bloco.periodo }}</div>
+                <div class="h2 mb-1 text-nowrap" title="{{ bloco.valor }}">{{ bloco.valor_curto }}</div>
+                {% if bloco.comparacao %}<div class="small text-warning">{{ bloco.comparacao }}</div>{% endif %}
+                {% if bloco.url %}<a class="small" href="{{ bloco.url }}">Ver as contratações <i class="ti ti-arrow-right" aria-hidden="true"></i></a>{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body border-top">
+    <div class="subheader mb-2">De onde vem o valor</div>
+    <div class="progress progress-separated progress-lg mb-3" role="img" aria-label="{% for c in resumo.camadas %}{{ c.rotulo }} {{ c.percentual }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+      {% for c in resumo.camadas %}<div class="progress-bar bg-{{ c.cor }}" style="width: {{ c.largura }}%" title="{{ c.rotulo }}: {{ c.valor }} ({{ c.percentual }})"></div>{% endfor %}
+    </div>
+    <div class="row g-3">
+      {% for c in resumo.camadas %}
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="legend bg-{{ c.cor }}"></span>
+          <span class="fw-medium">{{ c.rotulo }}</span>
+          <span class="badge {% if c.grau == 'certo' %}bg-green-lt{% elif c.grau == 'previsto' %}bg-azure-lt{% else %}bg-secondary-lt{% endif %} ms-auto">{{ c.grau }}</span>
+        </div>
+        <div class="d-flex align-items-baseline gap-2"><span class="h3 mb-0 text-nowrap" title="{{ c.valor }}">{{ c.valor_curto }}</span><span class="small text-secondary">{{ c.percentual }}</span></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{# ---------- Leitura rápida: o que os números dizem e o que falta no cadastro ---------- #}
+<div class="row row-cards mb-3">
+  <div class="col-12 col-xl-7">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title">Quanto já é certo, ano a ano</h2></div>
+      <div class="card-body">
+        {% for c in resumo.certeza %}
+        <div class="row g-2 align-items-center mb-2">
+          <div class="col-3 col-sm-2 fw-medium text-nowrap">{{ c.ano }}{% if c.parcial %} <span class="small text-secondary fw-normal">parcial</span>{% endif %}</div>
+          <div class="col">
+            <div class="progress progress-sm" role="img" aria-label="{{ c.ano }}: {{ c.percentual }} contratado">
+              <div class="progress-bar {% if c.nivel == 'alta' %}bg-green{% elif c.nivel == 'media' %}bg-yellow{% else %}bg-red{% endif %}" style="width: {{ c.largura }}%"></div>
+            </div>
+          </div>
+          <div class="col-3 col-sm-2 text-end small text-nowrap">{{ c.percentual }}</div>
+        </div>
+        {% endfor %}
+        <div class="small text-secondary mt-2"><span class="legend bg-green me-1"></span>70% ou mais · <span class="legend bg-yellow mx-1"></span>40% a 70% · <span class="legend bg-red mx-1"></span>menos de 40% contratado</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-5">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title">O que os números dizem</h2></div>
+      <div class="list-group list-group-flush">
+        {% for l in leituras %}
+        <div class="list-group-item d-flex gap-2"><i class="ti ti-{{ l.icone }} text-primary mt-1" aria-hidden="true"></i><span>{{ l.texto }}</span></div>
+        {% endfor %}
+        {% for a in alertas_dados %}
+        <div class="list-group-item d-flex gap-2 bg-yellow-lt"><i class="ti ti-database-exclamation text-warning mt-1" aria-hidden="true"></i><span>{{ a }}</span></div>
+        {% endfor %}
+        {% if not leituras and not alertas_dados %}<div class="list-group-item text-secondary">Sem valores projetados no recorte atual.</div>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ---------- 3. Ano a ano e mês a mês ---------- #}
+<div class="row row-cards mb-3">
+  {% include "ui/_grafico_card.html" with grafico=grafico_anual col_grafico=grafico_mensal.tabela.linhas|yesno:"col-12 col-lg-6,col-12" %}
+  {% if grafico_mensal.tabela.linhas %}{% include "ui/_grafico_card.html" with grafico=grafico_mensal col_grafico="col-12 col-lg-6" %}{% endif %}
+</div>
+
+{# ---------- 4. Recorte (ano ou mês clicado) ---------- #}
+{% if ano_recorte %}
+<div class="card mb-3" id="fluxo-recorte">
+  <div class="card-header">
+    <h2 class="card-title">Contratações neste recorte: {{ recorte_rotulo }}</h2>
+    <div class="card-actions d-flex flex-wrap gap-2 d-print-none">
+      {% if mes_recorte %}<a class="btn btn-sm btn-ghost-secondary" href="{% url_com mes=None pagina=None %}#fluxo-recorte"><i class="ti ti-calendar me-1" aria-hidden="true"></i>Ano inteiro</a>{% endif %}
+      <a class="btn btn-sm btn-ghost-secondary" href="{% url_com ano=None mes=None pagina=None %}"><i class="ti ti-x me-1" aria-hidden="true"></i>Fechar recorte</a>
+    </div>
+  </div>
+  {% if kpi_recorte %}
+  <div class="card-body border-bottom">
+    <div class="row g-3 align-items-center">
+      <div class="col-12 col-lg-3">
+        <div class="subheader">Total em {{ kpi_recorte.rotulo }}</div>
+        <div class="h1 mb-0 text-nowrap">{{ kpi_recorte.valor }}</div>
+      </div>
+      {% for c in kpi_recorte.camadas %}
+      <div class="col-6 col-lg">
+        <div class="small text-secondary"><span class="legend bg-{{ c.cor }} me-1"></span>{{ c.rotulo }}</div>
+        <div class="fw-medium text-nowrap">{{ c.valor }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover mb-0">
+      <caption class="visually-hidden">Contratações no recorte {{ recorte_rotulo }}</caption>
+      <thead><tr>{% for c in tabela_recorte.colunas %}<th scope="col"{% if forloop.last %} class="d-print-none"{% elif forloop.counter > 4 %} class="text-end"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for linha in tabela_recorte.linhas %}
+        <tr>{% for cel in linha %}<td class="{% if forloop.first %}text-nowrap{% elif forloop.counter == 2 %}text-wrap{% elif forloop.last %}d-print-none{% elif forloop.counter > 4 %}text-end text-nowrap{% endif %}">{% if cel.url %}<a href="{{ cel.url }}">{{ cel.valor }}</a>{% elif forloop.counter == 2 %}<span title="{{ cel.valor }}">{{ cel.valor|truncatechars:80 }}</span>{% else %}{{ cel.valor }}{% endif %}</td>{% endfor %}</tr>
+        {% empty %}
+        <tr><td colspan="{{ tabela_recorte.colunas|length }}" class="text-secondary">Nenhuma contratação com valor projetado neste recorte.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if pagina_recorte.paginator.num_pages > 1 %}
+  <div class="card-footer d-flex py-2">
+    <nav class="ms-auto" aria-label="Paginação das contratações do recorte">
+      <ul class="pagination pagination-sm m-0 flex-wrap">
+        {% for numero_pagina in pagina_recorte.paginator.page_range %}
+        <li class="page-item{% if numero_pagina == pagina_recorte.number %} active{% endif %}"><a class="page-link" href="{% url_com pagina=numero_pagina %}#fluxo-recorte" aria-label="Página {{ numero_pagina }}" aria-current="{% if numero_pagina == pagina_recorte.number %}page{% else %}false{% endif %}">{{ numero_pagina }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ---------- 5. Por unidade ---------- #}
+<div class="card mb-3">
+  <div class="card-header"><h2 class="card-title">Por unidade</h2></div>
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover mb-0">
+      <caption class="visually-hidden">Fluxo de caixa por unidade e ano</caption>
+      <thead><tr>{% for c in tabela_uo_ano.colunas %}<th scope="col"{% if not forloop.first %} class="text-end"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for linha in tabela_uo_ano.linhas %}
+        <tr>{% for cel in linha %}<td class="{% if forloop.first %}text-nowrap{% else %}text-end text-nowrap{% endif %}{% if cel.curto == '—' %} text-secondary{% endif %}">{% if cel.url %}<a{% if not forloop.first %} class="text-reset"{% endif %} href="{{ cel.url }}" title="{{ cel.valor }}">{% firstof cel.curto cel.valor %}</a>{% elif cel.curto %}<span title="{{ cel.valor }}">{{ cel.curto }}</span>{% else %}{{ cel.valor }}{% endif %}</td>{% endfor %}</tr>
+        {% empty %}
+        <tr><td colspan="{{ tabela_uo_ano.colunas|length }}" class="text-secondary">Nenhum valor projetado no recorte atual.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ---------- 6. Como ler ---------- #}
+<div class="card mb-3">
+  <div class="card-header"><h2 class="card-title">Como ler esta projeção</h2></div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-12 col-lg-6">
+        <h3 class="h4">As quatro partes do valor</h3>
+        <dl class="mb-0">
+          {% for c in descricoes_camada %}
+          <dt class="d-flex align-items-center gap-2"><span class="legend bg-{{ c.cor }}"></span>{{ c.rotulo }} <span class="small text-secondary fw-normal">({{ c.grau }})</span></dt>
+          <dd class="text-secondary mb-2">{{ c.descricao }}</dd>
+          {% endfor %}
+        </dl>
+      </div>
+      <div class="col-12 col-lg-6">
+        <h3 class="h4">Premissas usadas</h3>
+        {% if premissas %}
+        <ul class="list-unstyled mb-3">
+          {% for premissa in premissas %}<li class="d-flex gap-2 mb-1"><i class="ti ti-info-circle text-secondary mt-1" aria-hidden="true"></i><span>{{ premissa }}</span></li>{% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-secondary">Nenhuma premissa aplicada nesta projeção.</p>
+        {% endif %}
+        <h3 class="h4 d-flex align-items-center gap-2">Itens fora da conta {% if sem_dado %}<span class="badge bg-yellow-lt">{{ sem_dado|length }}</span>{% endif %}</h3>
+        {% if sem_dado %}
+        <a class="small collapsed" data-bs-toggle="collapse" href="#fluxo-sem-dado" role="button" aria-expanded="false" aria-controls="fluxo-sem-dado"><i class="ti ti-list me-1" aria-hidden="true"></i>Ver os {{ sem_dado|length }} itens</a>
+        <div class="collapse" id="fluxo-sem-dado">
+          <div class="list-group list-group-flush mt-2">
+            {% for item in sem_dado %}
+            <div class="list-group-item px-0 py-2"><a class="fw-medium" href="{{ item.url }}">Item {{ item.item_pca }}</a> <span class="text-secondary">— {{ item.motivo }}</span></div>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">Todos os itens têm dados suficientes para a projeção.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="text-secondary small mt-3 mb-0">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'tabler/vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'tabler/js/echarts-pca.js' %}"></script>
+{% endblock %}

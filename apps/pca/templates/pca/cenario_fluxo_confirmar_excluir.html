@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% comment %}
+Fase 37 (spec §3.2) — confirmação de exclusão de um
+`CenarioFluxo` salvo do fluxo de caixa, mesmo padrão EXATO de
+`exercicio_confirmar_encerrar.html`: página própria, nunca modal.
+POST real em `pca:analise_fluxo_cenario_excluir`; a view já garante 403
+antes de renderizar para quem não é autor nem superusuário.
+{% endcomment %}
+{% block titulo %}Excluir cenário {{ cenario.nome }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Excluir cenário "{{ cenario.nome }}"?</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <div class="br-message warning mb-4">
+      <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">Esta ação não pode ser desfeita.</span>
+        <span class="message-body"> O cenário "{{ cenario.nome }}" (salvo por {{ cenario.autor.get_full_name|default:cenario.autor.email }} em {{ cenario.atualizado_em|date:"d/m/Y H:i" }}) será excluído definitivamente.</span>
+      </div>
+    </div>
+    <form method="post" action="{% url 'pca:analise_fluxo_cenario_excluir' cenario.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+      <div class="dsgov-acoes-formulario">
+        <a class="br-button" href="{% url 'pca:analise_fluxo' %}?exercicio={{ exercicio.ano }}">Cancelar</a>
+        <button class="br-button primary" type="submit"><i class="fas fa-trash mr-1" aria-hidden="true"></i>Excluir</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

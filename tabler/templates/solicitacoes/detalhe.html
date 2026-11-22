@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block titulo %}Solicitação {{ s.codigo }}{% endblock %}
+{% block conteudo %}
+{% comment %}
+Fase 43 — detalhe e avaliação de uma solicitação (Tabler): justificativa, nº SEI, cada parte com "hoje → pedido" e,
+só nas partes da alçada de quem olha (e ainda pendentes), o formulário de decisão (aprovar / aprovar com ajuste /
+recusar + motivo); as demais partes em leitura com "Aguardando …". Trilha ao lado. Um formulário por parte, cada um
+com o seu POST; botões de decisão são secundários (várias partes: a página não tem ação primária).
+{% endcomment %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Solicitações · Criada em {{ s.criada_em }} por {{ s.solicitante }} · {{ s.unidade }}</div>
+      <h1 class="page-title">Solicitação {{ s.codigo }}</h1>
+      <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+        {% tag_status s.estado_rotulo s.chave %}
+        <span class="badge bg-secondary-lt">{{ s.tipo }}</span>
+        {% if s.item_url %}<a class="badge bg-azure-lt" href="{{ s.item_url }}">{{ s.item }}</a>{% else %}<span class="badge bg-azure-lt">{{ s.item }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <a class="btn btn-ghost-secondary" href="{{ url_minhas }}"><i class="ti ti-arrow-left me-1" aria-hidden="true"></i>Voltar</a>
+        {% if pode_desistir %}
+        <form class="d-inline" method="post" action="{{ url_desistir }}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger" type="submit"><i class="ti ti-ban me-1" aria-hidden="true"></i>Desistir da solicitação</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row row-cards">
+  <div class="col-12 col-xl-8">
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title">Pedido</h2></div>
+      <div class="card-body">
+        <div class="datagrid">
+          <div class="datagrid-item datagrid-item-largo"><div class="datagrid-title">Justificativa</div><div class="datagrid-content">{{ justificativa|linebreaksbr }}</div></div>
+          {% if numero_sei %}<div class="datagrid-item"><div class="datagrid-title">Nº SEI</div><div class="datagrid-content">{{ numero_sei }}</div></div>{% endif %}
+          {% for rotulo, valor in inclusao %}<div class="datagrid-item{% if rotulo == "Objeto" %} datagrid-item-largo{% endif %}"><div class="datagrid-title">{{ rotulo }}</div><div class="datagrid-content">{{ valor }}</div></div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {% for parte in partes %}
+    <div class="card mb-3" id="parte-{{ parte.id }}">
+      <div class="card-header">
+        <h2 class="card-title">{{ parte.rotulo }}</h2>
+        <div class="card-actions d-flex align-items-center gap-2">
+          {% tag_status parte.estado_rotulo parte.chave %}
+          {% if parte.fora_do_exercicio %}<span class="badge bg-orange-lt">Fora do exercício</span>{% endif %}
+          <span class="small text-secondary">Decide: {{ parte.alcada }}</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="datagrid mb-2">
+          {% if parte.campo == "cancelamento" %}
+          <div class="datagrid-item datagrid-item-largo"><div class="datagrid-title">Pedido</div><div class="datagrid-content">Cancelar o item.</div></div>
+          {% elif parte.campo == "inclusao" %}
+          <div class="datagrid-item datagrid-item-largo"><div class="datagrid-title">Pedido</div><div class="datagrid-content">Incluir o item novo descrito acima.</div></div>
+          {% else %}
+          <div class="datagrid-item"><div class="datagrid-title">Hoje</div><div class="datagrid-content">{{ parte.hoje }}</div></div>
+          <div class="datagrid-item"><div class="datagrid-title">Pedido</div><div class="datagrid-content">{{ parte.pedido }}</div></div>
+          {% endif %}
+          {% if parte.concedido %}<div class="datagrid-item"><div class="datagrid-title">Concedido</div><div class="datagrid-content">{{ parte.concedido }}</div></div>{% endif %}
+          {% if parte.motivo and not parte.pendente %}<div class="datagrid-item datagrid-item-largo"><div class="datagrid-title">Motivo</div><div class="datagrid-content">{{ parte.motivo|linebreaksbr }}</div></div>{% endif %}
+          {% if parte.decidido_por %}<div class="datagrid-item datagrid-item-largo"><div class="datagrid-title">{% if parte.estado == "desistida" %}Desistência por{% else %}Decidida por{% endif %}</div><div class="datagrid-content">{{ parte.decidido_por }} em {{ parte.decidido_em }}</div></div>{% endif %}
+        </div>
+        {% if parte.form %}
+        <hr/>
+        <form method="post" action="{{ parte.url_decidir }}" novalidate>
+          {% csrf_token %}
+          {{ parte.form }}
+          <div class="mt-3"><button class="btn btn-outline-primary" type="submit"><i class="ti ti-check me-1" aria-hidden="true"></i>Registrar decisão</button></div>
+        </form>
+        {% elif parte.aguardando %}
+        <p class="text-secondary mb-0">{{ parte.aguardando }}.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Trilha</h2></div>
+      <div class="card-body">
+        <ul class="steps steps-vertical">
+          {% for evento in eventos %}
+          <li class="step-item">
+            <div class="h4 m-0">{{ evento.texto }}</div>
+            <div class="small text-secondary">{{ evento.quem }} · {{ evento.quando_texto }}</div>
+            {% if evento.detalhe %}<div class="small text-secondary">{{ evento.detalhe }}</div>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

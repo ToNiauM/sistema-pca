@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load ui pca_ui %}
+{% comment %}Prévia de "Gerar itens de N+1" a partir dos contratos vigentes do exercício de origem. GET puro, nunca escreve; o único botão primário confirma por POST (pca:gerar_n1_confirmar). Linhas "não entra" ficam por último, apagadas. Sem paginação — prévia inteira.{% endcomment %}
+{% block titulo %}Gerar itens de {{ ano_n1 }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Gerenciar exercícios · PCA {{ exercicio.ano }}</div>
+      <h1 class="page-title">Gerar itens de {{ ano_n1 }}</h1>
+      <div class="text-secondary mt-1">
+        A partir dos contratos do PCA {{ exercicio.ano }} com vigência informada. Quem não deve
+        entrar muda a renovação prevista ou a vigência na tela Prazos antes de gerar.
+      </div>
+    </div>
+    <div class="col-12 col-md-auto">
+      <form method="post" action="{% url 'pca:gerar_n1_confirmar' exercicio.ano %}" class="btn-list">
+        {% csrf_token %}
+        <a class="btn" href="{% url 'pca:gerenciar_exercicios' %}"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar</a>
+        <button class="btn btn-primary" type="submit"{% if not previa.novos or previa.erros %} disabled{% endif %}><i class="ti ti-copy-plus me-2" aria-hidden="true"></i>Gerar {{ previa.novos }} itens</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if previa.erros %}
+<div class="alert alert-danger" role="alert">
+  <div class="d-flex align-items-start gap-2"><i class="ti ti-alert-circle fs-2 lh-1" aria-hidden="true"></i>
+    <div><div class="fw-bold">Catálogo incompleto.</div><div>{{ previa.erros|join:" " }}</div></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row row-cards mb-3">
+  {% for kpi in cards %}{% cycle "green" "azure" "secondary" "primary" as cor_kpi silent %}{% if forloop.last %}{% include "ui/_kpi_card.html" with col_kpi="col-12 col-sm-6 col-xl-3" %}{% else %}{% include "ui/_kpi_card.html" with col_kpi="col-6 col-sm-6 col-xl-3" %}{% endif %}{% endfor %}
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">Prévia da geração</h2>
+      <div class="card-subtitle">{{ previa.linhas|length }} contrato{{ previa.linhas|length|pluralize }} com vigência informada no PCA {{ exercicio.ano }}</div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover">
+      <caption class="visually-hidden">Prévia da geração de itens de {{ ano_n1 }}</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="w-1 text-nowrap">Item (N)</th>
+          <th scope="col">Objeto</th>
+          <th scope="col" class="text-end d-none d-sm-table-cell">Vencimento</th>
+          <th scope="col" class="d-none d-lg-table-cell">Destino</th>
+          <th scope="col" class="d-none d-md-table-cell">Em {{ ano_n1 }}</th>
+          <th scope="col" class="text-end d-none d-sm-table-cell">Valor</th>
+          <th scope="col" class="d-none d-xl-table-cell">Fonte do valor</th>
+          <th scope="col">Situação da geração</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in previa.linhas %}
+        <tr{% if linha.estado == "nao_entra" %} class="text-secondary"{% endif %}>
+          <td class="fw-medium">{{ linha.processo.item_pca }}</td>
+          <td>
+            <span title="{{ linha.processo.descricao_objeto }}">{{ linha.processo.descricao_objeto|truncatechars:80 }}</span>
+            <div class="small text-secondary d-md-none">{% if linha.tipo_chave %}{{ linha.tipo_chave|title }} · {{ linha.situacao }} · mês {{ linha.mes|nome_mes }}{% else %}—{% endif %}</div>
+            <div class="small text-secondary d-lg-none">{{ linha.destino.rotulo }}</div>
+            <div class="small d-sm-none">Vence {{ linha.processo.vigencia_fim|date:"d/m/Y" }}{% if linha.estado != "nao_entra" %} · <span class="fw-medium">{{ linha.valor|moeda }}</span>{% endif %}</div>
+          </td>
+          <td class="text-end text-nowrap d-none d-sm-table-cell">{{ linha.processo.vigencia_fim|date:"d/m/Y" }}</td>
+          <td class="d-none d-lg-table-cell text-nowrap"><span class="badge bg-secondary-lt" title="{{ linha.destino.explicacao }}" data-bs-toggle="tooltip">{{ linha.destino.rotulo }}</span></td>
+          <td class="d-none d-md-table-cell">
+            {% if linha.tipo_chave %}{{ linha.tipo_chave|title }} · {{ linha.situacao }} · mês {{ linha.mes|nome_mes }}{% else %}—{% endif %}
+          </td>
+          <td class="text-end text-nowrap d-none d-sm-table-cell">{% if linha.estado == "nao_entra" %}—{% else %}{{ linha.valor|moeda }}{% endif %}</td>
+          <td class="d-none d-xl-table-cell small">
+            {% if linha.fonte_valor == "projecao" %}Motor de fluxo de caixa
+            {% elif linha.fonte_valor == "origem" %}Valor estimado de {{ exercicio.ano }} (sem projeção)
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if linha.estado == "novo" %}<span class="badge bg-green-lt">Novo</span>
+            {% elif linha.estado == "ja_gerado" %}<span class="badge bg-azure-lt">Já gerado — item {{ linha.item_gerado }}</span>
+            {% else %}<span class="badge bg-red-lt">Não entra</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8">
+            <div class="empty py-4">
+              <div class="empty-icon"><i class="ti ti-file-off" aria-hidden="true"></i></div>
+              <p class="empty-title">Nada a gerar</p>
+              <p class="empty-subtitle text-secondary">Nenhum contrato com vigência informada neste exercício.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

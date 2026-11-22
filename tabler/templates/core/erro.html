@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="empty py-6">
+  <div class="empty-header">{{ codigo }}</div>
+  <h1 class="empty-title">{{ titulo }}</h1>
+  <p class="empty-subtitle text-secondary">{{ texto }}</p>
+  <div class="empty-action">
+    <a class="btn btn-primary" href="{% url 'core:inicio' %}"><i class="ti ti-home me-2" aria-hidden="true"></i>Voltar ao início</a>
+  </div>
+</div>
+{% endblock %}

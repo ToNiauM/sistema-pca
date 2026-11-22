@@ -1,0 +1,22 @@
+{% comment %}
+Aparência antes do CSS pintar (sem piscar). Logado: a escolha gravada na conta (APARENCIA, vinda do servidor),
+copiada no navegador para a tela de login também abrir com ela. Sem login: a última escolha deste navegador.
+"auto" segue o claro/escuro do sistema operacional.
+{% endcomment %}
+<script>
+(function () {
+  var doServidor = {% if user.is_authenticated %}{"tema": "{{ APARENCIA.tema|escapejs }}", "cor": "{{ APARENCIA.cor|escapejs }}", "base": "{{ APARENCIA.base|escapejs }}", "cantos": "{{ APARENCIA.cantos|escapejs }}"}{% else %}null{% endif %};
+  var a = doServidor;
+  try {
+    if (a) localStorage.setItem("pca-aparencia", JSON.stringify(a));
+    else a = JSON.parse(localStorage.getItem("pca-aparencia") || "null");
+  } catch (e) {}
+  a = a || {"tema": "auto", "cor": "blue", "base": "slate", "cantos": "1"};
+  var raiz = document.documentElement;
+  var escuro = a.tema === "escuro" || (a.tema !== "claro" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  raiz.setAttribute("data-bs-theme", escuro ? "dark" : "light");
+  raiz.setAttribute("data-bs-theme-primary", a.cor);
+  raiz.setAttribute("data-bs-theme-base", a.base);
+  raiz.setAttribute("data-bs-theme-radius", a.cantos);
+})();
+</script>

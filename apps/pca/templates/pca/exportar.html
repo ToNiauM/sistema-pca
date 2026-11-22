@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% comment %}
+Fase 26 — exportar como página própria
+(`telas/formulario.md`): colunas (`br-checkbox`) via `{{ form }}`
+(DSGovFormRenderer); campos `hidden` espelham os filtros atuais só para
+transparência (a filtragem real vem da querystring do `action`, ver
+`apps/pca/views_tabela.py::exportar_view`). POST responde com o arquivo
+direto — sem redirect, sem página intermediária de "download pronto".
+
+Fase 28 — a interface de Processos oferece
+SOMENTE XLSX: `ExportarForm.formato` é um campo oculto travado em
+`"xlsx"` (sem `br-radio` visível de formato); esta página própria
+(`pca:exportar`) já não é o caminho padrão a partir da tabela (o botão
+"Exportar XLSX" baixa direto via `pca:exportar_xlsx`), mas continua
+respondendo por compatibilidade.
+{% endcomment %}
+{% block titulo %}Exportar processos{% endblock %}
+{% block conteudo %}
+<div class="d-flex align-items-center mb-4">
+  <h1 class="mb-0">Exportar processos</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <form method="post" action="{% url 'pca:exportar' %}{% if querystring_filtros %}?{{ querystring_filtros }}{% endif %}">
+      {% csrf_token %}
+      {% for chave, valor in filtros_hidden %}
+        <input type="hidden" name="{{ chave }}" value="{{ valor }}">
+      {% endfor %}
+      {{ form }}
+      {% include "dsgov/_acoes_formulario.html" %}
+    </form>
+  </div>
+</div>
+{% endblock %}

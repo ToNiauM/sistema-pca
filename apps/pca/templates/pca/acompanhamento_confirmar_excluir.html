@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load dsgov %}
+{% comment %}
+Confirmação de exclusão de UMA linha de Acompanhamento,
+mesmo padrão EXATO de `cenario_fluxo_confirmar_excluir.html`:
+página própria, nunca modal. POST real em
+`pca:acompanhamento_excluir`; a view já garante 403 antes de renderizar
+para quem não tem superusuário + `pca.gerir_exercicio`. O bloco do efeito
+vem de `services.efeito_da_exclusao` (transação+rollback, zero escrita
+persistida na simples leitura desta página).
+{% endcomment %}
+{% block titulo %}Confirmar exclusão — Item {{ p.item_pca }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Confirmar exclusão</h1>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <p class="mb-2"><strong>Item:</strong> {{ p.item_pca }}/{{ p.exercicio.ano }} — {{ p.descricao_objeto|truncatechars:80 }}</p>
+    <p class="mb-2"><strong>Data:</strong> {{ acompanhamento.referencia_data|data_br }}</p>
+    <p class="mb-2">
+      <strong>Tipo:</strong>
+      {% if acompanhamento.tipo_evento == "automatico" %}
+      Registro automático do robô
+      {% elif acompanhamento.reuniao %}
+      Reunião de {{ acompanhamento.reuniao.data|data_br }}
+      {% else %}
+      Registro avulso
+      {% endif %}
+    </p>
+    <p class="mb-2"><strong>Observação:</strong> {{ acompanhamento.situacao_informada|default:acompanhamento.evento|ou_traco }}</p>
+    <p class="mb-2"><strong>Prazo registrado:</strong> {{ acompanhamento.prazo_prometido|data_br }}</p>
+
+    <div class="br-message warning mb-4">
+      <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">Esta ação não pode ser desfeita.</span>
+        <span class="message-body"> A linha de acompanhamento será excluída definitivamente.</span>
+      </div>
+    </div>
+
+    <h2 class="text-up-01 mb-3">Efeito no item</h2>
+    {% if efeito.nada_muda %}
+    <p class="mb-4">Nenhum prazo ou situação do item depende desta linha.</p>
+    {% else %}
+    <ul class="mb-4">
+      {% for mudanca in efeito.mudancas %}
+      <li>{{ mudanca.rotulo }}: {{ mudanca.antes|default_if_none:"—" }} → {{ mudanca.depois|default_if_none:"—" }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="post" action="{% url 'pca:acompanhamento_excluir' p.exercicio.ano p.item_pca acompanhamento.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="querystring_retorno" value="{{ querystring_retorno }}"/>
+      <div class="dsgov-acoes-formulario">
+        <a class="br-button" href="{{ url_cancelar }}">Cancelar</a>
+        <button class="br-button primary" type="submit"><i class="fas fa-trash mr-1" aria-hidden="true"></i>Sim, excluir</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

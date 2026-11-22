@@ -1,0 +1,43 @@
+{% load dsgov %}
+{% comment %}
+Tabela de solicitações (uma aba de "Minhas solicitações"). `lista` = lista de `apresentacao.solicitacao_para_tela`;
+`legenda` = texto da legenda da tabela (leitores de tela). Desistir é POST com token, só nas pendentes.
+{% endcomment %}
+<div class="br-table">
+  <div class="table-header"></div>
+  <table>
+    <caption class="sr-only">{{ legenda }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Solicitação</th>
+        <th scope="col">Item</th>
+        {% if todas_as_unidades %}<th scope="col">Unidade</th>{% endif %}
+        <th scope="col">Pedido</th>
+        <th scope="col">Situação</th>
+        <th scope="col" class="dsgov-acoes">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in lista %}
+      <tr>
+        <td data-th="Solicitação"><a href="{{ s.url }}">{{ s.codigo }}</a><br/><span class="text-down-01">{{ s.criada_em }}</span></td>
+        <td data-th="Item">{% if s.item_url %}<a href="{{ s.item_url }}">{{ s.item }}</a>{% else %}{{ s.item }}{% endif %}</td>
+        {% if todas_as_unidades %}<td data-th="Unidade">{{ s.unidade }}</td>{% endif %}
+        <td data-th="Pedido">{% include "solicitacoes/_partes_resumo.html" with partes=s.partes %}</td>
+        <td data-th="Situação">{% tag_status s.estado_rotulo s.chave %}</td>
+        <td data-th="Ações" class="dsgov-acoes">
+          <a class="br-button secondary small" href="{{ s.url }}">Abrir</a>
+          {% if s.pode_desistir %}
+          <form class="d-inline" method="post" action="{{ s.url_desistir }}">
+            {% csrf_token %}
+            <button class="br-button secondary small" type="submit">Desistir</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="{% if todas_as_unidades %}6{% else %}5{% endif %}">Nenhuma solicitação.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,160 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000037.000011/2024-49",
+      "resultado": "ok",
+      "item": 6,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "24/09/2024 15:49",
+            "unidade": "DEINFRA",
+            "descricao": "Gerado documento público 0513507"
+          },
+          "ultimo": {
+            "data_hora": "14/07/2026 12:47",
+            "unidade": "COLOG",
+            "descricao": "Conclusão do processo na unidade"
+          },
+          "recebimentos": {
+            "DELIC": "31/10/2024 18:03",
+            "COLOG": "05/11/2024 17:31",
+            "DECONT": "14/11/2024 08:15",
+            "PROJUR": "18/11/2024 16:32",
+            "DEINFRA": "26/11/2024 08:26"
+          },
+          "conclusoes_na_unidade": {
+            "COLOG": "14/07/2026 12:47",
+            "DEINFRA": "20/08/2025 08:59",
+            "DELIC": "04/02/2026 10:06"
+          },
+          "assinaturas_no_historico": [
+            {
+              "data_hora": "08/01/2025 14:45",
+              "unidade": "VIPAD",
+              "protocolo": "0661569",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "10/01/2025 14:30",
+              "unidade": "DELIC",
+              "protocolo": "0661569",
+              "tipo": "Contrato",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "09/12/2025 16:27",
+              "unidade": "VIPAD",
+              "protocolo": "1141522",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "12/12/2025 16:40",
+              "unidade": "DELIC",
+              "protocolo": "1141522",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            }
+          ],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "31/10/2024 18:03"
+          }
+        }
+      },
+      "documentos_contratuais": [
+        {
+          "id_documento": "702664",
+          "protocolo": "0661569",
+          "rotulo": "Contrato nº 01/2025 - Engemax",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 91396,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "01/2025",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "08/01/2025",
+              "hora": "14:45"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "10/01/2025",
+              "hora": "14:30"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "10/01/2025 14:30",
+          "ultima_assinatura_cfc": "08/01/2025 14:45",
+          "tipo": "contrato",
+          "contratado": {
+            "razao_social": "Engemax Engenharia e Comércio Ltda",
+            "cnpj": "12.345.678/0001-95",
+            "fonte": "preambulo"
+          },
+          "procedencia": {
+            "modalidade_texto": "Dispensa de Licitação",
+            "numero": "90027/2024",
+            "modalidade_catalogo": "dispensa com disputa"
+          },
+          "vigencia": null,
+          "prorrogacao": null,
+          "valor": null
+        },
+        {
+          "id_documento": "1204404",
+          "protocolo": "1141522",
+          "rotulo": "Termo Aditivo [1º]",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 86273,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "01/2025",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "09/12/2025",
+              "hora": "16:27"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "12/12/2025",
+              "hora": "16:40"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "12/12/2025 16:40",
+          "ultima_assinatura_cfc": "09/12/2025 16:27",
+          "tipo": "termo_aditivo",
+          "contratado": null,
+          "procedencia": null,
+          "vigencia": null,
+          "prorrogacao": {
+            "inicio": "2026-01-11",
+            "fim": "2027-01-10"
+          },
+          "valor": {
+            "cifra": "38.731,90",
+            "extenso": "trinta e oito mil setecentos e trinta e um reais e noventa centavos",
+            "confere": true
+          }
+        }
+      ]
+    }
+  ]
+}

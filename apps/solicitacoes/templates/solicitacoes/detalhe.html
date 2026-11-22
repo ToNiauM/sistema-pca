@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load dsgov %}
+{% block titulo %}Solicitação {{ s.codigo }}{% endblock %}
+{% block conteudo %}
+{% comment %}
+Fase 43 — detalhe e avaliação de uma solicitação: justificativa, nº SEI, cada parte com "hoje → pedido" e, só nas
+partes da alçada de quem olha (e ainda pendentes), o formulário de decisão (aprovar / aprovar com ajuste / recusar
++ motivo); as demais partes em leitura com "Aguardando …". Trilha (criação, decisões, desistência, prejudicada)
+ao lado. Um formulário por parte, cada um com o seu POST; botões de decisão são secundários (a página não tem
+ação primária: um por página, e aqui há várias partes).
+{% endcomment %}
+<div class="d-flex flex-wrap align-items-end justify-content-between border-bottom pb-3 mb-4">
+  <div class="mb-2">
+    <h1 class="mb-1">Solicitação {{ s.codigo }}</h1>
+    <p class="mb-2"><em>Criada em {{ s.criada_em }} por {{ s.solicitante }} · {{ s.unidade }}</em></p>
+    <p class="mb-0">
+      {% tag_status s.estado_rotulo s.chave %}
+      <span class="br-tag"><span>{{ s.tipo }}</span></span>
+      {% if s.item_url %}<span class="br-tag"><a href="{{ s.item_url }}">{{ s.item }}</a></span>{% else %}<span class="br-tag"><span>{{ s.item }}</span></span>{% endif %}
+    </p>
+  </div>
+  {% if pode_desistir %}
+  <form method="post" action="{{ url_desistir }}" class="mb-2">
+    {% csrf_token %}
+    <button class="br-button secondary" type="submit"><i class="fas fa-ban mr-1" aria-hidden="true"></i>Desistir da solicitação</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <section class="mb-4" aria-label="Pedido">
+      <div class="dsgov-pares">
+        <p class="dsgov-par-largo"><strong>Justificativa:</strong> {{ justificativa|linebreaksbr }}</p>
+        {% if numero_sei %}<p><strong>Nº SEI:</strong> {{ numero_sei }}</p>{% endif %}
+        {% for rotulo, valor in inclusao %}<p class="dsgov-par-largo"><strong>{{ rotulo }}:</strong> {{ valor }}</p>{% endfor %}
+      </div>
+    </section>
+
+    <h2 class="text-up-02 mb-3">Partes do pedido</h2>
+    {% for parte in partes %}
+    <div class="br-card mb-3" id="parte-{{ parte.id }}">
+      <div class="card-header">
+        <div class="d-flex flex-wrap align-items-center">
+          <span class="text-weight-semi-bold text-up-01">{{ parte.rotulo }}</span>
+          <span class="ml-3">{% tag_status parte.estado_rotulo parte.chave %}</span>
+          {% if parte.fora_do_exercicio %}<span class="br-tag ml-2"><span>Fora do exercício</span></span>{% endif %}
+          <span class="ml-auto text-down-01">Decide: {{ parte.alcada }}</span>
+        </div>
+      </div>
+      <div class="card-content">
+        <div class="dsgov-pares mb-2">
+          {% if parte.campo == "cancelamento" %}
+          <p class="dsgov-par-largo"><strong>Pedido:</strong> cancelar o item.</p>
+          {% elif parte.campo == "inclusao" %}
+          <p class="dsgov-par-largo"><strong>Pedido:</strong> incluir o item novo descrito acima.</p>
+          {% else %}
+          <p><strong>Hoje:</strong> {{ parte.hoje }}</p>
+          <p><strong>Pedido:</strong> {{ parte.pedido }}</p>
+          {% endif %}
+          {% if parte.concedido %}<p><strong>Concedido:</strong> {{ parte.concedido }}</p>{% endif %}
+          {% if parte.motivo and not parte.pendente %}<p class="dsgov-par-largo"><strong>Motivo:</strong> {{ parte.motivo|linebreaksbr }}</p>{% endif %}
+          {% if parte.decidido_por %}<p class="dsgov-par-largo"><strong>{% if parte.estado == "desistida" %}Desistência por{% else %}Decidida por{% endif %}:</strong> {{ parte.decidido_por }} em {{ parte.decidido_em }}</p>{% endif %}
+        </div>
+        {% if parte.form %}
+        <form method="post" action="{{ parte.url_decidir }}" novalidate>
+          {% csrf_token %}
+          {{ parte.form }}
+          <button class="br-button secondary" type="submit"><i class="fas fa-check mr-1" aria-hidden="true"></i>Registrar decisão</button>
+        </form>
+        {% elif parte.aguardando %}
+        <p class="text-gray-70 mb-0">{{ parte.aguardando }}.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="col-lg-4">
+    <h2 class="text-up-02 mb-3">Trilha</h2>
+    <div class="br-list mb-4">
+      {% for evento in eventos %}
+      <div class="br-item">
+        <div class="content">
+          <p class="text-weight-semi-bold mb-0">{{ evento.texto }}</p>
+          <p class="text-down-01 mb-0">{{ evento.quem }} · {{ evento.quando_texto }}</p>
+          {% if evento.detalhe %}<p class="text-down-01 mb-0">{{ evento.detalhe }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="d-flex flex-wrap align-items-center">
+  <a class="br-button secondary" href="{{ url_minhas }}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+</div>
+{% endblock %}

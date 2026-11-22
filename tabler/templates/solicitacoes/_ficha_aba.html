@@ -1,0 +1,38 @@
+{% load ui %}
+{% comment %}
+Cartão "Solicitações" da ficha do item (unidade do item, equipe e diretoria). `solicitacoes_ficha` = lista de
+`apresentacao.solicitacao_para_tela`.
+{% endcomment %}
+<div class="card mb-3" id="solicitacoes">
+  <div class="card-header">
+    <h2 class="card-title">Solicitações</h2>
+    <div class="card-actions"><span class="badge bg-secondary-lt">{{ solicitacoes_ficha|length }}</span></div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-vcenter card-table">
+      <caption class="visually-hidden">Solicitações do item {{ p.item_pca }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Solicitação</th>
+          <th scope="col">Pedido</th>
+          <th scope="col">Situação</th>
+          <th scope="col" class="d-none d-md-table-cell">Unidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in solicitacoes_ficha %}
+        <tr>
+          <td data-th="Solicitação" class="text-nowrap align-top"><a class="fw-bold" href="{{ s.url }}">{{ s.codigo }}</a><div class="small text-secondary">{{ s.criada_em }}</div></td>
+          <td data-th="Pedido" class="align-top">{% include "solicitacoes/_partes_resumo.html" with partes=s.partes %}</td>
+          <td data-th="Situação" class="text-nowrap align-top">{% tag_status s.estado_rotulo s.chave %}</td>
+          <td data-th="Unidade" class="d-none d-md-table-cell align-top">{{ s.unidade }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">
+          <div class="empty py-4"><div class="empty-icon"><i class="ti ti-inbox" aria-hidden="true"></i></div><p class="empty-title">Nenhuma solicitação para este item.</p></div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

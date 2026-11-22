@@ -1,0 +1,21 @@
+{% comment %}
+Chips de filtro ativo da tela Processos (tabler). "Limpar filtros" usa `querystring_limpar` (preserva
+`exercicio`); cada chip usa a querystring já calculada por `tags_ativas` (remove só aquele valor).
+{% endcomment %}
+{% if tags %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3" aria-label="Filtros ativos">
+  <span class="text-secondary small"><i class="ti ti-filter me-1" aria-hidden="true"></i>Filtros:</span>
+  {% for tag in tags %}
+  <span class="badge bg-blue-lt d-inline-flex align-items-center gap-1 py-1 text-wrap text-start">
+    <span><span class="fw-normal">{{ tag.rotulo }}:</span> {{ tag.valor }}</span>
+    <a class="text-reset" href="{% url 'pca:tabela' %}?{{ tag.querystring }}"
+       hx-get="{% url 'pca:tabela' %}?{{ tag.querystring }}" hx-target="#listagem" hx-push-url="true"
+       aria-label="Remover filtro {{ tag.rotulo }}: {{ tag.valor }}" title="Remover filtro"><i class="ti ti-x" aria-hidden="true"></i></a>
+  </span>
+  {% endfor %}
+  <a class="btn btn-sm btn-ghost-secondary" href="{% url 'pca:tabela' %}?limpar=1{% if querystring_limpar %}&{{ querystring_limpar }}{% endif %}"
+     hx-get="{% url 'pca:tabela' %}?limpar=1{% if querystring_limpar %}&{{ querystring_limpar }}{% endif %}" hx-target="#listagem" hx-push-url="true">
+    <i class="ti ti-eraser me-1" aria-hidden="true"></i>Limpar filtros
+  </a>
+</div>
+{% endif %}

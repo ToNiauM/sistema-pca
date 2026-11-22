@@ -1,0 +1,228 @@
+{% comment %}
+"Copiar relatório" e "Baixar HTML" do Relatório da reunião (comum às duas cascas).
+Os dois partem do mesmo clone do documento (#relatorio-documento): cada elemento recebe os estilos
+CALCULADOS pelo navegador como estilo inline (fonte, cor, fundo, borda, alinhamento, espaçamento), as
+larguras das colunas viram percentuais, o logo e cada gráfico SVG viram <img> PNG (data:); SVG marcado com
+data-copia="omitir" sai da cópia. Assim o SEI, o Word e o e-mail recebem o relatório com a mesma cara do PDF, sem depender
+do CSS do sistema. Botões ligados por data-relatorio-acao (sem JS inline além do window.print()).
+{% endcomment %}
+<script>
+(function () {
+  "use strict";
+
+  var PROPRIEDADES = [
+    "fontFamily", "fontSize", "fontWeight", "fontStyle", "lineHeight", "color", "backgroundColor",
+    "textAlign", "verticalAlign", "textIndent", "textTransform", "letterSpacing", "whiteSpace", "display",
+    "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
+    "marginTop", "marginRight", "marginBottom", "marginLeft", "borderCollapse", "tableLayout",
+    "gridTemplateColumns", "columnGap", "rowGap"
+  ];
+  var LADOS = ["Top", "Right", "Bottom", "Left"];
+  var NEUTROS = {
+    fontStyle: "normal", textTransform: "none", letterSpacing: "normal", whiteSpace: "normal",
+    textIndent: "0px", verticalAlign: "baseline", backgroundColor: "rgba(0, 0, 0, 0)",
+    gridTemplateColumns: "none", columnGap: "normal", rowGap: "normal"
+  };
+
+  function hifen(nome) {
+    return nome.replace(/[A-Z]/g, function (letra) { return "-" + letra.toLowerCase(); });
+  }
+
+  function estilosCalculados(origem) {
+    var calculado = window.getComputedStyle(origem);
+    var partes = [];
+    PROPRIEDADES.forEach(function (nome) {
+      var valor = calculado[nome];
+      if (!valor || NEUTROS[nome] === valor) { return; }
+      // Margem e recuo zerados também vão: sem eles, figure, p, h2 e td herdam o padrão do navegador ou do Word.
+      if ((nome === "borderCollapse" || nome === "tableLayout") && origem.tagName !== "TABLE") { return; }
+      if (/^(gridTemplateColumns|columnGap|rowGap)$/.test(nome) && calculado.display !== "grid") { return; }
+      partes.push(hifen(nome) + ":" + valor);
+    });
+    LADOS.forEach(function (lado) {
+      var estilo = calculado["border" + lado + "Style"];
+      if (estilo && estilo !== "none" && estilo !== "hidden") {
+        partes.push("border-" + lado.toLowerCase() + ":" + calculado["border" + lado + "Width"] + " " + estilo + " " +
+          calculado["border" + lado + "Color"]);
+      }
+    });
+    if (origem.tagName === "TABLE") { partes.push("width:100%"); }
+    if (origem.tagName === "COL") {
+      var largura = /abnt-w(\d+)(?:-(\d))?/.exec(origem.className);
+      if (largura) { partes.push("width:" + largura[1] + (largura[2] ? "." + largura[2] : "") + "%"); }
+    }
+    return partes.join(";");
+  }
+
+  function imagemEmDados(img) {
+    try {
+      var tela = document.createElement("canvas");
+      tela.width = img.naturalWidth;
+      tela.height = img.naturalHeight;
+      tela.getContext("2d").drawImage(img, 0, 0);
+      return tela.toDataURL("image/png");
+    } catch (erro) {
+      return img.src;
+    }
+  }
+
+  function svgEmPng(svg) {
+    return new Promise(function (resolver) {
+      var caixa = svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width ? svg.viewBox.baseVal : svg.getBoundingClientRect();
+      var largura = Math.max(1, Math.round(caixa.width));
+      var altura = Math.max(1, Math.round(caixa.height));
+      var copia = svg.cloneNode(true);
+      var originais = svg.querySelectorAll("*");
+      var copias = copia.querySelectorAll("*");
+      for (var i = 0; i < originais.length; i++) {
+        var c = window.getComputedStyle(originais[i]);
+        copias[i].setAttribute("style", [
+          "fill:" + c.fill, "stroke:" + c.stroke, "stroke-width:" + c.strokeWidth,
+          hifen("fontFamily") + ":" + c.fontFamily, "font-size:" + c.fontSize, "font-weight:" + c.fontWeight,
+          "text-anchor:" + c.textAnchor
+        ].join(";"));
+        copias[i].removeAttribute("class");
+      }
+      copia.removeAttribute("class");
+      copia.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      copia.setAttribute("width", largura);
+      copia.setAttribute("height", altura);
+      var imagem = new Image();
+      imagem.onload = function () {
+        var escala = 2;
+        var tela = document.createElement("canvas");
+        tela.width = largura * escala;
+        tela.height = altura * escala;
+        var contexto = tela.getContext("2d");
+        contexto.fillStyle = "white";
+        contexto.fillRect(0, 0, tela.width, tela.height);
+        contexto.scale(escala, escala);
+        contexto.drawImage(imagem, 0, 0, largura, altura);
+        resolver({src: tela.toDataURL("image/png"), largura: largura, altura: altura});
+      };
+      imagem.onerror = function () { resolver(null); };
+      imagem.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(copia));
+    });
+  }
+
+  function montarCopia() {
+    var origem = document.getElementById("relatorio-documento");
+    var copia = origem.cloneNode(true);
+    var originais = [origem].concat(Array.prototype.slice.call(origem.querySelectorAll("*")));
+    var copias = [copia].concat(Array.prototype.slice.call(copia.querySelectorAll("*")));
+    var graficos = [];
+    for (var i = 0; i < originais.length; i++) {
+      var o = originais[i];
+      var d = copias[i];
+      var dentroDeSvg = o.parentElement && o.parentElement.closest("svg");
+      if (o.tagName.toLowerCase() === "svg" && !dentroDeSvg) {
+        graficos.push([o, d]);
+        continue;
+      }
+      if (dentroDeSvg) { continue; }
+      d.setAttribute("style", estilosCalculados(o));
+      if (o.tagName === "IMG") {
+        d.setAttribute("src", imagemEmDados(o));
+        d.setAttribute("width", Math.round(o.getBoundingClientRect().width) || o.getAttribute("width"));
+        d.setAttribute("height", Math.round(o.getBoundingClientRect().height) || o.getAttribute("height"));
+      }
+      d.removeAttribute("class");
+    }
+    copia.removeAttribute("id");
+    return Promise.all(graficos.map(function (par) {
+      var svg = par[0];
+      var alvo = par[1];
+      if (svg.getAttribute("data-copia") === "omitir") {
+        alvo.parentNode.removeChild(alvo);
+        return null;
+      }
+      return svgEmPng(svg).then(function (png) {
+        if (!png) { return; }
+        var img = document.createElement("img");
+        img.setAttribute("src", png.src);
+        img.setAttribute("width", png.largura);
+        img.setAttribute("height", png.altura);
+        img.setAttribute("alt", svg.getAttribute("aria-label") || "");
+        img.setAttribute("style", "display:block;max-width:100%;height:auto;margin:2pt 0");
+        alvo.parentNode.replaceChild(img, alvo);
+      });
+    })).then(function () { return copia; });
+  }
+
+  function avisar(texto) { window.alert(texto); }
+
+  function selecionarParaCopiaManual(copia) {
+    var area = document.getElementById("relatorio-copia-manual");
+    if (area) { area.parentNode.removeChild(area); }
+    area = document.createElement("div");
+    area.id = "relatorio-copia-manual";
+    area.appendChild(copia);
+    document.getElementById("relatorio-documento").parentNode.appendChild(area);
+    var selecao = window.getSelection();
+    var intervalo = document.createRange();
+    intervalo.selectNodeContents(area);
+    selecao.removeAllRanges();
+    selecao.addRange(intervalo);
+    area.scrollIntoView();
+    avisar("Não foi possível copiar automaticamente. O relatório foi selecionado abaixo: copie com Ctrl+C (ou Cmd+C).");
+  }
+
+  function copiar() {
+    var texto = document.getElementById("relatorio-documento").innerText;
+    var pronto = montarCopia();
+    var html = pronto.then(function (copia) { return new Blob([copia.outerHTML], {type: "text/html"}); });
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+      var item;
+      try {
+        item = new ClipboardItem({"text/html": html, "text/plain": new Blob([texto], {type: "text/plain"})});
+      } catch (erro) {
+        item = null;
+      }
+      if (item) {
+        navigator.clipboard.write([item]).then(function () {
+          avisar("Relatório copiado. Cole no SEI, no Word ou no e-mail.");
+        }, function () {
+          pronto.then(selecionarParaCopiaManual);
+        });
+        return;
+      }
+    }
+    pronto.then(selecionarParaCopiaManual);
+  }
+
+  function escapar(texto) {
+    return texto.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function baixarHtml(botao) {
+    montarCopia().then(function (copia) {
+      var folha = document.createElement("div");
+      folha.setAttribute("style", "max-width:180mm;margin:24px auto;padding:0 16px;background:white");
+      folha.appendChild(copia);
+      var titulo = document.getElementById("relatorio-titulo").textContent;
+      var documento = "<!doctype html>\n<html lang=\"pt-BR\">\n<head>\n<meta charset=\"utf-8\">\n" +
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>" + escapar(titulo) +
+        "</title>\n</head>\n<body>\n" + folha.outerHTML + "\n</body>\n</html>\n";
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([documento], {type: "text/html;charset=utf-8"}));
+      link.download = (botao.getAttribute("data-arquivo") || "Relatorio-reuniao") + ".html";
+      document.body.appendChild(link);
+      link.click();
+      window.setTimeout(function () {
+        URL.revokeObjectURL(link.href);
+        link.parentNode.removeChild(link);
+      }, 1000);
+    });
+  }
+
+  document.addEventListener("click", function (evento) {
+    var botao = evento.target.closest("[data-relatorio-acao]");
+    if (!botao || !document.getElementById("relatorio-documento")) { return; }
+    if (botao.getAttribute("data-relatorio-acao") === "copiar") {
+      copiar();
+    } else if (botao.getAttribute("data-relatorio-acao") === "baixar-html") {
+      baixarHtml(botao);
+    }
+  });
+})();
+</script>

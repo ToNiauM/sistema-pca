@@ -1,0 +1,129 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000007.000036/2025-81",
+      "resultado": "ok",
+      "item": 3,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "25/08/2025 09:40",
+            "unidade": "CGTI",
+            "descricao": "Processo público gerado"
+          },
+          "ultimo": {
+            "data_hora": "13/04/2026 10:53",
+            "unidade": "DELIC",
+            "descricao": "Conclusão do processo na unidade"
+          },
+          "recebimentos": {
+            "DELIC": "05/09/2025 16:19",
+            "CGTI": "16/10/2025 11:39",
+            "DECONT": "27/10/2025 10:44"
+          },
+          "conclusoes_na_unidade": {
+            "DELIC": "13/04/2026 10:53"
+          },
+          "assinaturas_no_historico": [
+            {
+              "data_hora": "03/11/2025 11:22",
+              "unidade": "VIPAD",
+              "protocolo": "1094956",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "03/02/2026 16:16",
+              "unidade": "VIPAD",
+              "protocolo": "1210804",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "19/02/2026 16:50",
+              "unidade": "DELIC",
+              "protocolo": "1210804",
+              "tipo": "Contrato",
+              "papel": "externo"
+            }
+          ],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "05/09/2025 16:19"
+          },
+          "ultima_remessa": {
+            "data_hora": "27/10/2025 10:44",
+            "unidade": "DECONT",
+            "origem": "CGTI"
+          }
+        }
+      },
+      "documentos_contratuais": [
+        {
+          "id_documento": "1156024",
+          "protocolo": "1094956",
+          "rotulo": "Contrato nº 69/2025",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 69758,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "69/2025",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "03/11/2025",
+              "hora": "11:22"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": false,
+          "ultima_assinatura": "03/11/2025 11:22",
+          "ultima_assinatura_cfc": "03/11/2025 11:22",
+          "tipo": "contrato",
+          "valor": null
+        },
+        {
+          "id_documento": "1277038",
+          "protocolo": "1210804",
+          "rotulo": "Contrato nº 08/2026 - GOSHME x CFC",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 99681,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "08/2026",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "03/02/2026",
+              "hora": "16:16"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "19/02/2026",
+              "hora": "16:50"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "19/02/2026 16:50",
+          "ultima_assinatura_cfc": "03/02/2026 16:16",
+          "tipo": "contrato",
+          "valor": {
+            "cifra": "18.001,20",
+            "extenso": "dezoito mil e um reais e vinte centavos",
+            "confere": true
+          }
+        }
+      ]
+    }
+  ]
+}

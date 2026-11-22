@@ -1,0 +1,518 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000024.000002/2023-16",
+      "resultado": "ok",
+      "item": 39,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "30/01/2023 16:24",
+            "unidade": "SETRAN",
+            "descricao": "Gerado documento público 0064525"
+          },
+          "ultimo": {
+            "data_hora": "06/08/2026 14:25",
+            "unidade": "GESERV",
+            "descricao": "Reabertura do processo na unidade"
+          },
+          "recebimentos": {
+            "DELIC": "06/02/2023 17:09",
+            "SETRAN": "07/02/2023 09:41",
+            "CCI": "07/02/2023 13:52",
+            "DECONT": "07/02/2023 16:28",
+            "PROJUR": "09/02/2023 15:28",
+            "COLOG": "17/02/2023 09:03",
+            "DEFIN": "15/04/2026 09:57",
+            "GESERV": "28/07/2026 15:44"
+          },
+          "conclusoes_na_unidade": {
+            "DELIC": "16/05/2025 11:47",
+            "DECONT": "17/11/2023 12:18",
+            "COLOG": "05/03/2024 09:25",
+            "GESERV": "06/08/2026 14:25",
+            "SETRAN": "30/07/2026 11:12"
+          },
+          "assinaturas_no_historico": [
+            {
+              "data_hora": "15/03/2023 10:57",
+              "unidade": "DELIC",
+              "protocolo": "0070805",
+              "tipo": "Contrato",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "15/03/2023 11:12",
+              "unidade": "DELIC",
+              "protocolo": "0070806",
+              "tipo": "Contrato",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "15/03/2023 11:25",
+              "unidade": "VIPAD",
+              "protocolo": "0070806",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "15/03/2023 11:25",
+              "unidade": "VIPAD",
+              "protocolo": "0070805",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "11/03/2024 11:47",
+              "unidade": "VIPAD",
+              "protocolo": "0240753",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "12/03/2024 11:31",
+              "unidade": "DELIC",
+              "protocolo": "0240753",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "14/03/2024 11:08",
+              "unidade": "VIPAD",
+              "protocolo": "0240737",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "15/03/2024 10:28",
+              "unidade": "DELIC",
+              "protocolo": "0240737",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "07/06/2024 17:05",
+              "unidade": "VIPAD",
+              "protocolo": "0368909",
+              "tipo": "Termo de Apostilamento",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "07/06/2024 17:05",
+              "unidade": "VIPAD",
+              "protocolo": "0368630",
+              "tipo": "Termo de Apostilamento",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "19/08/2024 16:45",
+              "unidade": "VIPAD",
+              "protocolo": "0464615",
+              "tipo": "Termo de Apostilamento",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "19/08/2024 16:46",
+              "unidade": "VIPAD",
+              "protocolo": "0464616",
+              "tipo": "Termo de Apostilamento",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "24/02/2025 11:42",
+              "unidade": "VIPAD",
+              "protocolo": "0728074",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "25/02/2025 20:33",
+              "unidade": "DELIC",
+              "protocolo": "0728074",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "13/03/2026 13:35",
+              "unidade": "DELIC",
+              "protocolo": "1275354",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "13/03/2026 16:24",
+              "unidade": "VIPAD",
+              "protocolo": "1275354",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "28/05/2026 14:51",
+              "unidade": "VIPAD",
+              "protocolo": "1383390",
+              "tipo": "Termo de Apostilamento",
+              "papel": "interno"
+            }
+          ],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "06/02/2023 17:09"
+          }
+        }
+      },
+      "documentos_contratuais": [
+        {
+          "id_documento": "71892",
+          "protocolo": "0070805",
+          "rotulo": "Contrato nº 09/2023 - F5 AUTO LOCADORA - locação veículos",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 65529,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "09/2023",
+          "assinaturas": [
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "15/03/2023",
+              "hora": "10:57"
+            },
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "15/03/2023",
+              "hora": "11:25"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "15/03/2023 11:25",
+          "ultima_assinatura_cfc": "15/03/2023 11:25",
+          "tipo": "contrato",
+          "valor": null
+        },
+        {
+          "id_documento": "71893",
+          "protocolo": "0070806",
+          "rotulo": "Contrato nº 10/2023 - INVESTCAR - locação veículos",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 69182,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "10/2023",
+          "assinaturas": [
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "15/03/2023",
+              "hora": "11:12"
+            },
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "15/03/2023",
+              "hora": "11:25"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "15/03/2023 11:25",
+          "ultima_assinatura_cfc": "15/03/2023 11:25",
+          "tipo": "contrato",
+          "valor": null
+        },
+        {
+          "id_documento": "253584",
+          "protocolo": "0240753",
+          "rotulo": "Termo Aditivo 1º - F5 Locadora",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 69593,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "09/2023",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "11/03/2024",
+              "hora": "11:47"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "12/03/2024",
+              "hora": "11:31"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "12/03/2024 11:31",
+          "ultima_assinatura_cfc": "11/03/2024 11:47",
+          "tipo": "termo_aditivo",
+          "valor": null
+        },
+        {
+          "id_documento": "253565",
+          "protocolo": "0240737",
+          "rotulo": "Termo Aditivo 1º - Investicar Veículos",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 77426,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "10/2023",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "14/03/2024",
+              "hora": "11:08"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "15/03/2024",
+              "hora": "10:28"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "15/03/2024 10:28",
+          "ultima_assinatura_cfc": "14/03/2024 11:08",
+          "tipo": "termo_aditivo",
+          "valor": null
+        },
+        {
+          "id_documento": "388262",
+          "protocolo": "0368909",
+          "rotulo": "Termo de Apostilamento desconsiderar - foi retificado",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 37862,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "09/2023",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "07/06/2024",
+              "hora": "17:05"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": false,
+          "ultima_assinatura": "07/06/2024 17:05",
+          "ultima_assinatura_cfc": "07/06/2024 17:05",
+          "tipo": "apostilamento",
+          "valor": null
+        },
+        {
+          "id_documento": "387969",
+          "protocolo": "0368630",
+          "rotulo": "Termo de Apostilamento desconsiderar - foi retificado",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 37741,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "10/2023",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "07/06/2024",
+              "hora": "17:05"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": false,
+          "ultima_assinatura": "07/06/2024 17:05",
+          "ultima_assinatura_cfc": "07/06/2024 17:05",
+          "tipo": "apostilamento",
+          "valor": null
+        },
+        {
+          "id_documento": "489429",
+          "protocolo": "0464615",
+          "rotulo": "Termo de Apostilamento Primeiro - F5",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 37821,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "09/2023",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "19/08/2024",
+              "hora": "16:45"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": false,
+          "ultima_assinatura": "19/08/2024 16:45",
+          "ultima_assinatura_cfc": "19/08/2024 16:45",
+          "tipo": "apostilamento",
+          "valor": null
+        },
+        {
+          "id_documento": "489430",
+          "protocolo": "0464616",
+          "rotulo": "Termo de Apostilamento Primeiro - Investicar",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 37700,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "10/2023",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "19/08/2024",
+              "hora": "16:46"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": false,
+          "ultima_assinatura": "19/08/2024 16:46",
+          "ultima_assinatura_cfc": "19/08/2024 16:46",
+          "tipo": "apostilamento",
+          "valor": null
+        },
+        {
+          "id_documento": "772791",
+          "protocolo": "0728074",
+          "rotulo": "Termo Aditivo (2º)",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 70065,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "09/2023",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "24/02/2025",
+              "hora": "11:42"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "25/02/2025",
+              "hora": "20:33"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "25/02/2025 20:33",
+          "ultima_assinatura_cfc": "24/02/2025 11:42",
+          "tipo": "termo_aditivo",
+          "valor": null
+        },
+        {
+          "id_documento": "1344714",
+          "protocolo": "1275354",
+          "rotulo": "Termo Aditivo (3º)",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 70570,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "09/2023",
+          "assinaturas": [
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "13/03/2026",
+              "hora": "13:35"
+            },
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "13/03/2026",
+              "hora": "16:24"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "13/03/2026 16:24",
+          "ultima_assinatura_cfc": "13/03/2026 16:24",
+          "tipo": "termo_aditivo",
+          "valor": null
+        },
+        {
+          "id_documento": "1457905",
+          "protocolo": "1383390",
+          "rotulo": "Termo de Apostilamento",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 93525,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "09/2023",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "28/05/2026",
+              "hora": "14:51"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": false,
+          "ultima_assinatura": "28/05/2026 14:51",
+          "ultima_assinatura_cfc": "28/05/2026 14:51",
+          "tipo": "apostilamento",
+          "valor": {
+            "cifra": "54.156,00",
+            "extenso": "cinquenta e quatro mil cento e cinquenta e seis reais",
+            "confere": true
+          },
+          "apostilamento": {
+            "natureza": "reajuste",
+            "valor_anterior": null,
+            "valor_novo": {
+              "cifra": "54.156,00",
+              "extenso": "cinquenta e quatro mil cento e cinquenta e seis reais",
+              "confere": true
+            },
+            "percentual": null,
+            "indice": null,
+            "periodicidade": "global",
+            "data_base": null,
+            "trecho": "valor global"
+          }
+        }
+      ]
+    }
+  ]
+}

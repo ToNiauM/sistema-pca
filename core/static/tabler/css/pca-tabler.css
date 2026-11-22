@@ -1,0 +1,229 @@
+/* pca-tabler.css — o mínimo que o Tabler não traz pronto: a fonte Inter (local, sem CDN), a altura fixa dos
+   gráficos ECharts e a barra de carregamento do HTMX. Todo o resto é classe nativa do Tabler. */
+
+@font-face { font-family: "Inter Var"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("../vendor/inter/inter-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter Var"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("../vendor/inter/inter-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+:root { --tblr-font-sans-serif: "Inter Var", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
+body { font-feature-settings: "cv03", "cv04", "cv11", "tnum"; }
+
+/* Gráficos: altura fixa, largura do card */
+.pca-grafico { width: 100%; height: 18rem; }
+.pca-grafico-alto { width: 100%; height: 26rem; }
+.pca-grafico-extra { width: 100%; height: 38rem; }
+
+/* Barra fina de carregamento no topo enquanto o HTMX busca */
+body::before { content: ""; position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 2000; background: var(--tblr-primary);
+  transform: scaleX(0); transform-origin: left; transition: transform .4s ease, opacity .3s; opacity: 0; }
+body.pca-carregando::before { transform: scaleX(.8); opacity: 1; transition: transform 8s cubic-bezier(.1,.7,.1,1), opacity .1s; }
+.htmx-request.htmx-indicator, .htmx-request .htmx-indicator { opacity: 1; }
+
+@media print {
+  .navbar, .navbar-vertical, .page-header .btn-list, .footer, .d-print-none { display: none !important; }
+  .page-wrapper { margin: 0 !important; }
+  .card { box-shadow: none !important; border-color: #ddd !important; }
+}
+
+/* Estado vazio: o Tabler dimensiona só ícone SVG; aqui o ícone de fonte (ti) ganha o mesmo tamanho */
+.empty-icon .ti { font-size: var(--tblr-empty-icon-size, 3rem); line-height: 1; }
+
+/* ---------- Layout de telas (o que o grid do Tabler não cobre) ---------- */
+/* Datagrid: item que ocupa a linha toda; na ficha do processo, duas colunas também no celular */
+.datagrid-item-largo { grid-column: 1 / -1; }
+@media (max-width: 575.98px) { .pca-datagrid-compacto { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Faixas de KPIs: tudo numa linha só quando os valores/rótulos cabem inteiros */
+@media (min-width: 1700px) { .row > .pca-kpi5 { flex: 0 0 auto; width: 20%; } .row > .pca-kpi4 { flex: 0 0 auto; width: 25%; } }
+@media (min-width: 1800px) { .row > .pca-kpi { flex: 1 0 0; width: auto; } }
+
+/* Rosca + tabela: rosca em coluna fixa (legenda inteira), tabela no resto */
+@media (min-width: 1200px) {
+  .row > .pca-rosca { flex: 0 0 auto; width: 460px; }
+  .row > .pca-rosca-tabela { flex: 1 1 0; width: auto; min-width: 0; }
+}
+/* Telas muito largas (≥ 2200px): pares menores dois por linha, com a mesma altura */
+@media (min-width: 2200px) {
+  .pca-meia-larga { flex: 0 0 auto; width: 50%; }
+  .pca-meia-larga > .card:last-child { flex-grow: 1; height: calc(100% - 1rem); }
+  .row > .pca-par-largo { flex: 0 0 auto; width: 50%; }
+  .row > .pca-par-largo.border-top { border-top: 0 !important; border-left: var(--tblr-border-width) solid var(--tblr-border-color); }
+}
+
+/* Calendário: 7 colunas iguais e altura mínima por dia */
+.pca-cal { table-layout: fixed; }
+.pca-cal td { vertical-align: top; height: 6.5rem; }
+.pca-cal-anual td, .pca-cal-anual th { padding: .25rem; white-space: nowrap; }
+.pca-cal-anual tr td:first-child, .pca-cal-anual tr th:first-child { padding-inline-start: .25rem; }
+.pca-cal-anual td { height: 3.25rem; }
+
+/* Resumo por unidade: coluna com a barra da meta */
+.pca-col-barra { min-width: 8rem; }
+/* Matriz uniforme (Resumo por unidade, 29/09/2026): layout fixo — colunas numéricas de largura igual, a da
+   unidade e as siglas NC/RN/VG (`col.pca-col-estreita`) com largura própria; grupos separados por linha forte
+   (`.pca-grupo-inicio`) e faixa de cor alternada (`.pca-faixa`). */
+.pca-matriz-uniforme { table-layout: fixed; }
+.pca-matriz-uniforme col.pca-col-rotulo { width: 14%; }
+.pca-matriz-uniforme col.pca-col-estreita { width: 6%; }
+.pca-matriz-uniforme > :not(caption) > tr > .pca-grupo-inicio { border-left: 2px solid var(--tblr-gray-500); }
+.pca-matriz-uniforme > :not(caption) > tr > .pca-faixa { background-color: rgba(var(--tblr-primary-rgb), .06); }
+.table.pca-matriz-uniforme > thead > tr > th { white-space: normal; vertical-align: middle; text-transform: none; letter-spacing: normal; font-size: .8125rem; }
+.pca-matriz-uniforme .pca-col-barra { min-width: 0; }
+
+/* Tabela: visual limpo do Tabler — só linhas horizontais, títulos à esquerda. A grade
+   estilo Excel com colunas ajustáveis saiu. pca-tabler.js só marca a coluna "Ações" com .pca-col-fixa:
+   presa à direita, fundo opaco e sombra à esquerda marcando de onde o conteúdo passa por baixo. */
+.table .pca-col-fixa { position: sticky; right: 0; z-index: 2; background-color: var(--tblr-bg-surface); box-shadow: -6px 0 6px -6px rgba(var(--tblr-body-color-rgb, 0, 0, 0), .35); }
+.table > thead .pca-col-fixa { background-color: var(--tblr-bg-surface-tertiary, var(--tblr-bg-surface)); z-index: 4; }
+
+/* Tabelas roláveis (Fase 43): o Tabler/Bootstrap deixa `.table-responsive` estático e o `.visually-hidden`
+   (texto só para leitor de tela, ex. "para" ao lado da seta de Hoje → Pedido) é `position:absolute`. Sem ancestral
+   posicionado, o bloco de contenção dele é a página: o overflow-x do contêiner não o recorta e um absoluto em coluna
+   fora da tela vira estouro horizontal da página inteira (577px de scrollWidth a 390px em Solicitações). Com o
+   contêiner `relative`, o absoluto passa a rolar e ser recortado junto com a tabela. Não cria contexto de empilhamento. */
+.table-responsive { position: relative; }
+
+/* Processos: "Objeto" nasce com espaço para ler. */
+@media (min-width: 768px) { .table th[data-coluna="descricao_objeto"] { min-width: 18rem; } }
+
+@media print { .pca-col-fixa { position: static; box-shadow: none; } }
+
+/* Ordenação por clique no cabeçalho: mesmo mecanismo de
+   core/static/dsgov/css/dsgov.css, vocabulário Tabler — pca-tabler.js decide quais tabelas são
+   elegíveis (sem rowspan/colspan/<th> no tbody, fora da grade .pca-cal). Ícone neutro
+   ti-arrows-sort (discreto) vira ti-sort-ascending/ti-sort-descending ao ordenar. */
+.pca-th-ordenavel { cursor: pointer; user-select: none; }
+.pca-th-ordenavel:hover, .pca-th-ordenavel:focus-visible { text-decoration: underline; outline: none; }
+.pca-th-ordenavel .pca-icone-ordenar { margin-left: .25rem; }
+.pca-th-ordenavel .ti-arrows-sort { opacity: .5; }
+
+/* Cartões de valor da ficha nas cores dos cartões "valor estimado/homologado" do PNCP
+   (no DSGov, tokens --color-support-06 e --mint-cool-vivid-20; aqui, o mesmo valor). Texto escuro
+   fixo: contraste garantido sobre as duas cores também no tema escuro. */
+.pca-cartao-valor-estimado { background-color: #48cbeb; }
+.pca-cartao-valor-contratado { background-color: #40e0d0; }
+.pca-cartao-valor, .pca-cartao-valor .subheader, .pca-cartao-valor .h2 { color: #1b1b1b; }
+
+/* Relatório da reunião — o mesmo bloco .abnt-* do dsgov.css da casca DSGov, com os
+   tokens trocados pelas cores do modelo aprovado.: documento em base ABNT. Na tela, uma folha branca (até 1200 px) sobre a
+   mesa cinza; na impressão (Baixar PDF), A4 retrato com margens de 2 cm (sup./esq.) e 1,5 cm (inf./dir.),
+   Anexo I em página deitada e o número da página no canto superior direito. Tudo em Calibri (Carlito e
+   Liberation Sans como substitutas métricas fora do Windows); texto 12 pt, tabelas ~9,5 pt. Gráficos são
+   SVG: cor por classe (fill), nunca style inline. */
+.abnt-mesa { background: #e9edf2; padding: 24px; }
+.abnt-folha { background: #ffffff; max-width: 1200px; margin: 0 auto; padding: 20mm 15mm 15mm 20mm; box-shadow: 0 1px 6px rgba(0, 0, 0, .16); }
+.abnt-doc { font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 12pt; line-height: 1.5; color: var(--tblr-black); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.abnt-doc td, .abnt-doc th { font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: inherit; font-weight: inherit; color: inherit; background-color: transparent; }
+.abnt-doc tr:hover td { background-image: none; }
+.abnt-doc .abnt-tabela { overflow-x: auto; }
+.abnt-doc table.abnt-cabecalho { width: 100%; border-collapse: collapse; margin: 0 0 14pt; border-bottom: 2pt solid #0c326f; }
+.abnt-cabecalho td.abnt-cabecalho-logo { width: 1%; padding: 0 12pt 8pt 0; vertical-align: middle; }
+.abnt-cabecalho td.abnt-cabecalho-logo img { display: block; height: 40px; width: auto; max-width: none; }
+.abnt-cabecalho td.abnt-cabecalho-orgao { padding: 0 0 8pt 12pt; vertical-align: middle; border-left: 1pt solid #c5d7f2; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; line-height: 1.4; color: var(--tblr-black); }
+.abnt-doc .abnt-orgao { font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #0c326f; }
+.abnt-doc .abnt-sobretitulo { margin: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; line-height: 1.4; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #1351b4; }
+.abnt-doc .abnt-titulo { margin: 3pt 0 6pt; padding: 0; border: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 17pt; line-height: 1.25; font-weight: 700; color: #0c326f; }
+.abnt-doc .abnt-meta { margin: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: var(--tblr-black); }
+.abnt-doc .abnt-meta b { font-weight: 700; }
+.abnt-doc .abnt-secao { margin: 20pt 0 9pt; padding: 0 0 4pt; border: 0; border-bottom: 1pt solid #c5d7f2; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 12pt; line-height: 1.35; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: #0c326f; }
+.abnt-doc .abnt-subsecao { margin: 16pt 0 7pt; padding: 0; border: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 11pt; line-height: 1.35; font-weight: 700; color: #0c326f; }
+.abnt-doc .abnt-texto { margin: 0; text-align: justify; text-indent: 1.25cm; color: var(--tblr-black); }
+.abnt-doc .abnt-legenda { margin: 12pt 0 4pt; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; line-height: 1.35; color: var(--tblr-black); }
+.abnt-doc .abnt-legenda b { font-weight: 700; color: var(--tblr-black); }
+.abnt-doc .abnt-fonte { margin: 4pt 0 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; line-height: 1.35; color: var(--tblr-black); }
+.abnt-doc table.abnt-tab { width: 100%; border-collapse: collapse; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9.5pt; line-height: 1.3; color: var(--tblr-black); border-top: 1.2pt solid #0c326f; border-bottom: 1.2pt solid #0c326f; }
+.abnt-tab th { padding: 4pt 5pt; text-align: left; vertical-align: bottom; background-color: #edf2f9; color: var(--tblr-black); font-weight: 700; border-bottom: .75pt solid #c5d7f2; }
+.abnt-tab td { padding: 4pt 5pt; vertical-align: top; border-bottom: .75pt solid #e3e3e3; }
+.abnt-tab .abnt-n { text-align: right; }
+.abnt-tab td.abnt-n { white-space: nowrap; }
+.abnt-tab .abnt-uo { white-space: nowrap; }
+.abnt-tab tbody th { padding: 4pt 5pt; text-align: left; vertical-align: top; background-color: transparent; color: inherit; font-weight: inherit; border-bottom: .75pt solid #e3e3e3; }
+.abnt-tab tbody tr:last-child td, .abnt-tab tbody tr:last-child th { border-bottom: 1.2pt solid #0c326f; }
+.abnt-tab td.abnt-grupo { padding: 3pt 5pt; background-color: #f6f8fb; font-weight: 700; color: var(--tblr-black); }
+.abnt-tab tr.abnt-subtotal td { font-weight: 600; background-color: #f6f8fb; }
+.abnt-tab tr.abnt-total td { font-weight: 700; border-top: .75pt solid #0c326f; }
+.abnt-doc .abnt-detalhe { display: block; margin-top: 2pt; font-size: 9pt; line-height: 1.35; color: var(--tblr-black); }
+.abnt-doc .abnt-alteracao { display: block; }
+.abnt-doc .abnt-alteracao b, .abnt-tab td b { font-weight: 700; }
+.abnt-doc table.abnt-quadro { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; background-color: #f6f8fb; }
+.abnt-quadro td { width: 20%; padding: 6pt 8pt; vertical-align: top; border: .75pt solid #e3e3e3; }
+.abnt-doc .abnt-quadro-numero { display: block; font-size: 15pt; line-height: 1.1; font-weight: 700; color: var(--tblr-black); }
+.abnt-doc .abnt-quadro-rotulo { display: block; font-size: 9pt; line-height: 1.3; color: var(--tblr-black); }
+.abnt-doc .abnt-figura { margin: 0; }
+.abnt-doc .abnt-cartoes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4mm; margin-top: 2pt; }
+.abnt-doc .abnt-cartao { padding: 9pt 10pt 8pt; background-color: #f6f8fb; border: .75pt solid #e3e3e3; border-top: 3pt solid #1351b4; }
+.abnt-doc .abnt-cartao-numero { display: block; font-size: 26pt; line-height: 1.05; font-weight: 700; color: #0c326f; }
+.abnt-doc .abnt-cartao-rotulo { display: block; margin-top: 3pt; font-size: 10pt; line-height: 1.3; color: var(--tblr-black); }
+.abnt-doc .abnt-cartao-1 { border-top-color: #1351b4; }
+.abnt-doc .abnt-cartao-2 { border-top-color: #6f9be0; }
+.abnt-doc .abnt-cartao-3 { border-top-color: #c5d7f2; }
+.abnt-doc .abnt-cartao-alerta { border-top-color: #d4351c; background-color: #fff3f2; }
+.abnt-doc .abnt-cartao-alerta .abnt-cartao-numero { color: #d4351c; }
+.abnt-doc svg.abnt-svg { display: block; width: 100%; height: auto; margin: 2pt 0; overflow: visible; }
+.abnt-svg text { font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; fill: var(--tblr-black); }
+.abnt-svg text.abnt-grafico-valor { text-anchor: middle; font-size: 10pt; font-weight: 700; }
+.abnt-svg text.abnt-grafico-categoria { text-anchor: middle; font-size: 9pt; }
+.abnt-svg text.abnt-grafico-inclinado { text-anchor: end; }
+.abnt-svg text.abnt-grafico-legenda { text-anchor: middle; }
+.abnt-svg rect { stroke: #ffffff; stroke-width: .75; }
+.abnt-svg .abnt-grafico-eixo { stroke: #555555; stroke-width: 1; }
+.abnt-cor-1 { fill: #1351b4; background-color: #1351b4; }
+.abnt-cor-2 { fill: #6f9be0; background-color: #6f9be0; }
+.abnt-cor-3 { fill: #c5d7f2; background-color: #c5d7f2; }
+.abnt-cor-alerta { fill: #d4351c; background-color: #d4351c; }
+.abnt-doc .abnt-anexo-titulo { margin: 0 0 12pt; padding: 0; border: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 12pt; line-height: 1.35; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; text-align: center; color: #0c326f; }
+.abnt-doc .abnt-anexo, .abnt-doc .abnt-anexo-paisagem { margin-top: 28pt; }
+.abnt-doc table.abnt-resumo { width: 100%; border-collapse: collapse; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 8.5pt; line-height: 1.2; color: var(--tblr-black); border-top: 1.2pt solid #0c326f; border-bottom: 1.2pt solid #0c326f; }
+.abnt-resumo thead th { padding: 3pt; text-align: center; vertical-align: bottom; background-color: #edf2f9; color: var(--tblr-black); font-weight: 700; border-bottom: .75pt solid #c5d7f2; }
+.abnt-resumo thead th.abnt-resumo-uo { padding: 3pt 5pt; text-align: left; }
+.abnt-resumo thead th.abnt-resumo-grupo { padding: 4pt 3pt 2pt; }
+.abnt-resumo td { padding: 2.5pt 3pt; text-align: center; vertical-align: top; border-bottom: .75pt solid #e3e3e3; white-space: nowrap; }
+.abnt-resumo tbody th { padding: 2.5pt 5pt; text-align: left; vertical-align: top; font-weight: 700; white-space: nowrap; border-bottom: .75pt solid #e3e3e3; }
+.abnt-resumo th.abnt-sep, .abnt-resumo td.abnt-sep { border-left: .75pt solid #c5d7f2; }
+.abnt-resumo tr.abnt-total th, .abnt-resumo tr.abnt-total td { padding-top: 4pt; padding-bottom: 4pt; font-weight: 700; border-top: .75pt solid #0c326f; background-color: #f6f8fb; }
+.abnt-resumo .abnt-resumo-n { font-weight: 600; }
+.abnt-resumo .abnt-resumo-p { margin-left: 3pt; font-size: 7.5pt; font-weight: 400; color: var(--tblr-black); }
+.abnt-doc table.abnt-processos { font-size: 9pt; line-height: 1.25; }
+.abnt-processos td, .abnt-processos th, .abnt-processos tbody th { padding: 2.5pt 4pt; }
+.abnt-w6 { width: 6%; } .abnt-w7 { width: 7%; } .abnt-w7-5 { width: 7.5%; } .abnt-w8 { width: 8%; } .abnt-w8-5 { width: 8.5%; }
+.abnt-w9-5 { width: 9.5%; } .abnt-w10 { width: 10%; } .abnt-w11 { width: 11%; } .abnt-w13 { width: 13%; } .abnt-w14 { width: 14%; }
+.abnt-w15 { width: 15%; } .abnt-w18 { width: 18%; } .abnt-w19 { width: 19%; } .abnt-w20 { width: 20%; } .abnt-w23 { width: 23%; }
+.abnt-w29 { width: 29%; } .abnt-w32 { width: 32%; } .abnt-w35 { width: 35%; } .abnt-w38 { width: 38%; } .abnt-w42 { width: 42%; }
+.abnt-w46 { width: 46%; } .abnt-w53 { width: 53%; } .abnt-w56 { width: 56%; } .abnt-w60 { width: 60%; }
+@media screen and (max-width: 767px) {
+  .abnt-mesa { padding: 0; background: none; }
+  .abnt-folha { padding: 16px; box-shadow: none; }
+}
+@media screen and (max-width: 575px) {
+  .abnt-doc .abnt-cartoes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@page abnt-retrato {
+  size: A4 portrait; margin: 20mm 15mm 15mm 20mm;
+  @top-right { content: counter(page); font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; color: var(--tblr-black); vertical-align: bottom; padding-bottom: 6mm; }
+}
+@page abnt-paisagem {
+  size: A4 landscape; margin: 20mm 15mm 15mm 20mm;
+  @top-right { content: counter(page); font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; color: var(--tblr-black); vertical-align: bottom; padding-bottom: 6mm; }
+}
+@media print {
+  /* A página inteira usa a folha nomeada (sem página em branco antes do documento) e os contêineres da casca
+     que envolvem o documento viram blocos sem recuo: o Chrome só diagrama na largura da página deitada o
+     que está em fluxo de bloco, não dentro de flex. */
+  body:has(.abnt-doc) { page: abnt-retrato; }
+  body:has(.abnt-doc) *:has(.abnt-doc) { display: block !important; width: auto !important; max-width: none !important; margin: 0 !important; padding: 0 !important; flex: none !important; }
+  .abnt-mesa { padding: 0; background: none; }
+  .abnt-folha { max-width: none; margin: 0; padding: 0; box-shadow: none; }
+  .abnt-doc { page: abnt-retrato; }
+  .abnt-doc .abnt-anexo-paisagem { page: abnt-paisagem; break-before: page; margin-top: 0; }
+  .abnt-doc .abnt-anexo { break-before: page; margin-top: 0; }
+  .abnt-doc .abnt-tabela, .abnt-doc .responsive { overflow: visible; }
+  .abnt-doc h2, .abnt-doc h3, .abnt-doc .abnt-legenda { break-after: avoid; }
+  .abnt-doc tr, .abnt-doc .abnt-figura, .abnt-doc .abnt-quadro, .abnt-doc .abnt-inteiro, .abnt-doc .abnt-cartoes, .abnt-doc .abnt-cartao { break-inside: avoid; }
+  .abnt-doc .abnt-fonte { break-before: avoid; }
+  .abnt-doc thead { display: table-header-group; }
+}
+@media print {
+  .page-wrapper:has(.abnt-doc) .breadcrumb, .page-wrapper:has(.abnt-doc) .alert { display: none !important; }
+}

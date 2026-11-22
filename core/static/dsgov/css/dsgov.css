@@ -1,0 +1,443 @@
+/* dsgov.css — ÚNICO arquivo CSS do projeto além do core.min.css do DSGov.
+ *
+ * Lista fechada. Só entram aqui coisas que o DS 3.7.0 não cobre e que todo sistema precisa:
+ * alturas de gráfico, tela de login centralizada, coluna de ações da tabela, impressão e
+ * caixa de chat presa ao rodapé.
+ * Cores, fontes e espaçamentos são SEMPRE variáveis do DS (var(--...)); hex é proibido aqui.
+ * Um sistema que precise de mais do que isto está fugindo do padrão: reveja a tela.
+ */
+
+/* Gráficos ECharts: altura fixa, largura do card. */
+.dsgov-grafico { width: 100%; height: 280px; }
+.dsgov-grafico-alto { width: 100%; height: 400px; }
+.dsgov-grafico-extra { width: 100%; height: 640px; }
+
+/* A coluna de conteúdo é item flex: sem min-width 0, uma tabela larga estoura a página em vez de rolar
+   dentro do .responsive do br-table. Fase 28 — a regra nasceu cobrindo `container-lg`
+   e `container-fluid` porque o plano tinha introduzido a variante fluida do container
+   (`casca_fluida`) nas páginas operacionais amplas. revogou essa variante —
+   `container-fluid` não tem largura máxima e estica o conteúdo até a borda da janela em monitores
+   grandes, o oposto do padrão gov.br de concentrar dentro de margens — então a regra volta a
+   cobrir só `container-lg`, único wrapper que ainda existe na árvore. */
+#main > .container-lg > .row { flex: 1 1 100%; min-width: 0; }
+#main > .container-lg > .row > .col { min-width: 0; }
+
+/* Cards da mesma linha com a mesma altura (KPIs e gráficos). */
+.dsgov-linha-cards > [class*="col-"] > .br-card { height: 100%; }
+
+/* KPI: número grande respira; o rótulo fica alinhado ao topo do card. */
+.dsgov-kpi .card-content { display: flex; flex-direction: column; justify-content: space-between; min-height: 112px; }
+
+/* Login: card centralizado vertical e horizontalmente, sem menu lateral. */
+.dsgov-login { min-height: 100vh; display: flex; flex-direction: column; background: var(--gray-2); }
+.dsgov-login main { flex: 1; display: flex; align-items: center; justify-content: center; padding: var(--spacing-scale-4x) var(--spacing-scale-2x); }
+.dsgov-login .br-card { width: 100%; max-width: 420px; }
+
+/* O JS do br-table envolve a tabela em .responsive (overflow:auto). Sem position:relative, os elementos
+   absolutos de dentro (checkbox, ícones) se ancoram no <html> e alargam a página no celular. */
+.br-table .responsive { position: relative; }
+
+/* Tabela: coluna de ações nunca quebra linha e fica encostada à direita. */
+.br-table td.dsgov-acoes, .br-table th.dsgov-acoes { white-space: nowrap; text-align: right; width: 1%; }
+.br-table td.dsgov-numero, .br-table th.dsgov-numero { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Cabeçalho ordenável: o link ocupa a célula toda e herda a cor do texto. */
+.br-table th a.dsgov-ordenar { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: var(--spacing-scale-half); }
+.br-table th a.dsgov-ordenar:hover { text-decoration: underline; }
+
+/* Tags de status em células estreitas não quebram linha. */
+.br-table .br-tag { white-space: nowrap; }
+
+/* Chips de filtros ativos: um abaixo do outro em celular, em linha no desktop. */
+.dsgov-filtros-ativos { display: flex; flex-wrap: wrap; gap: var(--spacing-scale-base); }
+
+/* Bloco de detalhe (rótulo em cima, valor embaixo), 2 colunas em desktop. */
+.dsgov-detalhe dt { color: var(--gray-70); font-size: var(--font-size-scale-down-01); text-transform: uppercase; letter-spacing: .02em; margin-bottom: var(--spacing-scale-half); }
+.dsgov-detalhe dd { margin: 0 0 var(--spacing-scale-3x) 0; font-weight: var(--font-weight-medium); }
+
+/* Ações fixas no fim do formulário: primário à direita, terciário à esquerda. */
+.dsgov-acoes-formulario { display: flex; gap: var(--spacing-scale-2x); justify-content: flex-end; border-top: var(--surface-width-sm) solid var(--gray-20); padding-top: var(--spacing-scale-3x); margin-top: var(--spacing-scale-4x); }
+
+/* Indicador HTMX: visível só durante a requisição. */
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline-flex; }
+
+/* Impressão: só o conteúdo. */
+@media print {
+  .br-skiplink, .br-header, .br-menu, .br-breadcrumb, .br-footer, .br-cookiebar, .dsgov-nao-imprimir, .table-header, .table-footer { display: none !important; }
+  .main-content { padding: 0 !important; margin: 0 !important; }
+  .br-card { box-shadow: none !important; border: var(--surface-width-sm) solid var(--gray-20); break-inside: avoid; }
+  a { text-decoration: none; color: inherit; }
+}
+
+/* Relatório de movimentação do PCA (Fase 27): timbrado composto
+   (logo + texto institucional) só na impressão/PDF, A4 retrato com margens de
+   2,5cm, e blocos do relatório que não quebram no meio da página. O fragmento
+   copiável para o SEI (partial próprio, sem classes br-*) nunca usa estas
+   classes — elas só existem para a tela e para @media print. */
+.dsgov-relatorio-timbrado { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 2.5cm; }
+  .dsgov-relatorio-timbrado { display: flex !important; align-items: center; gap: var(--spacing-scale-2x); margin-bottom: var(--spacing-scale-3x); }
+  .dsgov-relatorio .br-card { break-inside: avoid; }
+}
+
+/* Utilitários que o DS 3.7.0 não traz mas o template base oficial usa. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.h-100 { height: 100%; }
+
+/* Matriz de indicadores (references/telas/matriz.md): cabeçalho em dois níveis, grupos de colunas
+   separados, números alinhados, rótulo de linha fixo na rolagem horizontal, totais no rodapé e links
+   numéricos sem sublinhado (volta no hover/foco). Cor semântica só por utilitário text-*. */
+.br-table.dsgov-matriz table { width: 100%; }
+.dsgov-matriz thead th { vertical-align: bottom; white-space: nowrap; }
+.dsgov-matriz thead th.dsgov-grupo { text-align: center; font-size: var(--font-size-scale-down-01); text-transform: uppercase; letter-spacing: .02em; color: var(--gray-70); border-bottom: var(--surface-width-sm) solid var(--gray-20); }
+.dsgov-matriz th.dsgov-rotulo-linha, .dsgov-matriz td.dsgov-rotulo-linha { text-align: left; white-space: nowrap; position: sticky; left: 0; background: var(--background); z-index: 1; }
+.dsgov-matriz .dsgov-separador { border-left: var(--surface-width-md) solid var(--gray-20); }
+.dsgov-matriz td.dsgov-destaque, .dsgov-matriz th.dsgov-destaque { background: var(--gray-5); font-weight: var(--font-weight-semi-bold); }
+.dsgov-matriz tbody a, .dsgov-matriz tfoot a { color: inherit; text-decoration: none; }
+.dsgov-matriz tbody a:hover, .dsgov-matriz tbody a:focus, .dsgov-matriz tfoot a:hover, .dsgov-matriz tfoot a:focus { text-decoration: underline; }
+.dsgov-matriz tfoot td, .dsgov-matriz tfoot th { font-weight: var(--font-weight-bold); background: var(--gray-5); border-top: var(--surface-width-md) solid var(--gray-40); }
+/* Matriz compacta: muitas colunas numéricas (ex.: Resumo por unidade, 12 colunas) —
+   respiro lateral de 8px no lugar dos 24px do DS e títulos que podem quebrar linha, para a matriz caber
+   na largura do conteúdo sem rolagem horizontal. */
+.dsgov-matriz.dsgov-matriz-compacta th, .dsgov-matriz.dsgov-matriz-compacta td { padding-left: var(--spacing-scale-base); padding-right: var(--spacing-scale-base); }
+.dsgov-matriz.dsgov-matriz-compacta thead th { white-space: normal; }
+/* Matriz uniforme (ajuste): layout fixo — colunas numéricas de largura igual, o rótulo da
+   linha e as colunas estreitas (`<col class="dsgov-col-estreita">`, ex.: siglas) com largura própria; grupos
+   separados por linha forte (`.dsgov-separador`) e faixa de cor alternada (`.dsgov-faixa`). */
+.dsgov-matriz.dsgov-matriz-uniforme table { table-layout: fixed; }
+.dsgov-matriz-uniforme col.dsgov-col-rotulo { width: 14%; }
+.dsgov-matriz-uniforme col.dsgov-col-estreita { width: 6%; }
+.dsgov-matriz.dsgov-matriz-uniforme .dsgov-separador { border-left: var(--surface-width-md) solid var(--gray-60); }
+.dsgov-matriz .dsgov-faixa { background: var(--blue-warm-vivid-5); }
+
+/* Calendário (references/telas/calendario.md): grade de 7 colunas que cabe no card, sem rolagem
+   horizontal; dias fora do mês apagados; hoje contornado; pontos de situação são br-tag status. */
+.br-table.dsgov-calendario .responsive { overflow: visible; }
+.dsgov-calendario table { table-layout: fixed; width: 100%; }
+.dsgov-calendario th, .dsgov-calendario td { text-align: center; padding: var(--spacing-scale-half) 0; vertical-align: top; line-height: var(--font-line-height-low); }
+.dsgov-calendario td.dsgov-fora-do-mes { color: var(--gray-40); background: var(--gray-2); }
+.dsgov-calendario td.dsgov-hoje { box-shadow: inset 0 0 0 var(--surface-width-md) var(--interactive); }
+.dsgov-calendario a { text-decoration: none; }
+.dsgov-calendario a:hover, .dsgov-calendario a:focus { text-decoration: underline; }
+.dsgov-calendario .br-tag.status { vertical-align: middle; margin: 0 1px; }
+.dsgov-calendario-anual .dsgov-calendario th, .dsgov-calendario-anual .dsgov-calendario td { font-size: var(--font-size-scale-down-01); }
+
+/* Fase 28 — alturas fixas por visão, `overflow: hidden` garante que o
+   conteúdo (limite de itens já resolvido em Python) nunca expande a célula. Ponteiro:
+   80px (anual) / 128px (mensal, subiu de 96px para caber "N + botão +N" com folga de toque
+   mínima); toque (`pointer: coarse`, alvos >= 40px): 112px / 192px — ver references/telas/
+   calendario.md. */
+.dsgov-calendario-anual .dsgov-calendario td { height: 80px; overflow: hidden; }
+.dsgov-calendario-mensal .dsgov-calendario td { height: 128px; overflow: hidden; text-align: left; padding: var(--spacing-scale-half); }
+.dsgov-calendario-mensal .dsgov-calendario ul { list-style: none; margin: var(--spacing-scale-half) 0 0; padding: 0; font-size: var(--font-size-scale-down-01); }
+@media (pointer: coarse) {
+  .dsgov-calendario-anual .dsgov-calendario td { height: 112px; }
+  .dsgov-calendario-mensal .dsgov-calendario td { height: 192px; }
+}
+
+/* Identificação numérica do item (sem o texto "Item" na apresentação compacta, só no
+   aria-label); `display: inline-block` + `max-width` dão efeito real a `.text-truncate` quando o
+   identificador crescer além do que cabe na célula (hoje nenhum item_pca precisa disso). */
+.dsgov-calendario-anual .dsgov-calendario-itens { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-top: 2px; }
+.dsgov-calendario-item { display: inline-block; max-width: 100%; vertical-align: middle; }
+
+/* Fase 28 — popover próprio do calendário, NUNCA o atributo HTML5 nativo
+   `popover` (Popover API: `display: none !important` de origem UA para todo `[popover]` não
+   aberto via `.showPopover()`, regra que nenhum CSS de autor consegue sobrepor — ver dsgov.js).
+   `.br-tooltip[data-popover-calendario]` replica o efeito visual do modificador `[popover]` do
+   DS (`max-width`/`min-width`/`overflow-x`) sem usar o atributo reservado; `position: fixed`
+   (maior especificidade que o `position: absolute !important` do `.br-tooltip` base) escapa do
+   `overflow: hidden` da célula — o posicionamento (top/left) é calculado em JS a partir do
+   `getBoundingClientRect()` do ativador. */
+.br-tooltip[data-popover-calendario] { max-width: 320px; min-width: 240px; overflow-x: hidden; width: auto; position: fixed !important; }
+
+/* Menu lateral expandido não bloqueia mais o conteúdo a partir de 992px.
+   O `.br-menu` deste projeto NUNCA usa a variante `push` do core.min.js — só a classe base
+   `br-menu` (ver `_menu.html`) — e essa variante é off-canvas em QUALQUER largura: abrir
+   `#main-navigation` sempre cobre a tela inteira com `.menu-container{position:fixed;inset:0}`
+   mais um `.menu-scrim` escuro, mostrando só a coluna estreita do `.menu-panel`
+   (`col-sm-4 col-lg-3`) à esquerda. Correto no celular, ruim em telas grandes, onde bloquear o
+   resto do conteúdo obriga fechar o menu para continuar navegando, mesmo sobrando espaço na tela.
+   O `.menu-panel` já é `position: relative` com `overflow: auto` dentro desse `.menu-container`
+   fixo — ou seja, já É "fixo na tela, com scroll próprio" (pedido do usuário); o único ajuste
+   necessário é destravar o clique no conteúdo por trás, sem tocar `position`/`z-index`/JS: a
+   partir de 992px o `.menu-scrim` some e o retângulo vazio do `.menu-container` (que continua
+   cobrindo a tela inteira mesmo sem o scrim visível, e por isso continuaria bloqueando clique se
+   nada mudasse) vira `pointer-events: none`, restaurado em `.menu-panel` com
+   `pointer-events: auto`. Abaixo de 992px nada muda: off-canvas com scrim bloqueante, contrato do
+   DS intacto. Especificidade por ID (`#main-navigation`) já sobrepõe as regras do vendor
+   (`.br-menu.active .menu-container` etc., 3 classes) sem precisar de `!important`. */
+@media (min-width: 992px) {
+  #main-navigation.active .menu-container { pointer-events: none; }
+  #main-navigation.active .menu-panel { pointer-events: auto; }
+  #main-navigation.active .menu-scrim { display: none; }
+}
+
+/* Chat (tela de assistente/conversa): a caixa de escrita fica presa ao rodapé da janela, como apps
+   de conversa (WhatsApp/Telegram) — o core 3.7.0 não tem utilitário de position. Só estas duas
+   classes; o fio de mensagens continua em utilitários do core. */
+.dsgov-chat { display: flex; flex-direction: column; min-height: 70vh; }
+.dsgov-chat-caixa { position: sticky; bottom: 0; z-index: 1000; margin-top: auto; padding-top: var(--spacing-scale-base); padding-bottom: var(--spacing-scale-base); background: var(--pure-0); }
+
+/* Tabela: br-table canônica do DS — só linhas horizontais, títulos à esquerda,
+   realce da linha no hover. A grade estilo Excel com colunas ajustáveis saiu. dsgov.js só marca a
+   coluna de ações (.dsgov-acoes ou último <th> "Ações") com .dsgov-col-fixa: fica presa à direita,
+   sempre visível enquanto a tabela rola na horizontal. */
+.br-table .dsgov-col-fixa { position: sticky; right: 0; z-index: 2; background-color: var(--background); box-shadow: -6px 0 6px -6px rgba(var(--color-rgb), .35); }
+.br-table thead .dsgov-col-fixa { background-color: var(--background-alternative); }
+@media print { .br-table .dsgov-col-fixa { position: static; box-shadow: none; } }
+
+/* Modal: o scrim de foco fica ACIMA do cabeçalho fixo do site (z-index do core
+   999 < cabeçalho, que cobria o título); o corpo rola sozinho, com título e botões sempre à vista
+   (padrão do DS: "o título fica fixo no topo e os botões no rodapé"). `.dsgov-modal-largo`: modal
+   de formulário mais larga que alta (até 960px), para os campos irem lado a lado. */
+.br-scrim-util.foco.active { z-index: var(--z-index-layer-4); }
+.br-scrim-util.foco .br-modal { display: flex; flex-direction: column; overflow: hidden; }
+.br-scrim-util.foco .br-modal .br-modal-body { min-height: 0; }
+.br-modal.dsgov-modal-largo { --modal-size: 960px; width: calc(100vw - 2 * var(--spacing-scale-2x)); }
+
+/* Ordenação por clique no cabeçalho: toda tabela SEM paginação de
+   servidor (th sem `a.dsgov-ordenar` interno) ganha clique/Enter/Espaço no <th>, dsgov.js decide
+   quais tabelas são elegíveis (sem rowspan/colspan/th no tbody, fora da grade do calendário). O
+   ícone parte neutro (mais apagado que o ícone ativo do sort de servidor) e ganha cor plena
+   ascendente/descendente ao ordenar. */
+.dsgov-th-ordenavel { cursor: pointer; user-select: none; }
+.dsgov-th-ordenavel:hover, .dsgov-th-ordenavel:focus-visible { text-decoration: underline; outline: none; }
+.dsgov-th-ordenavel .dsgov-icone-ordenar { margin-left: var(--spacing-scale-half); }
+.dsgov-th-ordenavel .fa-sort { opacity: .5; }
+
+/* Casca com a cara do PNCP. O PNCP também é DSGov; estas classes só arrumam os
+   mesmos componentes do jeito das páginas dele. Cores SÓ por token: --color-support-06 e
+   --mint-cool-vivid-20 são exatamente as cores dos cartões de valor do PNCP. */
+
+/* Cabeçalho em uma linha: ☰ + título | busca | botão-pílula do usuário (header-bottom antes do
+   header-top, lado a lado). O resto do comportamento do br-header (sticky, busca no celular) não muda. */
+.br-header.dsgov-cabecalho-linha .container-lg { display: flex; align-items: center; gap: var(--spacing-scale-2x); }
+.br-header.dsgov-cabecalho-linha .header-top { order: 2; }
+.br-header.dsgov-cabecalho-linha .header-bottom { order: 1; flex: 1; min-width: 0; margin-top: 0; align-items: center; gap: var(--spacing-scale-3x); }
+.br-header.dsgov-cabecalho-linha .header-menu { --header-title-size: var(--font-size-scale-up-02); align-items: center; min-width: 0; }
+.br-header.dsgov-cabecalho-linha .header-menu .header-menu-trigger { margin-top: 0; }
+.br-header.dsgov-cabecalho-linha.compact .header-top { display: flex; }
+.br-header.dsgov-cabecalho-linha.compact .header-actions { float: none; margin-top: 0; }
+@media (min-width: 1280px) { .br-header.dsgov-cabecalho-linha .header-search { flex: 0 1 440px; } }
+.br-header .br-sign-in.dsgov-usuario { --interactive-rgb: var(--color-dark-rgb); background-color: var(--interactive); color: var(--pure-0); padding-left: var(--spacing-scale-half); }
+.br-header .br-sign-in.dsgov-usuario .br-avatar { --avatar-size: 32px; --avatar-text-size: var(--font-size-scale-base); }
+
+/* Rodapé: parágrafos institucionais à esquerda, links à direita. */
+.dsgov-rodape { display: flex; flex-wrap: wrap; gap: var(--spacing-scale-5x); padding-bottom: var(--spacing-scale-4x); }
+.dsgov-rodape-texto { flex: 999 1 480px; font-size: var(--font-size-scale-up-01); line-height: var(--font-line-height-medium); }
+.dsgov-rodape-texto p:last-child { margin-bottom: 0; }
+.dsgov-rodape-links { flex: 1 1 220px; display: flex; flex-direction: column; gap: var(--spacing-scale-2x); }
+.br-footer .dsgov-rodape-links a { color: var(--pure-0); }
+
+/* Faixa de abertura do Início (título, exercício e busca grande), como a página inicial do PNCP. */
+.dsgov-faixa { background: var(--gray-2); border-bottom: var(--surface-width-sm) solid var(--gray-20); padding: var(--spacing-scale-5x) var(--spacing-scale-3x); margin-bottom: var(--spacing-scale-5x); text-align: center; }
+.dsgov-faixa .dsgov-faixa-busca { max-width: 760px; margin: 0 auto; text-align: left; }
+
+/* KPI com faixa de cor no topo (tom = mesma cor do status no gráfico). */
+.dsgov-kpi.dsgov-kpi-destaque { border-top: var(--surface-width-lg) solid var(--interactive); }
+.dsgov-kpi.dsgov-kpi-sucesso { border-top: var(--surface-width-lg) solid var(--success); }
+.dsgov-kpi.dsgov-kpi-info { border-top: var(--surface-width-lg) solid var(--info); }
+.dsgov-kpi.dsgov-kpi-alerta { border-top: var(--surface-width-lg) solid var(--warning); }
+.dsgov-kpi.dsgov-kpi-erro { border-top: var(--surface-width-lg) solid var(--danger); }
+/* KPI Cancelados: o cinza da fatia Cancelado da rosca (CORES_STATUS["cancelado"] = --gray-50). */
+.dsgov-kpi.dsgov-kpi-neutro { border-top: var(--surface-width-lg) solid var(--gray-50); }
+
+/* Cartões de valor da ficha, nas cores dos cartões "valor estimado/homologado" do PNCP. */
+.dsgov-cartoes-valor { display: flex; flex-wrap: wrap; gap: var(--spacing-scale-5x); }
+.dsgov-cartao-valor { width: 214px; min-height: 128px; padding: var(--spacing-scale-3x) var(--spacing-scale-2x) var(--spacing-scale-2x); display: flex; flex-direction: column; justify-content: space-between; gap: var(--spacing-scale-2x); color: var(--gray-80); }
+.dsgov-cartao-valor .dsgov-cartao-valor-rotulo { font-weight: var(--font-weight-bold); text-transform: uppercase; line-height: var(--font-line-height-medium); }
+.dsgov-cartao-valor-estimado { background: var(--color-support-06); }
+.dsgov-cartao-valor-contratado { background: var(--mint-cool-vivid-20); }
+
+/* Pares "Rótulo: valor" em grade fluida (quantas colunas couberem), textos longos na linha toda. */
+.dsgov-pares { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); column-gap: var(--spacing-scale-4x); row-gap: var(--spacing-scale-base); }
+.dsgov-pares > p { margin: 0; }
+.dsgov-pares > .dsgov-par-largo { grid-column: 1 / -1; }
+
+/* Filtros à esquerda e resultados em lista, como a busca de editais do PNCP. */
+.dsgov-filtros-lateral { border-top: var(--surface-width-lg) solid var(--interactive); background: var(--gray-2); padding: var(--spacing-scale-2x); }
+/* "Mais filtros" (br-accordion) dentro do painel sem o recuo lateral do core (margin 0 8px + padding 8px 64px) e
+   br-select sem o teto de 400px do core: todos os campos com a largura da coluna e alinhados à esquerda, no mesmo
+   fundo do painel. */
+.dsgov-filtros-lateral .br-accordion { --bg-color: transparent; }
+.dsgov-filtros-lateral .br-select { max-width: none; }
+.dsgov-filtros-lateral .br-accordion .content { margin: 0; padding: var(--spacing-scale-base) 0 var(--spacing-scale-2x); }
+/* Painel recolhível (botão [data-alternar-painel] do dsgov.js): o painel ganha `hidden` e, a partir de 1280px,
+   a coluna que sobra na linha ocupa a largura toda. */
+@media (min-width: 1280px) { .row.dsgov-painel-recolhido > [class*="col-lg-"] { flex-basis: 100%; max-width: 100%; } }
+.dsgov-resultado { padding: var(--spacing-scale-2x) 0; border-bottom: var(--surface-width-sm) solid var(--gray-20); }
+.dsgov-resultado p { margin: var(--spacing-scale-half) 0 0; }
+.dsgov-resultado .dsgov-resultado-titulo { font-size: var(--font-size-scale-up-01); font-weight: var(--font-weight-bold); }
+
+/* DividaAtiva com a cara do PNCP. Mesmos componentes do DS; cores SÓ por token —
+   a escala azul é a Blue Warm Vivid do DS, do mais claro (nível 1) ao mais escuro (nível 5). */
+
+/* Logo do órgão no cabeçalho em linha, logo depois do ☰ e antes do título, com divisor vertical.
+   Some abaixo de 576px para o cabeçalho caber numa linha no celular. */
+.br-header.dsgov-cabecalho-linha .dsgov-cabecalho-marca { display: flex; align-items: center; flex-shrink: 0; gap: var(--spacing-scale-2x); margin: 0 var(--spacing-scale-2x) 0 var(--spacing-scale-base); }
+.br-header.dsgov-cabecalho-linha .dsgov-cabecalho-marca .br-divider.vertical { height: 36px; }
+.br-header.dsgov-cabecalho-linha .dsgov-cabecalho-logo { height: 40px; width: auto; display: block; }
+@media (max-width: 575px) { .br-header.dsgov-cabecalho-linha .dsgov-cabecalho-marca { display: none; } }
+
+/* Barra horizontal de valor (maiores acervos, participação): <progress> nativo, acessível, sem style. */
+.dsgov-barra { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: var(--spacing-scale-2xh); border: 0; border-radius: 0; background: var(--gray-5); color: var(--interactive); }
+.dsgov-barra::-webkit-progress-bar { background: var(--gray-5); }
+.dsgov-barra::-webkit-progress-value { background: var(--interactive); }
+.dsgov-barra::-moz-progress-bar { background: var(--interactive); }
+.dsgov-barras { display: flex; flex-direction: column; gap: var(--spacing-scale-baseh); }
+.dsgov-barras .dsgov-barras-linha { display: grid; grid-template-columns: 56px minmax(0, 1fr) minmax(96px, auto); align-items: center; gap: var(--spacing-scale-base); color: var(--gray-80); text-decoration: none; }
+.dsgov-barras a.dsgov-barras-linha:hover, .dsgov-barras a.dsgov-barras-linha:focus { text-decoration: underline; }
+.dsgov-barras .dsgov-barras-valor { text-align: right; font-weight: var(--font-weight-semi-bold); white-space: nowrap; }
+
+/* KPI de valor nas cores dos cartões de valor (original = --color-support-06, atualizado = --mint-cool-vivid-20). */
+.dsgov-kpi.dsgov-kpi-original { border-top: var(--surface-width-lg) solid var(--color-support-06); }
+.dsgov-kpi.dsgov-kpi-atualizado { border-top: var(--surface-width-lg) solid var(--mint-cool-vivid-20); }
+/* Variação do KPI em relação à competência comparada. */
+.dsgov-kpi .dsgov-kpi-delta { font-size: var(--font-size-scale-down-01); font-weight: var(--font-weight-semi-bold); margin-top: var(--spacing-scale-half); }
+
+/* Destaques do recorte: frases curtas com os números que mais pesam. */
+.dsgov-destaques { border-left: var(--surface-width-lg) solid var(--interactive); background: var(--gray-2); padding: var(--spacing-scale-2x) var(--spacing-scale-3x); }
+.dsgov-destaques ul { margin: 0; padding-left: var(--spacing-scale-3x); }
+.dsgov-destaques li + li { margin-top: var(--spacing-scale-base); }
+
+/* Legenda em texto de um mapa (amostra de cor com utilitário bg-* do DS + rótulo da faixa). */
+.dsgov-legenda { display: flex; flex-wrap: wrap; gap: var(--spacing-scale-base) var(--spacing-scale-2x); font-size: var(--font-size-scale-down-01); }
+.dsgov-legenda .dsgov-legenda-cor { display: inline-block; width: var(--spacing-scale-2x); height: var(--spacing-scale-2x); border-radius: var(--surface-rounder-sm); margin-right: var(--spacing-scale-half); vertical-align: middle; }
+
+/* Mapa de calor nas células de uma br-table (quanto mais escura, maior o valor); links herdam a cor. */
+.br-table td.dsgov-calor-1 { background: var(--blue-warm-vivid-5); }
+.br-table td.dsgov-calor-2 { background: var(--blue-warm-vivid-10); }
+.br-table td.dsgov-calor-3 { background: var(--blue-warm-vivid-30); }
+.br-table td.dsgov-calor-4 { background: var(--blue-warm-vivid-70); color: var(--pure-0); }
+.br-table td.dsgov-calor-4 a { color: var(--pure-0); }
+
+/* Mapa do Brasil do painel nacional (ajustado): 420px quando divide a
+   linha com o ranking (≥ 992px); abaixo disso ocupa a largura toda e 360px bastam. */
+.dsgov-grafico-mapa { width: 100%; height: 360px; }
+@media (min-width: 992px) { .dsgov-grafico-mapa { height: 420px; } }
+/* Ranking dos 27 Regionais em barras horizontais: ~20px por barra, rótulo legível. */
+.dsgov-grafico-ranking { width: 100%; height: 560px; }
+/* Legenda do mapa em grade: quantas colunas couberem, rótulos curtos sem quebrar. */
+.dsgov-legenda.dsgov-legenda-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: var(--spacing-scale-base) var(--spacing-scale-base); }
+.dsgov-legenda.dsgov-legenda-grade > span { white-space: nowrap; }
+
+/* Relatório da reunião: documento em base ABNT. Na tela, uma folha branca (até 1200 px) sobre a
+   mesa cinza; na impressão (Baixar PDF), A4 retrato com margens de 2 cm (sup./esq.) e 1,5 cm (inf./dir.),
+   Anexo I em página deitada e o número da página no canto superior direito. Tudo em Calibri (Carlito e
+   Liberation Sans como substitutas métricas fora do Windows); texto 12 pt, tabelas ~9,5 pt. Gráficos são
+   SVG: cor por classe (fill), nunca style inline. */
+.abnt-mesa { background: var(--gray-5); padding: var(--spacing-scale-3x); }
+.abnt-folha { background: var(--pure-0); max-width: 1200px; margin: 0 auto; padding: 20mm 15mm 15mm 20mm; box-shadow: var(--surface-shadow-md); }
+.abnt-doc { font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 12pt; line-height: 1.5; color: var(--pure-100); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.abnt-doc td, .abnt-doc th { font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: inherit; font-weight: inherit; color: inherit; background-color: transparent; }
+.abnt-doc tr:hover td { background-image: none; }
+.abnt-doc .abnt-tabela { overflow-x: auto; }
+.abnt-doc table.abnt-cabecalho { width: 100%; border-collapse: collapse; margin: 0 0 14pt; border-bottom: 2pt solid var(--blue-warm-vivid-80); }
+.abnt-cabecalho td.abnt-cabecalho-logo { width: 1%; padding: 0 12pt 8pt 0; vertical-align: middle; }
+.abnt-cabecalho td.abnt-cabecalho-logo img { display: block; height: 40px; width: auto; max-width: none; }
+.abnt-cabecalho td.abnt-cabecalho-orgao { padding: 0 0 8pt 12pt; vertical-align: middle; border-left: 1pt solid var(--blue-warm-vivid-20); font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; line-height: 1.4; color: var(--pure-100); }
+.abnt-doc .abnt-orgao { font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--blue-warm-vivid-80); }
+.abnt-doc .abnt-sobretitulo { margin: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; line-height: 1.4; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--blue-warm-vivid-70); }
+.abnt-doc .abnt-titulo { margin: 3pt 0 6pt; padding: 0; border: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 17pt; line-height: 1.25; font-weight: 700; color: var(--blue-warm-vivid-80); }
+.abnt-doc .abnt-meta { margin: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: var(--pure-100); }
+.abnt-doc .abnt-meta b { font-weight: 700; }
+.abnt-doc .abnt-secao { margin: 20pt 0 9pt; padding: 0 0 4pt; border: 0; border-bottom: 1pt solid var(--blue-warm-vivid-20); font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 12pt; line-height: 1.35; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--blue-warm-vivid-80); }
+.abnt-doc .abnt-subsecao { margin: 16pt 0 7pt; padding: 0; border: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 11pt; line-height: 1.35; font-weight: 700; color: var(--blue-warm-vivid-80); }
+.abnt-doc .abnt-texto { margin: 0; text-align: justify; text-indent: 1.25cm; color: var(--pure-100); }
+.abnt-doc .abnt-legenda { margin: 12pt 0 4pt; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; line-height: 1.35; color: var(--pure-100); }
+.abnt-doc .abnt-legenda b { font-weight: 700; color: var(--pure-100); }
+.abnt-doc .abnt-fonte { margin: 4pt 0 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; line-height: 1.35; color: var(--pure-100); }
+.abnt-doc table.abnt-tab { width: 100%; border-collapse: collapse; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9.5pt; line-height: 1.3; color: var(--pure-100); border-top: 1.2pt solid var(--blue-warm-vivid-80); border-bottom: 1.2pt solid var(--blue-warm-vivid-80); }
+.abnt-tab th { padding: 4pt 5pt; text-align: left; vertical-align: bottom; background-color: var(--blue-warm-vivid-5); color: var(--pure-100); font-weight: 700; border-bottom: .75pt solid var(--blue-warm-vivid-20); }
+.abnt-tab td { padding: 4pt 5pt; vertical-align: top; border-bottom: .75pt solid var(--gray-10); }
+.abnt-tab .abnt-n { text-align: right; }
+.abnt-tab td.abnt-n { white-space: nowrap; }
+.abnt-tab .abnt-uo { white-space: nowrap; }
+.abnt-tab tbody th { padding: 4pt 5pt; text-align: left; vertical-align: top; background-color: transparent; color: inherit; font-weight: inherit; border-bottom: .75pt solid var(--gray-10); }
+.abnt-tab tbody tr:last-child td, .abnt-tab tbody tr:last-child th { border-bottom: 1.2pt solid var(--blue-warm-vivid-80); }
+.abnt-tab td.abnt-grupo { padding: 3pt 5pt; background-color: var(--gray-2); font-weight: 700; color: var(--pure-100); }
+.abnt-tab tr.abnt-subtotal td { font-weight: 600; background-color: var(--gray-2); }
+.abnt-tab tr.abnt-total td { font-weight: 700; border-top: .75pt solid var(--blue-warm-vivid-80); }
+.abnt-doc .abnt-detalhe { display: block; margin-top: 2pt; font-size: 9pt; line-height: 1.35; color: var(--pure-100); }
+.abnt-doc .abnt-alteracao { display: block; }
+.abnt-doc .abnt-alteracao b, .abnt-tab td b { font-weight: 700; }
+.abnt-doc table.abnt-quadro { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; background-color: var(--gray-2); }
+.abnt-quadro td { width: 20%; padding: 6pt 8pt; vertical-align: top; border: .75pt solid var(--gray-10); }
+.abnt-doc .abnt-quadro-numero { display: block; font-size: 15pt; line-height: 1.1; font-weight: 700; color: var(--pure-100); }
+.abnt-doc .abnt-quadro-rotulo { display: block; font-size: 9pt; line-height: 1.3; color: var(--pure-100); }
+.abnt-doc .abnt-figura { margin: 0; }
+.abnt-doc .abnt-cartoes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4mm; margin-top: 2pt; }
+.abnt-doc .abnt-cartao { padding: 9pt 10pt 8pt; background-color: var(--gray-2); border: .75pt solid var(--gray-10); border-top: 3pt solid var(--blue-warm-vivid-70); }
+.abnt-doc .abnt-cartao-numero { display: block; font-size: 26pt; line-height: 1.05; font-weight: 700; color: var(--blue-warm-vivid-80); }
+.abnt-doc .abnt-cartao-rotulo { display: block; margin-top: 3pt; font-size: 10pt; line-height: 1.3; color: var(--pure-100); }
+.abnt-doc .abnt-cartao-1 { border-top-color: var(--blue-warm-vivid-70); }
+.abnt-doc .abnt-cartao-2 { border-top-color: var(--blue-warm-vivid-40); }
+.abnt-doc .abnt-cartao-3 { border-top-color: var(--blue-warm-vivid-20); }
+.abnt-doc .abnt-cartao-alerta { border-top-color: var(--red-vivid-50); background-color: var(--red-vivid-5); }
+.abnt-doc .abnt-cartao-alerta .abnt-cartao-numero { color: var(--red-vivid-50); }
+.abnt-doc svg.abnt-svg { display: block; width: 100%; height: auto; margin: 2pt 0; overflow: visible; }
+.abnt-svg text { font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; fill: var(--pure-100); }
+.abnt-svg text.abnt-grafico-valor { text-anchor: middle; font-size: 10pt; font-weight: 700; }
+.abnt-svg text.abnt-grafico-categoria { text-anchor: middle; font-size: 9pt; }
+.abnt-svg text.abnt-grafico-inclinado { text-anchor: end; }
+.abnt-svg text.abnt-grafico-legenda { text-anchor: middle; }
+.abnt-svg rect { stroke: var(--pure-0); stroke-width: .75; }
+.abnt-svg .abnt-grafico-eixo { stroke: var(--gray-70); stroke-width: 1; }
+.abnt-cor-1 { fill: var(--blue-warm-vivid-70); background-color: var(--blue-warm-vivid-70); }
+.abnt-cor-2 { fill: var(--blue-warm-vivid-40); background-color: var(--blue-warm-vivid-40); }
+.abnt-cor-3 { fill: var(--blue-warm-vivid-20); background-color: var(--blue-warm-vivid-20); }
+.abnt-cor-alerta { fill: var(--red-vivid-50); background-color: var(--red-vivid-50); }
+.abnt-doc .abnt-anexo-titulo { margin: 0 0 12pt; padding: 0; border: 0; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 12pt; line-height: 1.35; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; text-align: center; color: var(--blue-warm-vivid-80); }
+.abnt-doc .abnt-anexo, .abnt-doc .abnt-anexo-paisagem { margin-top: 28pt; }
+.abnt-doc table.abnt-resumo { width: 100%; border-collapse: collapse; font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 8.5pt; line-height: 1.2; color: var(--pure-100); border-top: 1.2pt solid var(--blue-warm-vivid-80); border-bottom: 1.2pt solid var(--blue-warm-vivid-80); }
+.abnt-resumo thead th { padding: 3pt; text-align: center; vertical-align: bottom; background-color: var(--blue-warm-vivid-5); color: var(--pure-100); font-weight: 700; border-bottom: .75pt solid var(--blue-warm-vivid-20); }
+.abnt-resumo thead th.abnt-resumo-uo { padding: 3pt 5pt; text-align: left; }
+.abnt-resumo thead th.abnt-resumo-grupo { padding: 4pt 3pt 2pt; }
+.abnt-resumo td { padding: 2.5pt 3pt; text-align: center; vertical-align: top; border-bottom: .75pt solid var(--gray-10); white-space: nowrap; }
+.abnt-resumo tbody th { padding: 2.5pt 5pt; text-align: left; vertical-align: top; font-weight: 700; white-space: nowrap; border-bottom: .75pt solid var(--gray-10); }
+.abnt-resumo th.abnt-sep, .abnt-resumo td.abnt-sep { border-left: .75pt solid var(--blue-warm-vivid-20); }
+.abnt-resumo tr.abnt-total th, .abnt-resumo tr.abnt-total td { padding-top: 4pt; padding-bottom: 4pt; font-weight: 700; border-top: .75pt solid var(--blue-warm-vivid-80); background-color: var(--gray-2); }
+.abnt-resumo .abnt-resumo-n { font-weight: 600; }
+.abnt-resumo .abnt-resumo-p { margin-left: 3pt; font-size: 7.5pt; font-weight: 400; color: var(--pure-100); }
+.abnt-doc table.abnt-processos { font-size: 9pt; line-height: 1.25; }
+.abnt-processos td, .abnt-processos th, .abnt-processos tbody th { padding: 2.5pt 4pt; }
+.abnt-w6 { width: 6%; } .abnt-w7 { width: 7%; } .abnt-w7-5 { width: 7.5%; } .abnt-w8 { width: 8%; } .abnt-w8-5 { width: 8.5%; }
+.abnt-w9-5 { width: 9.5%; } .abnt-w10 { width: 10%; } .abnt-w11 { width: 11%; } .abnt-w13 { width: 13%; } .abnt-w14 { width: 14%; }
+.abnt-w15 { width: 15%; } .abnt-w18 { width: 18%; } .abnt-w19 { width: 19%; } .abnt-w20 { width: 20%; } .abnt-w23 { width: 23%; }
+.abnt-w29 { width: 29%; } .abnt-w32 { width: 32%; } .abnt-w35 { width: 35%; } .abnt-w38 { width: 38%; } .abnt-w42 { width: 42%; }
+.abnt-w46 { width: 46%; } .abnt-w53 { width: 53%; } .abnt-w56 { width: 56%; } .abnt-w60 { width: 60%; }
+@media screen and (max-width: 767px) {
+  .abnt-mesa { padding: 0; background: none; }
+  .abnt-folha { padding: var(--spacing-scale-2x); box-shadow: none; }
+}
+@media screen and (max-width: 575px) {
+  .abnt-doc .abnt-cartoes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@page abnt-retrato {
+  size: A4 portrait; margin: 20mm 15mm 15mm 20mm;
+  @top-right { content: counter(page); font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; color: var(--pure-100); vertical-align: bottom; padding-bottom: 6mm; }
+}
+@page abnt-paisagem {
+  size: A4 landscape; margin: 20mm 15mm 15mm 20mm;
+  @top-right { content: counter(page); font-family: Calibri, Carlito, "Liberation Sans", Arial, sans-serif; font-size: 9pt; color: var(--pure-100); vertical-align: bottom; padding-bottom: 6mm; }
+}
+@media print {
+  /* A página inteira usa a folha nomeada (sem página em branco antes do documento) e os contêineres da casca
+     que envolvem o documento viram blocos sem recuo: o Chrome só diagrama na largura da página deitada o
+     que está em fluxo de bloco, não dentro de flex. */
+  body:has(.abnt-doc) { page: abnt-retrato; }
+  body:has(.abnt-doc) *:has(.abnt-doc) { display: block !important; width: auto !important; max-width: none !important; margin: 0 !important; padding: 0 !important; flex: none !important; }
+  .abnt-mesa { padding: 0; background: none; }
+  .abnt-folha { max-width: none; margin: 0; padding: 0; box-shadow: none; }
+  .abnt-doc { page: abnt-retrato; }
+  .abnt-doc .abnt-anexo-paisagem { page: abnt-paisagem; break-before: page; margin-top: 0; }
+  .abnt-doc .abnt-anexo { break-before: page; margin-top: 0; }
+  .abnt-doc .abnt-tabela, .abnt-doc .responsive { overflow: visible; }
+  .abnt-doc h2, .abnt-doc h3, .abnt-doc .abnt-legenda { break-after: avoid; }
+  .abnt-doc tr, .abnt-doc .abnt-figura, .abnt-doc .abnt-quadro, .abnt-doc .abnt-inteiro, .abnt-doc .abnt-cartoes, .abnt-doc .abnt-cartao { break-inside: avoid; }
+  .abnt-doc .abnt-fonte { break-before: avoid; }
+  .abnt-doc thead { display: table-header-group; }
+}

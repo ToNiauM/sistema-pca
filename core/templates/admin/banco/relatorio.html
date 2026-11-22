@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Relatório de conferência | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Relatório de conferência</h1>
+  <pre>{{ relatorio.formatar }}</pre>
+
+  {% if confirmar_form %}
+    <form method="post" action="{% url 'admin:banco_confirmar' %}">
+      {% csrf_token %}
+      {{ confirmar_form.referencia }}
+      <div class="submit-row">
+        <input type="submit" value="Confirmar e gravar" class="button default">
+      </div>
+    </form>
+  {% else %}
+    <p>O arquivo tem erros — corrija e envie novamente em
+      <a href="{% url 'admin:banco_importar' %}">Importar banco (XLSX)</a>.</p>
+  {% endif %}
+</div>
+{% endblock %}

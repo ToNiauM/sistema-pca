@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% comment %}
+Relatório da reunião (versão Tabler). Mesma view, mesmo contexto e o MESMO documento da
+outra casca (pca/_relatorio_reuniao_documento.html, classes neutras abnt-* do pca-tabler.css, incluído com
+casca_tabler=True para as tabelas saírem sem o envoltório da outra casca). Filtros e botões somem na impressão
+(d-print-none); "Baixar PDF" é a impressão do navegador, "Copiar relatório"/"Baixar HTML" vêm do script comum.
+Contexto: `documento` (html do documento, ou None), `congelado` (a versão exibida, quando é
+cópia congelada) + `congelado_por`, `versoes`/`total_versoes` (lista "Versões deste relatório"), `previa`
+(reunião aberta: relatório ao vivo), `dados_ate` (período livre), `integridade_ok` e `erro`. O documento é
+renderizado dos FATOS (congelados ou ao vivo) com o template atual.
+{% endcomment %}
+{% block titulo %}{{ titulo_arquivo }}{% endblock %}
+{% block conteudo %}
+<div class="card mb-3 d-print-none">
+  <div class="card-body">
+    <form method="get" aria-label="Filtros do relatório da reunião">
+      <div class="row g-2 align-items-end">
+        {% if exercicios_disponiveis %}
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="exercicio_relatorio">Exercício</label>
+          <select class="form-select" id="exercicio_relatorio" name="exercicio">
+            {% for ex in exercicios_disponiveis %}<option value="{{ ex.ano }}"{% if exercicio and ex.ano == exercicio.ano %} selected{% endif %}>{{ ex.ano }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        {% if reunioes %}
+        <div class="col-6 col-md-4">
+          <label class="form-label" for="reuniao_relatorio">Reunião</label>
+          <select class="form-select" id="reuniao_relatorio" name="reuniao">
+            {% for item in reunioes %}<option value="{{ item.pk }}"{% if item.selecionada %} selected{% endif %}>{{ item.rotulo }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="de">De</label>
+          <input class="form-control" id="de" type="date" name="de" value="{{ de_querystring }}"/>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="ate">Até</label>
+          <input class="form-control" id="ate" type="date" name="ate" value="{{ ate_querystring }}"/>
+        </div>
+        <div class="col-12 col-md-auto">
+          <button class="btn w-100" type="submit"><i class="ti ti-filter me-2" aria-hidden="true"></i>Aplicar filtro</button>
+        </div>
+      </div>
+      <div class="form-hint mt-2">A reunião escolhida define o período, desde a reunião anterior; na reunião em andamento, até hoje. Datas preenchidas prevalecem.</div>
+    </form>
+    {% if previa %}
+    <div class="alert alert-warning mt-3 mb-0" role="alert">
+      <div class="d-flex gap-2"><i class="ti ti-alert-triangle" aria-hidden="true"></i><div class="alert-title mb-0">Prévia — a reunião está aberta; este relatório muda até ser fechada</div></div>
+    </div>
+    {% endif %}
+    {% if erro %}
+    <div class="alert alert-danger mt-3 mb-0" role="alert">
+      <div class="d-flex gap-2"><i class="ti ti-alert-circle" aria-hidden="true"></i><div><div class="alert-title mb-0">Não foi possível montar o relatório.</div><div>{{ erro }}</div></div></div>
+    </div>
+    {% endif %}
+    {% if not integridade_ok %}
+    <div class="alert alert-danger mt-3 mb-0" role="alert">
+      <div class="d-flex gap-2"><i class="ti ti-alert-circle" aria-hidden="true"></i><div><div class="alert-title mb-0">Falha de integridade.</div><div>Os dados guardados desta versão não conferem com o código de verificação (hash); por segurança o relatório não é exibido. Avise a equipe do PCA.</div></div></div>
+    </div>
+    {% endif %}
+    {% if documento is not None %}
+    <div class="btn-list mt-3">
+      <button class="btn btn-primary" type="button" onclick="window.print()"><i class="ti ti-file-type-pdf me-2" aria-hidden="true"></i>Baixar PDF</button>
+      <button class="btn" type="button" data-relatorio-acao="copiar"><i class="ti ti-copy me-2" aria-hidden="true"></i>Copiar relatório</button>
+      <button class="btn" type="button" data-relatorio-acao="baixar-html" data-arquivo="{{ titulo_arquivo }}"><i class="ti ti-file-code me-2" aria-hidden="true"></i>Baixar HTML</button>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if documento is None %}
+<h1 class="page-title mb-3">Relatório da reunião</h1>
+{% if exercicio is None %}
+<div class="alert alert-warning" role="alert">
+  <div class="d-flex gap-2"><i class="ti ti-alert-triangle" aria-hidden="true"></i><div class="alert-title mb-0">Nenhum exercício cadastrado.</div></div>
+</div>
+{% endif %}
+{% else %}
+<div class="abnt-mesa">
+  <div class="abnt-folha">{{ documento }}
+{% if congelado %}
+    <p class="text-secondary small mt-3 mb-1">Versão {{ congelado.hash_curto }} · {% if congelado.origem == "reconstrucao" %}reconstituída do histórico em {{ congelado.criado_em|date:"d/m/Y H:i" }} · dados até {{ congelado.corte|date:"d/m/Y" }}{% else %}congelada em {{ congelado.criado_em|date:"d/m/Y H:i" }}{% if congelado_por %} por {{ congelado_por }}{% endif %}{% endif %} (versão {{ congelado.versao }} de {{ total_versoes }})</p>
+{% if congelado.observacao %}
+    <p class="text-secondary small mt-3 mb-1">{{ congelado.observacao }}</p>
+{% endif %}
+{% elif dados_ate %}
+    <p class="text-secondary small mt-3 mb-1">Dados até {{ dados_ate|date:"d/m/Y" }}</p>
+{% endif %}
+{% if versoes %}
+    <div class="d-print-none mt-3">
+      <div class="fw-bold mb-1">Versões deste relatório</div>
+      <ul class="list-unstyled mb-0">
+{% for v in versoes %}
+        <li>{% if v.atual %}Versão {{ v.versao }} · {{ v.hash_curto }} (exibida){% else %}<a href="{{ v.url }}">Versão {{ v.versao }} · {{ v.hash_curto }}</a>{% endif %} — {{ v.rotulo }} · {{ v.criado_em|date:"d/m/Y H:i" }}</li>
+{% endfor %}
+      </ul>
+    </div>
+{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}{% if documento is not None %}{% include "pca/_relatorio_reuniao_script.html" %}{% endif %}{% endblock %}

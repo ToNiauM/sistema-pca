@@ -1,0 +1,35 @@
+{% comment %}
+Fase 26 — partial compartilhado por toda tabela de
+"rótulo × contagem/valor" do relatório de Análises (situação, unidade, e
+cada um dos 5 grupos de Perfil): 7 usos, um único HTML. Contrato de
+`linhas`: lista de `{"rotulo", "total", "soma", "querystring"}` —
+`querystring` `None` renderiza o rótulo como texto puro (grupo "Não
+informado"/"Não classificado", sem recorte de tabela equivalente).
+{% endcomment %}
+{% load dsgov %}
+<div class="br-table mb-4">
+  <div class="table-header"></div>
+  <table>
+    <caption>{{ titulo }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{{ rotulo_coluna|default:"Rótulo" }}</th>
+        <th scope="col" class="dsgov-numero">Quantidade</th>
+        <th scope="col" class="dsgov-numero">Valor estimado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in linhas %}
+      <tr>
+        <td data-th="{{ rotulo_coluna|default:'Rótulo' }}">
+          {% if linha.querystring %}<a href="{% url 'pca:tabela' %}?{{ linha.querystring }}">{{ linha.rotulo }}</a>{% else %}{{ linha.rotulo }}{% endif %}
+        </td>
+        <td data-th="Quantidade" class="dsgov-numero">{{ linha.total|numero }}</td>
+        <td data-th="Valor estimado" class="dsgov-numero">{{ linha.soma|moeda }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">Nenhum registro.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

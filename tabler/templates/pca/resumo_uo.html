@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% comment %}
+Resumo por unidade (versão Tabler) — conta a história do PCA em três passos, da esquerda para a direita:
+  1. Previstos − Cancelados = Ativos
+  2. Ativos = Vigentes (contrato em vigor, fora da meta) + Nova Contratação + Renovação (+ outros tipos, se houver)
+  3. Meta = Ativos − Vigentes = Concluídos + Em tramitação + No prazo + Atrasados
+A faixa de cima mostra a história do total; a tabela repete a mesma sequência por unidade. Todo número leva à
+`/tabela` filtrada (hrefs prontos de `_hrefs_resumo_uo`); os números vêm de `apps.pca.resumo_uo.calcular_resumo_uo`.
+Percentuais: cancelados/ativos sobre os previstos; tipos e meta sobre os ativos; situação sobre a meta.
+{% endcomment %}
+{% load ui %}
+{% block titulo %}{{ nome_tela }} — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+{% block conteudo %}
+{% url 'pca:tabela' as url_tabela %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Acompanhamento</div>
+      <h1 class="page-title">Resumo por unidade — PCA {{ exercicio.ano|default:"—" }}</h1>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <a class="btn" href="{% url 'pca:exportar_resumo_uo_xlsx' %}?{{ querystring_filtros }}"><i class="ti ti-file-spreadsheet me-2" aria-hidden="true"></i>Exportar XLSX</a>
+        <button class="btn" type="button" onclick="window.print()"><i class="ti ti-printer me-2" aria-hidden="true"></i>Imprimir</button>
+        <a class="btn btn-ghost-secondary" href="{% url 'core:inicio' %}"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if linhas %}
+{# ---------------- A história do total: três roscas, mesmo padrão do Início ---------------- #}
+<h2 class="visually-hidden">A história do PCA {{ exercicio.ano }}</h2>
+<div class="row row-cards mb-3">
+  {% for grafico in graficos %}{% include "ui/_grafico_card.html" with col_grafico="col-12 col-lg-4" %}{% endfor %}
+</div>
+{% endif %}
+
+{# ---------------- A mesma história, unidade por unidade ---------------- #}
+<div class="card mb-3">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">Por unidade</h2>
+      <p class="card-subtitle">Mesma sequência da faixa acima. Clique em qualquer número para abrir os processos.</p>
+    </div>
+  </div>
+
+  {# Telas médias e grandes: a tabela na ordem da história #}
+  <div class="table-responsive d-none d-md-block">
+    <table class="table table-sm table-vcenter card-table table-hover mb-0 pca-matriz-uniforme">
+      <caption class="visually-hidden">Resumo por unidade: totais, cancelados e ativos; NC, RN e VG; meta PCA (NC + RN); total concluído com vigentes</caption>
+      <colgroup><col class="pca-col-rotulo"></colgroup>
+      <colgroup><col><col><col></colgroup>
+      <colgroup><col class="pca-col-estreita"><col class="pca-col-estreita"><col class="pca-col-estreita"></colgroup>
+      <colgroup><col><col><col><col></colgroup>
+      <colgroup><col></colgroup>
+      <thead>
+        <tr>
+          <th scope="col" rowspan="2" class="align-middle">Unidade</th>
+          <th scope="colgroup" colspan="3" class="pca-grupo-inicio">Previstos</th>
+          <th scope="colgroup" colspan="3" class="pca-grupo-inicio pca-faixa">Tipo <span class="fw-normal text-secondary">(% dos ativos)</span></th>
+          <th scope="colgroup" colspan="4" class="pca-grupo-inicio">Meta PCA (NC + RN) <span class="fw-normal text-secondary">(% da meta)</span></th>
+          <th scope="col" rowspan="2" class="align-middle pca-grupo-inicio pca-faixa">Total concluído<br><span class="fw-normal text-secondary">(inclui vigentes)</span></th>
+        </tr>
+        <tr>
+          <th scope="col" class="pca-grupo-inicio">Totais</th>
+          <th scope="col">Cancelados</th>
+          <th scope="col">Ativos</th>
+          <th scope="col" class="pca-grupo-inicio pca-faixa"><abbr title="Nova contratação">NC</abbr></th>
+          <th scope="col" class="pca-faixa"><abbr title="Renovação">RN</abbr></th>
+          <th scope="col" class="pca-faixa"><abbr title="Vigente (contrato em vigor)">VG</abbr></th>
+          <th scope="col" class="pca-grupo-inicio">Concluído</th>
+          <th scope="col">Em tramitação</th>
+          <th scope="col">No prazo</th>
+          <th scope="col">Atrasado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in linhas %}
+        <tr>
+          <th scope="row" class="text-nowrap pca-col-barra"><a href="{{ url_tabela }}?{{ linha.hrefs.uo }}" title="Abrir os processos de {{ linha.uo }}">{{ linha.uo }}</a><div class="mt-1">{% include "pca/_resumo_barra_meta.html" with l=linha %}</div></th>
+          {% include "pca/_resumo_celula.html" with n=linha.total_previsto pct=linha.percentual_no_pca com_pct=True href=linha.hrefs.total_previsto uo=linha.uo rotulo="Totais" classe="pca-grupo-inicio" %}
+          {% include "pca/_resumo_celula.html" with n=linha.cancelados pct=linha.percentual_cancelados com_pct=True href=linha.hrefs.cancelados uo=linha.uo rotulo="Cancelados" cor="secondary" %}
+          {% include "pca/_resumo_celula.html" with n=linha.ativos pct=linha.percentual_ativos com_pct=True href=linha.hrefs.ativos uo=linha.uo rotulo="Ativos" forte=True %}
+          {% include "pca/_resumo_celula.html" with n=linha.nova pct=linha.percentual_nova com_pct=True href=linha.hrefs.nova uo=linha.uo rotulo="NC (nova contratação)" classe="pca-grupo-inicio pca-faixa" %}
+          {% include "pca/_resumo_celula.html" with n=linha.renovacao pct=linha.percentual_renovacao com_pct=True href=linha.hrefs.renovacao uo=linha.uo rotulo="RN (renovação)" classe="pca-faixa" %}
+          {% include "pca/_resumo_celula.html" with n=linha.vigente pct=linha.percentual_vigente com_pct=True href=linha.hrefs.vigente uo=linha.uo rotulo="VG (vigentes)" classe="pca-faixa" cor="secondary" %}
+          {% include "pca/_resumo_celula.html" with n=linha.concluido_meta pct=linha.percentual_concluido_meta com_pct=True href=linha.hrefs.concluido_meta uo=linha.uo rotulo="Concluído (meta)" classe="pca-grupo-inicio" cor="green" %}
+          {% include "pca/_resumo_celula.html" with n=linha.em_tramitacao pct=linha.percentual_em_tramitacao com_pct=True href=linha.hrefs.em_tramitacao uo=linha.uo rotulo="Em tramitação (meta)" cor="azure" %}
+          {% include "pca/_resumo_celula.html" with n=linha.no_prazo pct=linha.percentual_no_prazo com_pct=True href=linha.hrefs.no_prazo uo=linha.uo rotulo="No prazo (meta)" cor="yellow" %}
+          {% include "pca/_resumo_celula.html" with n=linha.fora_prazo pct=linha.percentual_fora_prazo com_pct=True href=linha.hrefs.fora_prazo uo=linha.uo rotulo="Atrasado (meta)" cor="red" %}
+          {% include "pca/_resumo_celula.html" with n=linha.concluido pct=linha.percentual_concluido com_pct=True href=linha.hrefs.concluido uo=linha.uo rotulo="Total concluído (inclui vigentes)" classe="pca-grupo-inicio pca-faixa" forte=True %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="12" class="text-secondary">Nenhum processo no recorte atual.</td></tr>
+        {% endfor %}
+      </tbody>
+      {% if linhas %}
+      <tfoot>
+        <tr class="fw-bold">
+          <th scope="row" class="pca-col-barra">Total<div class="mt-1">{% include "pca/_resumo_barra_meta.html" with l=total %}</div></th>
+          {% include "pca/_resumo_celula.html" with n=total.total_previsto pct=total.percentual_no_pca com_pct=True href=total.hrefs.total_previsto uo="Total" rotulo="Totais" classe="pca-grupo-inicio" forte=True %}
+          {% include "pca/_resumo_celula.html" with n=total.cancelados pct=total.percentual_cancelados com_pct=True href=total.hrefs.cancelados uo="Total" rotulo="Cancelados" cor="secondary" %}
+          {% include "pca/_resumo_celula.html" with n=total.ativos pct=total.percentual_ativos com_pct=True href=total.hrefs.ativos uo="Total" rotulo="Ativos" forte=True %}
+          {% include "pca/_resumo_celula.html" with n=total.nova pct=total.percentual_nova com_pct=True href=total.hrefs.nova uo="Total" rotulo="NC (nova contratação)" classe="pca-grupo-inicio pca-faixa" forte=True %}
+          {% include "pca/_resumo_celula.html" with n=total.renovacao pct=total.percentual_renovacao com_pct=True href=total.hrefs.renovacao uo="Total" rotulo="RN (renovação)" classe="pca-faixa" forte=True %}
+          {% include "pca/_resumo_celula.html" with n=total.vigente pct=total.percentual_vigente com_pct=True href=total.hrefs.vigente uo="Total" rotulo="VG (vigentes)" classe="pca-faixa" cor="secondary" %}
+          {% include "pca/_resumo_celula.html" with n=total.concluido_meta pct=total.percentual_concluido_meta com_pct=True href=total.hrefs.concluido_meta uo="Total" rotulo="Concluído (meta)" classe="pca-grupo-inicio" cor="green" %}
+          {% include "pca/_resumo_celula.html" with n=total.em_tramitacao pct=total.percentual_em_tramitacao com_pct=True href=total.hrefs.em_tramitacao uo="Total" rotulo="Em tramitação (meta)" cor="azure" %}
+          {% include "pca/_resumo_celula.html" with n=total.no_prazo pct=total.percentual_no_prazo com_pct=True href=total.hrefs.no_prazo uo="Total" rotulo="No prazo (meta)" cor="yellow" %}
+          {% include "pca/_resumo_celula.html" with n=total.fora_prazo pct=total.percentual_fora_prazo com_pct=True href=total.hrefs.fora_prazo uo="Total" rotulo="Atrasado (meta)" cor="red" %}
+          {% include "pca/_resumo_celula.html" with n=total.concluido pct=total.percentual_concluido com_pct=True href=total.hrefs.concluido uo="Total" rotulo="Total concluído (inclui vigentes)" classe="pca-grupo-inicio pca-faixa" forte=True %}
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+
+  {# Celular: um cartão por unidade, a mesma história em três linhas #}
+  <div class="list-group list-group-flush d-md-none">
+    {% for linha in linhas %}
+    <div class="list-group-item">
+      <div class="d-flex align-items-center mb-2">
+        <a class="fw-bold" href="{{ url_tabela }}?{{ linha.hrefs.uo }}">{{ linha.uo }}</a>
+        <span class="ms-auto badge bg-green-lt">{{ linha.percentual_concluido_meta|percentual }} da meta</span>
+      </div>
+      <div class="small mb-1">
+        <a class="text-reset" href="{{ url_tabela }}?{{ linha.hrefs.total_previsto }}">{{ linha.total_previsto|numero }} totais</a>
+        <span class="text-secondary">− <a class="text-reset" href="{{ url_tabela }}?{{ linha.hrefs.cancelados }}">{{ linha.cancelados|numero }} cancelados</a> =</span>
+        <a class="fw-bold" href="{{ url_tabela }}?{{ linha.hrefs.ativos }}">{{ linha.ativos|numero }} ativos</a>
+      </div>
+      <div class="small text-secondary mb-2">
+        <a class="text-reset" href="{{ url_tabela }}?{{ linha.hrefs.nova }}">{{ linha.nova|numero }} <abbr title="Nova contratação">NC</abbr></a> ·
+        <a class="text-reset" href="{{ url_tabela }}?{{ linha.hrefs.renovacao }}">{{ linha.renovacao|numero }} <abbr title="Renovação">RN</abbr></a> ·
+        <a class="text-reset" href="{{ url_tabela }}?{{ linha.hrefs.vigente }}">{{ linha.vigente|numero }} <abbr title="Vigente (contrato em vigor)">VG</abbr></a>
+      </div>
+      <div class="small fw-bold mb-1">Meta PCA (NC + RN)</div>
+      {% include "pca/_resumo_barra_meta.html" with l=linha %}
+      <div class="d-flex flex-wrap gap-3 small mt-2">
+        <a class="text-green" href="{{ url_tabela }}?{{ linha.hrefs.concluido_meta }}"><span class="legend bg-green me-1"></span>{{ linha.concluido_meta|numero }} concluído</a>
+        <a class="text-azure" href="{{ url_tabela }}?{{ linha.hrefs.em_tramitacao }}"><span class="legend bg-azure me-1"></span>{{ linha.em_tramitacao|numero }} em tramitação</a>
+        <a class="text-yellow" href="{{ url_tabela }}?{{ linha.hrefs.no_prazo }}"><span class="legend bg-yellow me-1"></span>{{ linha.no_prazo|numero }} no prazo</a>
+        <a class="text-red" href="{{ url_tabela }}?{{ linha.hrefs.fora_prazo }}"><span class="legend bg-red me-1"></span>{{ linha.fora_prazo|numero }} atrasado</a>
+      </div>
+      <div class="small mt-2">
+        Total concluído (inclui vigentes):
+        <a class="fw-bold" href="{{ url_tabela }}?{{ linha.hrefs.concluido }}">{{ linha.concluido|numero }}</a>
+        <span class="text-secondary">{{ linha.percentual_concluido|percentual }} dos ativos</span>
+      </div>
+    </div>
+    {% empty %}
+    <div class="list-group-item text-secondary">Nenhum processo no recorte atual.</div>
+    {% endfor %}
+  </div>
+
+  <div class="card-footer small text-secondary">
+    <strong>Como ler:</strong> Ativos = Totais − Cancelados · Meta PCA = NC + RN (os ativos menos os vigentes) ·
+    Concluído + Em tramitação + No prazo + Atrasado = Meta PCA · Total concluído soma todos os ativos concluídos, inclusive os vigentes.
+  </div>
+</div>
+
+{% include "pca/_resumo_uo_detalhamento.html" %}
+
+<p class="small text-secondary mb-0">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+{% endblock %}
+
+{% block scripts %}
+{% if graficos %}{% load static %}<script src="{% static 'tabler/vendor/echarts/echarts.min.js' %}"></script><script src="{% static 'tabler/js/echarts-pca.js' %}"></script>{% endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{% comment %}
+Um resultado da visualização Lista da tela Processos: número do item (link para a ficha com a querystring da
+tabela), situação, as mesmas ações da linha da Tabela, duas linhas de pares (`colunas_lista`) e o
+objeto. `id="item-<pk>"` é a âncora do "Voltar" e do retorno do modal ao mesmo ponto da tela.
+{% endcomment %}
+{% load ui pca_ui %}
+<div class="list-group-item" id="item-{{ p.pk }}">
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <a class="fw-bold fs-3" href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">Item {{ p.item_pca }}/{{ p.exercicio.ano }}</a>
+    <span>{% include "pca/_tabela_situacao.html" %}</span>
+    <div class="btn-list flex-nowrap gap-1 ms-auto">
+      <a class="btn btn-sm btn-icon btn-ghost-secondary"
+         href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}"
+         aria-label="Ver item {{ p.item_pca }}" title="Ver item {{ p.item_pca }}"><i class="ti ti-eye" aria-hidden="true"></i></a>
+      {% if perms.pca.editar_pca %}
+      <a class="btn btn-sm btn-icon btn-ghost-secondary" href="{% url 'pca:editar_processo' p.exercicio.ano p.item_pca %}"
+         aria-label="Editar item {{ p.item_pca }}" title="Editar item {{ p.item_pca }}"><i class="ti ti-pencil" aria-hidden="true"></i></a>
+      <a class="btn btn-sm btn-icon btn-ghost-primary"
+         href="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}"
+         hx-get="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}"
+         hx-target="#modal-acompanhamento" hx-swap="innerHTML"
+         aria-label="Registrar acompanhamento do item {{ p.item_pca }}"
+         title="Registrar acompanhamento do item {{ p.item_pca }}"><i class="ti ti-calendar-plus" aria-hidden="true"></i></a>
+      {% endif %}
+    </div>
+  </div>
+  {% for linha in colunas_lista %}
+  <div class="small mt-1">{% for col in linha %}<span class="text-secondary">{{ col.rotulo }}:</span> {% if col.chave == "mes_previsto" %}{{ p.mes_previsto|nome_mes|default:"Sem mês previsto" }}{% else %}{{ p|exibir:col }}{% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</div>
+  {% endfor %}
+  <div class="mt-1"><span class="text-secondary small">Objeto:</span> {{ p.descricao_objeto }}</div>
+</div>

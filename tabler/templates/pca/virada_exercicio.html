@@ -1,0 +1,12 @@
+{% comment %}Indicador de etapas do assistente de virada (componente .steps do Tabler), incluído pelas 3 páginas de etapa e pelo formulário de ajuste. Requer `etapa_ativa` (1, 2 ou 3) e `rascunho`. Etapas já concluídas viram link (GET, volta sem gravar nada); a atual e as futuras não são clicáveis — avançar é sempre o POST do botão "Avançar".{% endcomment %}
+<nav class="card mb-3" aria-label="Etapas da virada">
+  <div class="card-body py-3">
+    <div class="steps steps-counter steps-blue my-2">
+      {% if etapa_ativa > 1 %}<a class="step-item" href="{% url 'pca:virada' rascunho.ano_destino %}">Selecionar</a>
+      {% else %}<span class="step-item active" aria-current="step">Selecionar</span>{% endif %}
+      {% if etapa_ativa > 2 %}<a class="step-item" href="{% url 'pca:virada_ajustar' rascunho.ano_destino %}">Ajustar</a>
+      {% else %}<span class="step-item{% if etapa_ativa == 2 %} active{% endif %}"{% if etapa_ativa == 2 %} aria-current="step"{% endif %}>Ajustar</span>{% endif %}
+      <span class="step-item{% if etapa_ativa == 3 %} active{% endif %}"{% if etapa_ativa == 3 %} aria-current="step"{% endif %}>Revisar e concluir</span>
+    </div>
+  </div>
+</nav>

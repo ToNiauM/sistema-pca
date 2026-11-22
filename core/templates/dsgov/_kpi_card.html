@@ -1,0 +1,14 @@
+{% comment %}kpi = {"rotulo", "valor" (já formatado), "apoio" (texto curto opcional), "icone" (fas fa-*), "url" (opcional), "tom" (opcional: destaque|sucesso|info|alerta|erro|neutro — faixa de cor no topo)}. kpi_col="auto" (include ... with) divide a linha em partes iguais a partir de 1280px; outro valor em kpi_col é a própria classe da coluna (ex.: "col-6 col-md-3 col-lg"); sem ele, 4 por linha. icone_no_valor=True leva o ícone para a linha do número (cartões estreitos: o rótulo fica com a largura toda).{% endcomment %}
+<div class="{% if kpi_col == 'auto' %}col-sm-6 col-lg{% elif kpi_col %}{{ kpi_col }}{% else %}col-sm-6 col-md-3{% endif %} mb-3">
+  <div class="br-card dsgov-kpi h-100{% if kpi.tom == 'destaque' %} dsgov-kpi-destaque{% elif kpi.tom == 'sucesso' %} dsgov-kpi-sucesso{% elif kpi.tom == 'info' %} dsgov-kpi-info{% elif kpi.tom == 'alerta' %} dsgov-kpi-alerta{% elif kpi.tom == 'erro' %} dsgov-kpi-erro{% elif kpi.tom == 'neutro' %} dsgov-kpi-neutro{% endif %}">
+    <div class="card-content">
+      <div class="d-flex align-items-center">
+        <span class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold">{{ kpi.rotulo }}</span>
+        {% if kpi.icone and not icone_no_valor %}<i class="{{ kpi.icone }} ml-auto text-blue-warm-vivid-70" aria-hidden="true"></i>{% endif %}
+      </div>
+      {% if icone_no_valor %}<div class="d-flex align-items-center mt-2"><span class="text-up-03 text-weight-semi-bold text-gray-80">{{ kpi.valor }}</span>{% if kpi.icone %}<i class="{{ kpi.icone }} ml-auto text-blue-warm-vivid-70" aria-hidden="true"></i>{% endif %}</div>{% else %}<div class="text-up-03 text-weight-semi-bold text-gray-80 mt-2">{{ kpi.valor }}</div>{% endif %}
+      {% if kpi.apoio %}<div class="text-down-01 text-gray-70 mt-1">{{ kpi.apoio }}</div>{% endif %}
+      {% if kpi.url %}<a class="text-down-01 mt-1" href="{{ kpi.url }}">Ver detalhes <i class="fas fa-angle-right" aria-hidden="true"></i></a>{% endif %}
+    </div>
+  </div>
+</div>

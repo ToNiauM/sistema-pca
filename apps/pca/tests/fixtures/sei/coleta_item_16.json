@@ -1,0 +1,379 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000037.000018/2025-41",
+      "resultado": "ok",
+      "item": 16,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "04/09/2025 09:36",
+            "unidade": "DEINFRA",
+            "descricao": "Processo público gerado"
+          },
+          "ultimo": {
+            "data_hora": "28/07/2026 12:30",
+            "unidade": "COLOG",
+            "descricao": "Conclusão do processo na unidade"
+          },
+          "recebimentos": {
+            "DELIC": "03/11/2025 12:26",
+            "COLOG": "17/11/2025 08:55",
+            "DECONT": "21/01/2026 16:37"
+          },
+          "conclusoes_na_unidade": {
+            "DELIC": "03/03/2026 08:01",
+            "COLOG": "28/07/2026 12:30"
+          },
+          "assinaturas_no_historico": [],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "03/11/2025 12:26"
+          }
+        }
+      },
+      "documentos_contratuais": []
+    },
+    {
+      "numero": "90796110000037.000021/2020-51",
+      "resultado": "ok",
+      "item": 16,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "06/10/2020 10:08",
+            "unidade": "DEINFRA",
+            "descricao": "Processo público gerado"
+          },
+          "ultimo": {
+            "data_hora": "12/08/2026 12:58",
+            "unidade": "GESERV",
+            "descricao": "Registro de documento externo público 1499821 (Portaria CFC n.º 335/2026 - Gestores de Contrato)"
+          },
+          "recebimentos": {
+            "DELIC": "26/10/2020 08:51",
+            "DEINFRA": "03/11/2020 17:03",
+            "CCI": "06/11/2020 10:24",
+            "DECONT": "09/12/2020 11:43",
+            "PROJUR": "06/01/2021 10:15",
+            "DIREX": "25/01/2021 15:11",
+            "COLOG": "29/01/2021 17:12"
+          },
+          "conclusoes_na_unidade": {
+            "DIREX": "31/01/2022 16:18",
+            "DELIC": "19/05/2025 11:57",
+            "DECONT": "17/11/2023 09:01",
+            "DEINFRA": "20/08/2025 08:55",
+            "PROJUR": "24/02/2026 08:02",
+            "COLOG": "28/07/2026 12:30"
+          },
+          "assinaturas_no_historico": [
+            {
+              "data_hora": "24/02/2021 11:30",
+              "unidade": "PRESIDENCIA",
+              "protocolo": "0020478",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "24/02/2021 12:16",
+              "unidade": "DELIC",
+              "protocolo": "0020478",
+              "tipo": "Contrato",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "24/01/2022 10:30",
+              "unidade": "VIPAD",
+              "protocolo": "0036250",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "24/01/2022 19:52",
+              "unidade": "DELIC",
+              "protocolo": "0036250",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "02/02/2023 12:18",
+              "unidade": "VIPAD",
+              "protocolo": "0064864",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "02/02/2023 15:42",
+              "unidade": "DELIC",
+              "protocolo": "0064864",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "02/02/2024 09:47",
+              "unidade": "VIPAD",
+              "protocolo": "0210333",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "09/02/2024 10:59",
+              "unidade": "VIPAD",
+              "protocolo": "0217998",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "14/02/2024 17:00",
+              "unidade": "DELIC",
+              "protocolo": "0217998",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "17/02/2025 10:30",
+              "unidade": "VIPAD",
+              "protocolo": "0716836",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "19/02/2025 08:54",
+              "unidade": "DELIC",
+              "protocolo": "0716836",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "24/02/2026 07:56",
+              "unidade": "VIPAD",
+              "protocolo": "1245824",
+              "tipo": "Termo Aditivo",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "24/02/2026 08:05",
+              "unidade": "DELIC",
+              "protocolo": "1245824",
+              "tipo": "Termo Aditivo",
+              "papel": "externo"
+            }
+          ],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "26/10/2020 08:51"
+          }
+        }
+      },
+      "documentos_contratuais": [
+        {
+          "id_documento": "21828",
+          "protocolo": "0020478",
+          "rotulo": "Contrato Nº 08/2021 - CFC x HONIX",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 50519,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "08/2021",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Presidente",
+              "data": "24/02/2021",
+              "hora": "11:30"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "24/02/2021",
+              "hora": "12:16"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "24/02/2021 12:16",
+          "ultima_assinatura_cfc": "24/02/2021 11:30",
+          "tipo": "contrato",
+          "valor": null
+        },
+        {
+          "id_documento": "38253",
+          "protocolo": "0036250",
+          "rotulo": "Termo Aditivo",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 44300,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "08/2021",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "24/01/2022",
+              "hora": "10:30"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "24/01/2022",
+              "hora": "19:52"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "24/01/2022 19:52",
+          "ultima_assinatura_cfc": "24/01/2022 10:30",
+          "tipo": "termo_aditivo",
+          "valor": null
+        },
+        {
+          "id_documento": "65620",
+          "protocolo": "0064864",
+          "rotulo": "Termo Aditivo",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 63822,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "08/2021",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "02/02/2023",
+              "hora": "12:18"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "02/02/2023",
+              "hora": "15:42"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "02/02/2023 15:42",
+          "ultima_assinatura_cfc": "02/02/2023 12:18",
+          "tipo": "termo_aditivo",
+          "valor": null
+        },
+        {
+          "id_documento": "221016",
+          "protocolo": "0210333",
+          "rotulo": "Termo Aditivo",
+          "assinantes_externos_na_arvore": 0,
+          "conteudo": "cancelado",
+          "motivo_cancelamento": "Mudança de Signatário"
+        },
+        {
+          "id_documento": "229270",
+          "protocolo": "0217998",
+          "rotulo": "Termo Aditivo",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 61577,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "08/2021",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "09/02/2024",
+              "hora": "10:59"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "14/02/2024",
+              "hora": "17:00"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "14/02/2024 17:00",
+          "ultima_assinatura_cfc": "09/02/2024 10:59",
+          "tipo": "termo_aditivo",
+          "valor": null
+        },
+        {
+          "id_documento": "761042",
+          "protocolo": "0716836",
+          "rotulo": "Termo Aditivo [4º]",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 61646,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "08/2021",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Vice-Presidente",
+              "data": "17/02/2025",
+              "hora": "10:30"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "19/02/2025",
+              "hora": "08:54"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "19/02/2025 08:54",
+          "ultima_assinatura_cfc": "17/02/2025 10:30",
+          "tipo": "termo_aditivo",
+          "valor": null
+        },
+        {
+          "id_documento": "1313915",
+          "protocolo": "1245824",
+          "rotulo": "Termo Aditivo",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 56200,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": null,
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "24/02/2026",
+              "hora": "07:56"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "24/02/2026",
+              "hora": "08:05"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "24/02/2026 08:05",
+          "ultima_assinatura_cfc": "24/02/2026 07:56",
+          "tipo": "termo_aditivo",
+          "valor": null
+        }
+      ]
+    }
+  ]
+}

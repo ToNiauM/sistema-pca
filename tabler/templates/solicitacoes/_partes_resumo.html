@@ -1,0 +1,16 @@
+{% load ui %}
+{% comment %}
+Resumo das partes de uma solicitação (listas e aba da ficha): uma linha por parte com "hoje → pedido", o selo de
+situação, o que foi concedido (ajuste) e o motivo da recusa/ajuste. `partes` = lista de `apresentacao.parte_para_tela`.
+{% endcomment %}
+{% for parte in partes %}
+<div class="mb-2">
+  <span class="fw-medium">{{ parte.rotulo }}{% if parte.campo != "cancelamento" %}:{% endif %}</span>
+  {% if parte.campo == "cancelamento" %}{% elif parte.campo == "inclusao" %}{{ parte.pedido|truncatechars:80 }}{% else %}{{ parte.hoje }} <i class="ti ti-arrow-right" aria-hidden="true"></i><span class="visually-hidden">para</span> {{ parte.pedido|truncatechars:80 }}{% endif %}
+  <span class="ms-1">{% tag_status parte.estado_rotulo parte.chave %}</span>
+  {% if parte.fora_do_exercicio %}<span class="badge bg-orange-lt ms-1">Fora do exercício</span>{% endif %}
+  {% if parte.ajustada and parte.concedido %}<div class="small text-secondary">Concedido: {{ parte.concedido|truncatechars:80 }}</div>{% endif %}
+  {% if parte.motivo and parte.estado != "pendente" %}<div class="small text-secondary">Motivo: {{ parte.motivo|truncatechars:160 }}</div>{% endif %}
+  {% if parte.aguardando %}<div class="small text-secondary">{{ parte.aguardando }}</div>{% endif %}
+</div>
+{% endfor %}

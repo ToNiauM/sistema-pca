@@ -1,0 +1,26 @@
+{% load ui %}
+<nav class="d-flex flex-wrap align-items-center gap-2 px-3 py-2 border-top" aria-label="Paginação">
+  <div class="d-flex align-items-center gap-2 text-secondary small">
+    <label class="text-nowrap" for="por-pagina">Exibir</label>
+    <select class="form-select form-select-sm w-auto" id="por-pagina" name="por_pagina" aria-label="Itens por página"
+            hx-get="{% url_com pagina=None por_pagina=None %}" hx-target="{{ alvo }}" hx-push-url="true" hx-trigger="change">
+      {% for opcao in opcoes_por_pagina %}<option value="{{ opcao }}"{% if opcao == por_pagina %} selected{% endif %}>{{ opcao }}</option>{% endfor %}
+    </select>
+    <span class="d-none d-sm-inline text-nowrap">{{ inicio }}–{{ fim }} de {{ total }} {% if total == 1 %}item{% else %}itens{% endif %}</span>
+  </div>
+  <ul class="pagination pagination-sm m-0 ms-auto">
+    <li class="page-item{% if not pagina.has_previous %} disabled{% endif %}">
+      {% if pagina.has_previous %}<a class="page-link" href="{% url_com pagina=pagina.previous_page_number %}" hx-get="{% url_com pagina=pagina.previous_page_number %}" hx-target="{{ alvo }}" hx-push-url="true" aria-label="Página anterior"><i class="ti ti-chevron-left" aria-hidden="true"></i></a>
+      {% else %}<span class="page-link" aria-hidden="true"><i class="ti ti-chevron-left"></i></span>{% endif %}
+    </li>
+    {% for p in paginas %}
+      {% if p == reticencias %}<li class="page-item disabled d-none d-md-block"><span class="page-link">…</span></li>
+      {% elif p == pagina.number %}<li class="page-item active"><span class="page-link" aria-current="page">{{ p }}</span></li>
+      {% else %}<li class="page-item d-none d-md-block"><a class="page-link" href="{% url_com pagina=p %}" hx-get="{% url_com pagina=p %}" hx-target="{{ alvo }}" hx-push-url="true" aria-label="Página {{ p }}">{{ p }}</a></li>{% endif %}
+    {% endfor %}
+    <li class="page-item{% if not pagina.has_next %} disabled{% endif %}">
+      {% if pagina.has_next %}<a class="page-link" href="{% url_com pagina=pagina.next_page_number %}" hx-get="{% url_com pagina=pagina.next_page_number %}" hx-target="{{ alvo }}" hx-push-url="true" aria-label="Página seguinte"><i class="ti ti-chevron-right" aria-hidden="true"></i></a>
+      {% else %}<span class="page-link" aria-hidden="true"><i class="ti ti-chevron-right"></i></span>{% endif %}
+    </li>
+  </ul>
+</nav>

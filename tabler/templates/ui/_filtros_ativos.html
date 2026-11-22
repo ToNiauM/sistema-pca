@@ -1,0 +1,13 @@
+{% load ui %}
+{% if filtros_ativos %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3" aria-label="Filtros ativos">
+  <span class="text-secondary small">Filtros:</span>
+  {% for param, valor, rotulo in filtros_ativos %}
+  <span class="badge bg-blue-lt d-inline-flex align-items-center gap-1 py-1">
+    {{ rotulo }}
+    <a class="text-reset" href="{% url_com pagina=None %}&{{ param }}=" hx-get="{% url_com pagina=None %}&{{ param }}=" hx-target="#listagem" hx-push-url="true" aria-label="Remover filtro {{ rotulo }}"><i class="ti ti-x" aria-hidden="true"></i></a>
+  </span>
+  {% endfor %}
+  <a class="btn btn-sm btn-ghost-secondary" href="{{ request.path }}" hx-get="{{ request.path }}" hx-target="#listagem" hx-push-url="true"><i class="ti ti-eraser me-1" aria-hidden="true"></i>Limpar filtros</a>
+</div>
+{% endif %}

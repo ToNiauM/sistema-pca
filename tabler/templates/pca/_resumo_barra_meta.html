@@ -1,0 +1,6 @@
+{% load ui %}{% comment %}Barra da meta de uma linha do Resumo (`l`): concluídos, em tramitação, no prazo e atrasados, cada fatia filtra a /tabela.{% endcomment %}<div class="progress progress-separated progress-sm" role="img" aria-label="{{ l.uo }}: meta {{ l.meta }}, {{ l.concluido_meta }} concluídos, {{ l.em_tramitacao }} em tramitação, {{ l.no_prazo }} no prazo, {{ l.fora_prazo }} atrasados">
+  <a class="progress-bar bg-green" href="{% url 'pca:tabela' %}?{{ l.hrefs.concluido_meta }}" style="width: {{ l.percentual_concluido_meta|default:0|stringformat:'.2f' }}%" title="Concluídos: {{ l.concluido_meta }}"></a>
+  <a class="progress-bar bg-azure" href="{% url 'pca:tabela' %}?{{ l.hrefs.em_tramitacao }}" style="width: {{ l.percentual_em_tramitacao|default:0|stringformat:'.2f' }}%" title="Em tramitação: {{ l.em_tramitacao }}"></a>
+  <a class="progress-bar bg-yellow" href="{% url 'pca:tabela' %}?{{ l.hrefs.no_prazo }}" style="width: {{ l.percentual_no_prazo|default:0|stringformat:'.2f' }}%" title="No prazo: {{ l.no_prazo }}"></a>
+  <a class="progress-bar bg-red" href="{% url 'pca:tabela' %}?{{ l.hrefs.fora_prazo }}" style="width: {{ l.percentual_fora_prazo|default:0|stringformat:'.2f' }}%" title="Atrasados: {{ l.fora_prazo }}"></a>
+</div>

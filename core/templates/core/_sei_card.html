@@ -1,0 +1,51 @@
+{% load dsgov %}
+{% comment %}
+Conteúdo (SEM o wrapper #sei-card) do card "Sincronização com o SEI" do
+Início (spec §3.6). Incluído por inicio.html no carregamento de
+página inteira e servido puro por core:sei_card —
+hx-get/hx-trigger="every 15s" só quando sei_card.estado == "em_execucao",
+sem nenhum hx-swap-oob. 4 estados: nunca_executado / alerta / em_execucao /
+ok (else).
+{% endcomment %}
+<div class="br-card">
+  <div class="card-header">
+    <div class="text-weight-semi-bold text-up-02">Sincronização com o SEI</div>
+  </div>
+  <div class="card-content">
+    {% if sei_card.estado == "nunca_executado" %}
+    <div class="br-message info">
+      <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert"><span class="message-title">Nunca executado.</span></div>
+    </div>
+    {% elif sei_card.estado == "alerta" %}
+    <div class="br-message warning">
+      <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        {% if sei_card.status == "erro" %}
+        <span class="message-title">Última execução falhou.</span>{% if sei_card.mensagem %}<span class="message-body"> {{ sei_card.mensagem }}</span>{% endif %}
+        {% else %}
+        <span class="message-title">Mais de 3 dias úteis sem execução.</span>
+        {% endif %}
+      </div>
+    </div>
+    <p class="mb-0">Última execução: {{ sei_card.terminado_em|date:"d/m/Y H:i" }}</p>
+    <p class="mb-0">{{ sei_card.totais.itens_alterados|numero }} item(ns) alterado(s) · {{ sei_card.totais.pendencias_novas|numero }} pendência(s) nova(s) · {{ sei_card.totais.erros|numero }} erro(s)</p>
+    {% elif sei_card.estado == "em_execucao" %}
+    <div class="br-message info">
+      <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert">
+        <span class="message-title">Varredura em andamento — item {{ sei_card.item }} ({{ sei_card.k }}/{{ sei_card.total }}, {{ sei_card.percentual|percentual:0 }}).</span>
+      </div>
+    </div>
+    <p class="mb-0">{{ sei_card.coletados|numero }} coletado(s) · {{ sei_card.pulados|numero }} pulado(s) · {{ sei_card.erros|numero }} erro(s)</p>
+    <p class="mb-0">Iniciada às {{ sei_card.iniciado_em|date:"H:i" }} · {{ sei_card.decorrido_min|numero }} min decorridos</p>
+    <p class="mb-0 text-down-01 text-gray-70">{{ sei_card.ultima_linha }}</p>
+    {% else %}
+    <p class="mb-0">Última execução: {{ sei_card.terminado_em|date:"d/m/Y H:i" }}</p>
+    <p class="mb-0">{{ sei_card.totais.itens_alterados|numero }} item(ns) alterado(s) · {{ sei_card.totais.pendencias_novas|numero }} pendência(s) nova(s) · {{ sei_card.totais.erros|numero }} erro(s)</p>
+    {% endif %}
+    {% if sei_card.ultimo_pedido %}<p class="mb-0">Último pedido pelo Admin: item {{ sei_card.ultimo_pedido.item_pca }}, {{ sei_card.ultimo_pedido.atendido_em|date:"d/m H:i" }}, {{ sei_card.ultimo_pedido.status }}</p>{% endif %}
+    <p class="mb-0">Pedidos atendidos hoje: {{ sei_card.pedidos_atendidos_hoje }}</p>
+    {% if sei_card.sem_processo_sei.total %}<p class="mb-0"><a href="{{ sei_card.sem_processo_sei.url }}">{{ sei_card.sem_processo_sei.total|numero }} item(ns) sem processo SEI</a> — não são sincronizados</p>{% endif %}
+  </div>
+</div>

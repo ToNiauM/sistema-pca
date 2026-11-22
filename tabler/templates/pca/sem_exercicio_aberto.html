@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% comment %}Estado vazio compartilhado por calendário/fluxo/prazos quando não há exercício aberto.{% endcomment %}
+{% block titulo %}{{ nome_tela }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <h1 class="page-title">{{ nome_tela }}</h1>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6">
+    <div class="card">
+      <div class="card-status-top bg-warning"></div>
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3">
+          <span class="avatar bg-warning-lt flex-shrink-0"><i class="ti ti-alert-triangle fs-2" aria-hidden="true"></i></span>
+          <div role="alert">
+            <h2 class="h3 mb-1">Nenhum exercício aberto</h2>
+            <p class="text-secondary mb-0">Não há exercício aberto no momento. Abra ou gerencie um exercício em <a href="{% url 'pca:gerenciar_exercicios' %}">Gerenciar exercícios</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+  {% if processo_navegacao %}
+    <li><a id="processo-voltar-tabela" href="{{ processo_navegacao.voltar_url }}">Voltar para tabela</a></li>
+    <li>
+      {% if processo_navegacao.anterior_url %}
+        <a id="processo-anterior" href="{{ processo_navegacao.anterior_url }}">Anterior</a>
+      {% else %}
+        <a id="processo-anterior" aria-disabled="true" tabindex="-1" style="pointer-events: none; opacity: 0.5;">Anterior</a>
+      {% endif %}
+    </li>
+    <li>
+      {% if processo_navegacao.proximo_url %}
+        <a id="processo-proximo" href="{{ processo_navegacao.proximo_url }}">Próximo</a>
+      {% else %}
+        <a id="processo-proximo" aria-disabled="true" tabindex="-1" style="pointer-events: none; opacity: 0.5;">Próximo</a>
+      {% endif %}
+    </li>
+  {% endif %}
+{% endblock %}

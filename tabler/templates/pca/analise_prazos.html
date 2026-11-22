@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load ui static %}
+{% comment %}
+Análises › Prazos (casca Tabler). "Contratos a vencer" continua sendo a primeira seção depois do título: KPIs
+clicáveis, filtros GET (vence/renovacao/destino) preservando exercicio/uo, tabela paginada só por href e a ação
+"Marcar/Desmarcar renovação" (POST + PRG, só pode_editar). Depois: KPIs de cumprimento (sem linha de apoio),
+curva de sobrevivência (par gráfico + "Ver dados") ao lado do lead time por etapa, e risco de atraso. Nenhum HTMX nesta página.
+{% endcomment %}
+
+{% block titulo %}Prazos — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+
+
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Análises</div>
+      <h1 class="page-title">Prazos — PCA {{ exercicio.ano|default:"—" }}</h1>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <button class="btn" type="button" onclick="window.print()"><i class="ti ti-printer me-2" aria-hidden="true"></i>Imprimir</button>
+        <a class="btn btn-ghost-secondary" href="{% url 'pca:analise' %}"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h2 class="h2 mb-0">Contratos a vencer</h2>
+  {% if pode_gerar_n1 %}<a class="btn btn-primary d-print-none" href="{% url 'pca:gerar_n1' exercicio.ano %}"><i class="ti ti-file-plus me-2" aria-hidden="true"></i>Gerar itens de {{ ano_n1 }}</a>{% endif %}
+</div>
+
+<div class="row row-cards mb-3">
+  {% for kpi in contratos.cards %}{% cycle "primary" "red" "azure" "purple" "green" as cor_kpi silent %}{% include "ui/_kpi_card.html" with col_kpi="col-12 col-sm-6 col-lg" sem_apoio=True %}{% endfor %}
+</div>
+
+<div class="card mb-4">
+  <div class="card-body border-bottom py-3 d-print-none">
+    <form method="get" class="row g-2 align-items-end" aria-label="Filtrar contratos a vencer">
+      {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+      {% for uo in contratos.uos %}<input type="hidden" name="uo" value="{{ uo }}"/>{% endfor %}
+      <div class="col-12 col-sm-6 col-lg-3 col-xxl-2">
+        <label class="form-label small text-secondary mb-1" for="vence">Vencimento</label>
+        <select class="form-select form-select-sm" id="vence" name="vence">
+          {% for valor, rotulo in contratos.opcoes_vence %}<option value="{{ valor }}"{% if valor == contratos.selecionado.vence %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3 col-xxl-2">
+        <label class="form-label small text-secondary mb-1" for="renovacao">Renovação prevista</label>
+        <select class="form-select form-select-sm" id="renovacao" name="renovacao">
+          {% for valor, rotulo in contratos.opcoes_renovacao %}<option value="{{ valor }}"{% if valor == contratos.selecionado.renovacao %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3 col-xxl-2">
+        <label class="form-label small text-secondary mb-1" for="destino">Destino em {{ contratos.ano_seguinte|default:"N+1" }}</label>
+        <select class="form-select form-select-sm" id="destino" name="destino">
+          {% for valor, rotulo in contratos.opcoes_destino %}<option value="{{ valor }}"{% if valor == contratos.destino_exibicao %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3 col-xxl-auto">
+        <div class="btn-list">
+          <button class="btn btn-sm" type="submit"><i class="ti ti-filter me-1" aria-hidden="true"></i>Aplicar filtros</button>
+          <a class="btn btn-sm btn-ghost-secondary" href="{% url_com vence=None renovacao=None destino=None grupo_destino=None pagina=None %}"><i class="ti ti-eraser me-1" aria-hidden="true"></i>Limpar filtros</a>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% if contratos.linhas %}
+  <div class="table-responsive">
+    <table class="table table-vcenter card-table table-hover table-sm mb-0">
+      <caption class="visually-hidden">Contratos a vencer — itens com contrato do recorte</caption>
+      <thead>
+        <tr>
+          <th scope="col">Item</th>
+          <th scope="col">Objeto / fornecedor</th>
+          <th scope="col" class="d-none d-lg-table-cell">Unidade</th>
+          <th scope="col" class="text-end">Vigência fim</th>
+          <th scope="col" class="text-end d-none d-md-table-cell text-wrap">Valor mensal</th>
+          <th scope="col" class="d-none d-md-table-cell text-wrap">Renovação prevista</th>
+          <th scope="col" class="text-wrap">Destino em {{ contratos.ano_seguinte|default:"N+1" }}</th>
+          {% if pode_editar %}<th scope="col" class="d-print-none">Ação</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in contratos.linhas %}
+        <tr>
+          <td><a class="fw-medium" href="{% url 'pca:detalhe_processo' linha.processo.exercicio.ano linha.processo.item_pca %}">{{ linha.processo.item_pca }}</a></td>
+          <td>
+            <div class="text-truncate" style="max-width: 22rem" title="{{ linha.processo.descricao_objeto }}">{{ linha.processo.descricao_objeto|truncatechars:60 }}</div>
+            <div class="small text-secondary text-truncate" style="max-width: 22rem"><span class="d-lg-none">{{ linha.processo.unidade_organizacional.nome }} · </span>{{ linha.processo.fornecedor_razao_social|default:"—" }}</div>
+          </td>
+          <td class="d-none d-lg-table-cell text-secondary text-nowrap">{{ linha.processo.unidade_organizacional.nome }}</td>
+          <td class="text-end text-nowrap">
+            {{ linha.processo.vigencia_fim|date:"d/m/Y" }}
+            {% if linha.vencido %}<div><span class="badge bg-red-lt">Vencido</span></div>{% endif %}
+            {% if linha.inicio_futuro %}<div class="small text-secondary">Vigência ainda não iniciada</div>{% endif %}
+          </td>
+          <td class="text-end text-nowrap d-none d-md-table-cell">{{ linha.processo.valor_mensal|moeda }}</td>
+          <td class="d-none d-md-table-cell">
+            {% if linha.processo.renovacao_prevista %}<span class="badge bg-green-lt">Sim</span>
+            {% else %}<span class="badge bg-secondary-lt">Não</span>{% endif %}
+          </td>
+          <td class="text-nowrap"><span class="badge {{ linha.classe_tag_destino }}-lt" title="{{ linha.destino_explicacao }}" data-bs-toggle="tooltip">{{ linha.destino_rotulo }}</span></td>
+          {% if pode_editar %}
+          <td class="d-print-none">
+            <form method="post" action="{% url 'pca:analise_prazos_renovar' linha.processo.exercicio.ano linha.processo.item_pca %}">
+              {% csrf_token %}
+              <input type="hidden" name="destino" value="{{ linha.acao_destino }}"/>
+              {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+              {% for uo in contratos.uos %}<input type="hidden" name="uo" value="{{ uo }}"/>{% endfor %}
+              <input type="hidden" name="vence" value="{{ contratos.selecionado.vence }}"/>
+              <input type="hidden" name="renovacao" value="{{ contratos.selecionado.renovacao }}"/>
+              <input type="hidden" name="destino_filtro" value="{{ contratos.selecionado.destino|default:'' }}"/>
+              <input type="hidden" name="grupo_destino" value="{{ contratos.selecionado.grupo_destino|default:'' }}"/>
+              <input type="hidden" name="pagina" value="{{ contratos.pagina.number }}"/>
+              <button class="btn btn-sm text-nowrap" type="submit">{{ linha.rotulo_acao }}</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer d-flex flex-wrap align-items-center gap-2 py-2">
+    <p class="small text-secondary mb-0">Mostrando {{ contratos.inicio }}–{{ contratos.fim }} de {{ contratos.total }} itens com contrato</p>
+    {% if contratos.pagina.paginator.num_pages > 1 %}
+    <nav class="ms-auto" aria-label="Paginação dos contratos a vencer">
+      <ul class="pagination pagination-sm m-0 flex-wrap">
+        {% for numero_pagina in contratos.pagina.paginator.page_range %}
+        <li class="page-item{% if numero_pagina == contratos.pagina.number %} active{% endif %}"><a class="page-link" href="{% url_com pagina=numero_pagina %}" aria-label="Página {{ numero_pagina }}" aria-current="{% if numero_pagina == contratos.pagina.number %}page{% else %}false{% endif %}">{{ numero_pagina }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="empty py-5">
+    <div class="empty-icon"><i class="ti ti-file-off" aria-hidden="true"></i></div>
+    <p class="empty-title">Nenhum item com contrato no recorte atual.</p>
+    <p class="empty-subtitle text-secondary">Ajuste ou limpe os filtros acima.</p>
+  </div>
+  {% endif %}
+</div>
+
+<h2 class="h2 mb-3">Cumprimento de prazos</h2>
+<div class="row row-cards mb-3">
+  {% for kpi in kpis %}{% cycle "green" "azure" "yellow" "red" as cor_kpi silent %}{% include "ui/_kpi_card.html" with col_kpi="col-12 col-sm-6 col-lg-3" sem_apoio=True %}{% endfor %}
+</div>
+
+{% comment %} Curva de sobrevivência (par gráfico + dados em "Ver dados") ao lado do lead time por etapa. {% endcomment %}
+<div class="row row-cards mb-3">
+  <div class="col-12 col-lg-6">{% include "ui/_par_analitico.html" with par=par_km %}</div>
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <h3 class="card-title">Lead time por etapa</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-vcenter card-table mb-0">
+          <caption class="visually-hidden">Lead time por etapa</caption>
+          <thead>
+            <tr>
+              <th scope="col">Etapa</th>
+              <th scope="col" class="text-end">Mediana (dias)</th>
+              <th scope="col" class="text-end">P25</th>
+              <th scope="col" class="text-end">P75</th>
+              <th scope="col" class="text-end">P90</th>
+              <th scope="col" class="text-end">n</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for chave, etapa in lead_time_etapas.items %}
+            <tr>
+              <td>{{ etapa.rotulo }}{% if etapa.aviso %}<div class="small text-secondary">({{ etapa.aviso }})</div>{% endif %}</td>
+              <td class="text-end text-nowrap fw-medium">{{ etapa.mediana|numero:1 }}</td>
+              <td class="text-end text-nowrap">{{ etapa.p25|numero:1 }}</td>
+              <td class="text-end text-nowrap">{{ etapa.p75|numero:1 }}</td>
+              <td class="text-end text-nowrap">{{ etapa.p90|numero:1 }}</td>
+              <td class="text-end text-nowrap text-secondary">{{ etapa.n|numero }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    <h2 class="card-title">Risco de atraso</h2>
+  </div>
+  {% if linhas_risco %}
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover mb-0">
+      <caption class="visually-hidden">Risco de atraso — itens abertos</caption>
+      <thead>
+        <tr>
+          <th scope="col">Item</th>
+          <th scope="col">Unidade</th>
+          <th scope="col" class="text-end d-none d-md-table-cell">Prorrogações</th>
+          <th scope="col" class="text-end d-none d-md-table-cell">Dias até o prazo</th>
+          <th scope="col">Score</th>
+          <th scope="col" class="d-none d-sm-table-cell">Data provável</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in linhas_risco %}
+        <tr>
+          <td><a class="fw-medium" href="{% url 'pca:detalhe_processo' linha.processo.exercicio.ano linha.processo.item_pca %}">{{ linha.processo.item_pca }}</a></td>
+          <td class="text-secondary">{{ linha.processo.unidade_organizacional.nome }}</td>
+          <td class="text-end d-none d-md-table-cell">{{ linha.prorrogacoes|numero }}</td>
+          <td class="text-end d-none d-md-table-cell">{{ linha.dias_ate_prazo|default_if_none:"—" }}</td>
+          <td>
+            {% if linha.faixa == "alto" %}<span class="badge bg-red-lt">{{ linha.score_percentual }}%</span>
+            {% elif linha.faixa == "medio" %}<span class="badge bg-yellow-lt">{{ linha.score_percentual }}%</span>
+            {% else %}<span class="badge bg-green-lt">{{ linha.score_percentual }}%</span>{% endif %}
+          </td>
+          <td class="text-nowrap d-none d-sm-table-cell">{{ linha.data_provavel_p25|date:"d/m/Y" }} – {{ linha.data_provavel_p75|date:"d/m/Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body"><p class="text-secondary mb-0">Nenhum item aberto com dado suficiente para calcular risco no recorte atual.</p></div>
+  {% endif %}
+</div>
+
+<p class="text-secondary small mt-3 mb-0 d-print-none">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'tabler/vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'tabler/js/echarts-pca.js' %}"></script>
+{% endblock %}

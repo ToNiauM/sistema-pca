@@ -1,0 +1,30 @@
+{% comment %}
+Tabela "rótulo × quantidade × valor estimado" das Análises (casca Tabler). Contrato de `linhas`: lista de
+{"rotulo", "total", "soma", "querystring"}; querystring None mostra o rótulo como texto (grupo sem recorte equivalente).
+{% endcomment %}
+{% load ui %}
+<div class="card mb-3">
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover mb-0">
+      <caption class="visually-hidden">{{ titulo }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{{ rotulo_coluna|default:"Rótulo" }}</th>
+          <th scope="col" class="text-end">Quantidade</th>
+          <th scope="col" class="text-end">Valor estimado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in linhas %}
+        <tr>
+          <td>{% if linha.querystring %}<a href="{% url 'pca:tabela' %}?{{ linha.querystring }}">{{ linha.rotulo }}</a>{% else %}{{ linha.rotulo }}{% endif %}</td>
+          <td class="text-end text-nowrap">{{ linha.total|numero }}</td>
+          <td class="text-end text-nowrap">{{ linha.soma|moeda }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-secondary">Nenhum registro.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

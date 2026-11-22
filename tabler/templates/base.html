@@ -1,0 +1,172 @@
+{% load static ui %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block titulo %}{{ titulo|default:APP.SISTEMA }}{% endblock %} · {{ APP.SISTEMA }}</title>
+  <meta name="theme-color" content="#1d273b"/>
+  {% include "ui/_tema.html" %}
+  <link rel="icon" href="{% static 'img/icon-192.png' %}"/>
+  <link rel="stylesheet" href="{% static 'tabler/vendor/tabler.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'tabler/vendor/tabler-themes.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'tabler/vendor/tabler-icons/tabler-icons.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'tabler/css/pca-tabler.css' %}"/>
+  {% block head %}{% endblock %}
+</head>
+<body class="layout-fluid">
+<a class="visually-hidden-focusable" href="#conteudo">Ir para o conteúdo</a>
+<div class="page">
+  {% if user.is_authenticated %}
+  <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark" id="menu-principal" aria-label="Menu principal">
+    <div class="container-fluid">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu-lateral" aria-controls="menu-lateral" aria-expanded="false" aria-label="Abrir o menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand navbar-brand-autodark d-flex align-items-center gap-2 py-3" href="{% url 'core:inicio' %}">
+        <span class="avatar avatar-sm bg-white">{% if APP.LOGO %}<img src="{% static 'img/simbolo-cfc.png' %}" alt="" class="w-100 h-100 object-contain p-1"/>{% else %}{{ APP.ORGAO_SIGLA }}{% endif %}</span>
+        <span class="d-flex flex-column lh-sm text-start">
+          <span class="fw-bold">{{ APP.SISTEMA }}</span>
+          <span class="small text-white-50 fw-normal d-none d-lg-inline">{{ APP.ORGAO_SIGLA }} · Contratações</span>
+        </span>
+      </a>
+      <div class="collapse navbar-collapse" id="menu-lateral">
+        <ul class="navbar-nav pt-lg-2">
+          {% for item in MENU %}
+          {% if item.filhos %}
+          <li class="nav-item">
+            <a class="nav-link collapsed" href="#grupo-{{ forloop.counter }}" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="grupo-{{ forloop.counter }}" data-grupo-menu>
+              <span class="nav-link-icon"><i class="{{ item.icone|ti }}" aria-hidden="true"></i></span>
+              <span class="nav-link-title">{{ item.rotulo }}</span>
+              <i class="ti ti-chevron-down ms-auto small" aria-hidden="true"></i>
+            </a>
+            <div class="collapse" id="grupo-{{ forloop.counter }}">
+              <ul class="nav flex-column ms-4 ps-2 border-start border-white border-opacity-10">
+                {% for filho in item.filhos %}
+                <li class="nav-item"><a class="nav-link py-1" href="{{ filho.url }}" data-item-menu>{{ filho.rotulo }}</a></li>
+                {% endfor %}
+              </ul>
+            </div>
+          </li>
+          {% else %}
+          {% if item.divisor %}<li class="nav-item mt-2 pt-2 border-top border-white border-opacity-10"></li>{% endif %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ item.url }}" data-item-menu>
+              <span class="nav-link-icon"><i class="{{ item.icone|ti }}" aria-hidden="true"></i></span>
+              <span class="nav-link-title">{{ item.rotulo }}</span>
+            </a>
+          </li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+        <div class="mt-auto px-3 py-3 small text-white-50 d-none d-lg-block">{{ APP.ORGAO }}</div>
+      </div>
+    </div>
+  </aside>
+  {% endif %}
+
+  <div class="page-wrapper">
+    {% if user.is_authenticated %}
+    <header class="navbar navbar-expand-md d-print-none sticky-top border-bottom">
+      <div class="container-fluid px-lg-4">
+        <div class="d-none d-md-flex flex-column lh-sm">
+          <span class="text-secondary small">{{ APP.ORGAO }}</span>
+          <span class="fw-medium">{{ APP.SISTEMA_SUBTITULO }}</span>
+        </div>
+        <div class="navbar-nav flex-row order-md-last ms-auto align-items-center gap-2">
+          {% if APP.BUSCA_URL_NAME %}
+          <form class="d-none d-md-block" method="get" action="{% url APP.BUSCA_URL_NAME %}" role="search">
+            <div class="input-icon">
+              <span class="input-icon-addon"><i class="ti ti-search" aria-hidden="true"></i></span>
+              <input class="form-control" id="busca-header" type="search" name="q" size="34" placeholder="Buscar processo, objeto, UO…" title="Atalho: Alt+Shift+P" aria-label="Buscar" autocomplete="off" value="{% if request.resolver_match.view_name == APP.BUSCA_URL_NAME %}{{ request.GET.q }}{% endif %}"/>
+            </div>
+          </form>
+          <a class="btn btn-ghost-secondary btn-icon d-md-none" href="{% url APP.BUSCA_URL_NAME %}" aria-label="Buscar"><i class="ti ti-search" aria-hidden="true"></i></a>
+          {% endif %}
+          {% if APP.LINKS_ACESSO_RAPIDO %}
+          <div class="nav-item dropdown d-none d-md-flex">
+            <button class="btn btn-ghost-secondary btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Acesso rápido"><i class="ti ti-apps" aria-hidden="true"></i></button>
+            <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <h6 class="dropdown-header">Acesso rápido</h6>
+              {% for rotulo, url in APP.LINKS_ACESSO_RAPIDO %}<a class="dropdown-item" href="{{ url }}" target="_blank" rel="noopener"><i class="ti ti-external-link me-2" aria-hidden="true"></i>{{ rotulo }}</a>{% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          <div class="nav-item">
+            <button class="btn btn-ghost-secondary btn-icon" type="button" data-bs-toggle="offcanvas" data-bs-target="#painel-aparencia" aria-controls="painel-aparencia" aria-label="Personalizar aparência" title="Personalizar aparência">
+              <i class="ti ti-palette" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="nav-item dropdown">
+            <button class="nav-link d-flex lh-1 p-0 px-2 border-0 bg-transparent" id="avatar-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu do usuário">
+              <span class="avatar avatar-sm bg-primary-lt">{{ user.iniciais }}</span>
+              <span class="d-none d-xl-flex flex-column ps-2 text-start">
+                <span>{{ user.get_full_name|default:user.get_username }}</span>
+                <span class="mt-1 small text-secondary">{% if user.is_superuser %}Administrador{% elif user.is_staff %}Equipe{% else %}Usuário{% endif %}</span>
+              </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              {% if APP.PERFIL_URL_NAME %}<a class="dropdown-item" href="{% url APP.PERFIL_URL_NAME %}"><i class="ti ti-user-circle me-2" aria-hidden="true"></i>Meu perfil</a>{% endif %}
+              <button class="dropdown-item" type="button" data-bs-toggle="offcanvas" data-bs-target="#painel-aparencia" aria-controls="painel-aparencia"><i class="ti ti-palette me-2" aria-hidden="true"></i>Personalizar aparência</button>
+              {% if user.is_staff %}<a class="dropdown-item" href="/admin/"><i class="ti ti-settings me-2" aria-hidden="true"></i>Administração</a>{% endif %}
+              <div class="dropdown-divider"></div>
+              <form method="post" action="{% url 'core:logout' %}">{% csrf_token %}<button class="dropdown-item" type="submit"><i class="ti ti-logout me-2" aria-hidden="true"></i>Sair</button></form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    {% endif %}
+
+    <div class="page-body" id="conteudo">
+      <div class="container-fluid px-lg-4">
+        {% if trilha %}
+        <nav aria-label="Trilha de navegação" class="d-print-none">
+          <ol class="breadcrumb breadcrumb-arrows mb-2">
+            <li class="breadcrumb-item"><a href="{% url 'core:inicio' %}">Início</a></li>
+            {% for rotulo, url in trilha %}
+            {% if url %}<li class="breadcrumb-item"><a href="{{ url }}">{{ rotulo }}</a></li>
+            {% else %}<li class="breadcrumb-item active" aria-current="page">{{ rotulo }}</li>{% endif %}
+            {% endfor %}
+          </ol>
+        </nav>
+        {% endif %}
+        {% include "ui/_mensagens.html" %}
+        {% block conteudo %}{% endblock %}
+      </div>
+    </div>
+
+    <footer class="footer footer-transparent d-print-none py-3">
+      <div class="container-xl d-flex flex-wrap justify-content-between gap-2 small text-secondary">
+        <span>{{ APP.ORGAO }} · {{ APP.SISTEMA }}</span>
+        <span>{{ APP.RODAPE_TEXTO }}</span>
+      </div>
+    </footer>
+  </div>
+</div>
+{% if user.is_authenticated %}{% include "ui/_painel_aparencia.html" %}{% endif %}
+<script src="{% static 'tabler/vendor/tabler.min.js' %}"></script>
+<script src="{% static 'tabler/vendor/htmx/htmx.min.js' %}"></script>
+<script src="{% static 'tabler/js/pca-tabler.js' %}"></script>
+<script>
+/* Menu lateral: acende o item da tela atual (o prefixo de URL mais longo) e abre o grupo dele */
+(function () {
+  var caminho = location.pathname, melhor = null, tam = 0;
+  document.querySelectorAll("[data-item-menu]").forEach(function (a) {
+    var h = a.getAttribute("href");
+    if (!h) return;
+    if ((h === "/" && caminho === "/") || (h !== "/" && caminho.indexOf(h) === 0 && h.length > tam)) { melhor = a; tam = h.length; }
+  });
+  if (!melhor) return;
+  melhor.classList.add("active"); melhor.setAttribute("aria-current", "page");
+  var li = melhor.closest(".nav-item"); if (li) li.classList.add("active");
+  var grupo = melhor.closest(".collapse");
+  if (grupo && grupo.id !== "menu-lateral") {
+    grupo.classList.add("show");
+    var gatilho = document.querySelector('[href="#' + grupo.id + '"]');
+    if (gatilho) { gatilho.classList.remove("collapsed"); gatilho.setAttribute("aria-expanded", "true"); gatilho.closest(".nav-item").classList.add("active"); }
+  }
+})();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

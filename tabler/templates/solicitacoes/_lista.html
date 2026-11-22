@@ -1,0 +1,46 @@
+{% load ui %}
+{% comment %}
+Tabela de solicitações (uma aba de "Minhas solicitações"). `lista` = lista de `apresentacao.solicitacao_para_tela`;
+`legenda` = legenda da tabela (leitores de tela). Desistir é POST com token, só nas pendentes.
+{% endcomment %}
+<div class="table-responsive">
+  <table class="table table-vcenter card-table">
+    <caption class="visually-hidden">{{ legenda }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Solicitação</th>
+        <th scope="col">Item</th>
+        {% if todas_as_unidades %}<th scope="col">Unidade</th>{% endif %}
+        <th scope="col">Pedido</th>
+        <th scope="col">Situação</th>
+        <th scope="col" class="w-1 text-end">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in lista %}
+      <tr>
+        <td data-th="Solicitação" class="text-nowrap align-top"><a class="fw-bold" href="{{ s.url }}">{{ s.codigo }}</a><div class="small text-secondary">{{ s.criada_em }}</div></td>
+        <td data-th="Item" class="text-nowrap align-top">{% if s.item_url %}<a href="{{ s.item_url }}">{{ s.item }}</a>{% else %}{{ s.item }}{% endif %}</td>
+        {% if todas_as_unidades %}<td data-th="Unidade" class="align-top">{{ s.unidade }}</td>{% endif %}
+        <td data-th="Pedido" class="align-top">{% include "solicitacoes/_partes_resumo.html" with partes=s.partes %}</td>
+        <td data-th="Situação" class="text-nowrap align-top">{% tag_status s.estado_rotulo s.chave %}</td>
+        <td data-th="Ações" class="text-end text-nowrap align-top">
+          <div class="btn-list justify-content-end flex-nowrap">
+            <a class="btn btn-sm" href="{{ s.url }}">Abrir</a>
+            {% if s.pode_desistir %}
+            <form class="d-inline" method="post" action="{{ s.url_desistir }}">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger" type="submit">Desistir</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="{% if todas_as_unidades %}6{% else %}5{% endif %}">
+        <div class="empty py-4"><div class="empty-icon"><i class="ti ti-inbox" aria-hidden="true"></i></div><p class="empty-title">Nenhuma solicitação.</p></div>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

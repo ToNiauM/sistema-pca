@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block titulo %}Para avaliar{% endblock %}
+{% block conteudo %}
+{% comment %}
+Fase 43 — fila "Para avaliar" (Tabler): só as partes da alçada de quem está logado, da mais antiga para a
+mais nova; as paradas há mais de 10 dias úteis vêm primeiro e destacadas. "Avaliar" abre a solicitação já na parte
+(âncora #parte-N), onde está o formulário de decisão. Sem ação primária: a decisão é na tela da solicitação.
+{% endcomment %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Solicitações</div>
+      <h1 class="page-title">Para avaliar</h1>
+      <div class="text-secondary mt-1">Você avalia as partes da alçada: {{ alcadas }}.</div>
+    </div>
+  </div>
+</div>
+
+<div class="row row-cards mb-3">
+  {% for kpi in kpis %}{% include "ui/_kpi_card.html" with kpi=kpi icone_no_valor=True col_kpi="col-12 col-sm-4" cor_kpi=kpi.tom|cor_tom %}{% endfor %}
+</div>
+
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Partes aguardando decisão</h2></div>
+  <div class="table-responsive">
+    <table class="table table-vcenter card-table">
+      <caption class="visually-hidden">Partes de solicitações aguardando a sua decisão, as paradas há mais de {{ limite_parada }} dias úteis primeiro</caption>
+      <thead>
+        <tr>
+          <th scope="col">Solicitação</th>
+          <th scope="col">Item</th>
+          <th scope="col">Unidade</th>
+          <th scope="col">Parte</th>
+          <th scope="col">Hoje → Pedido</th>
+          <th scope="col">Aguardando</th>
+          <th scope="col" class="w-1 text-end">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in linhas %}
+        <tr{% if linha.parada %} class="table-danger"{% endif %}>
+          <td data-th="Solicitação" class="text-nowrap align-top"><a class="fw-bold" href="{{ linha.url }}">{{ linha.codigo }}</a><div class="small text-secondary">{{ linha.solicitante }}</div></td>
+          <td data-th="Item" class="text-nowrap align-top">{% if linha.item_url %}<a href="{{ linha.item_url }}">{{ linha.item }}</a>{% else %}{{ linha.item }}{% endif %}</td>
+          <td data-th="Unidade" class="align-top">{{ linha.unidade }}</td>
+          <td data-th="Parte" class="align-top">{{ linha.rotulo }}{% if linha.fora_do_exercicio %}<div><span class="badge bg-orange-lt">Fora do exercício</span></div>{% endif %}</td>
+          <td data-th="Hoje → Pedido" class="align-top">{% if linha.campo == "cancelamento" %}Cancelar o item{% elif linha.campo == "inclusao" %}{{ linha.pedido|truncatechars:80 }}{% else %}{{ linha.hoje }} <i class="ti ti-arrow-right" aria-hidden="true"></i><span class="visually-hidden">para</span> {{ linha.pedido|truncatechars:80 }}{% endif %}</td>
+          <td data-th="Aguardando" class="text-nowrap align-top">{{ linha.criada_em }}<div class="small text-secondary">{{ linha.dias_uteis }} dia{{ linha.dias_uteis|pluralize }} út{{ linha.dias_uteis|pluralize:"il,eis" }}</div>{% if linha.parada %}<div>{% tag_status "Parada" "erro" %}</div>{% endif %}</td>
+          <td data-th="Ações" class="text-end align-top"><a class="btn btn-sm" href="{{ linha.url }}#parte-{{ linha.parte_id }}">Avaliar</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">
+          <div class="empty py-4"><div class="empty-icon"><i class="ti ti-circle-check" aria-hidden="true"></i></div><p class="empty-title">Nada para avaliar na sua alçada.</p></div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

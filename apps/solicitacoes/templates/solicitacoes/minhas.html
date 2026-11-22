@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load dsgov %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+{% comment %}
+Fase 43 — "Minhas solicitações": as da(s) unidade(s) do usuário (equipe e diretoria veem as de todas as
+unidades). Abas Todas / Em análise / Decididas (br-tab, sem recarregar), situação por parte em tags, motivo das
+recusas e dos ajustes, Desistir nas pendentes. A ação principal da página é "Nova solicitação".
+{% endcomment %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+  <h1 class="mb-0">{{ titulo }}</h1>
+  {% if pode_pedir %}
+  <a class="br-button primary" href="{{ url_nova }}"><i class="fas fa-plus mr-1" aria-hidden="true"></i>Nova solicitação</a>
+  {% endif %}
+</div>
+
+{% if truncada %}
+<div class="br-message info mb-3">
+  <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert"><span class="message-body">Mostrando as {{ limite }} solicitações mais recentes.</span></div>
+</div>
+{% endif %}
+
+<div class="br-tab mb-4">
+  <nav class="tab-nav" aria-label="Situação das solicitações">
+    <ul role="tablist">
+      {% for chave, rotulo, lista in abas %}
+      <li class="tab-item{% if forloop.first %} active{% endif %}" title="{{ rotulo }}" role="presentation">
+        <button type="button" role="tab" id="aba-{{ chave }}" data-panel="painel-{{ chave }}" aria-controls="painel-{{ chave }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"><span class="name">{{ rotulo }} ({{ lista|length }})</span></button>
+      </li>
+      {% endfor %}
+    </ul>
+  </nav>
+  <div class="tab-content">
+    {% for chave, rotulo, lista in abas %}
+    <div class="tab-panel{% if forloop.first %} active{% endif %} pt-3" id="painel-{{ chave }}" role="tabpanel" aria-labelledby="aba-{{ chave }}">
+      {% include "solicitacoes/_lista.html" with lista=lista legenda=rotulo %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

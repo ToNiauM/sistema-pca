@@ -1,0 +1,8 @@
+<div id="mensagens" {% if oob %}hx-swap-oob="true"{% endif %}>
+{% for m in messages %}
+  {% if "error" in m.tags %}{% include "ui/_mensagem.html" with cor="danger" icone="ti-alert-circle" %}
+  {% elif "warning" in m.tags %}{% include "ui/_mensagem.html" with cor="warning" icone="ti-alert-triangle" %}
+  {% elif "success" in m.tags %}{% include "ui/_mensagem.html" with cor="success" icone="ti-circle-check" %}
+  {% else %}{% include "ui/_mensagem.html" with cor="info" icone="ti-info-circle" %}{% endif %}
+{% endfor %}
+</div>

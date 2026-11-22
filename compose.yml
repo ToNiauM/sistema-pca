@@ -1,0 +1,81 @@
+services:
+  web:
+    image: toniaum/pca:v1.1.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    # 18/09/2026 (decisão do usuário): relógio dos containers na hora do host
+    # (Brasília), para `docker compose logs`, mtimes em /app/data e as telas
+    # (settings.TIME_ZONE) contarem a mesma hora. `TZ` só muda a exibição do
+    # processo; o banco continua em UTC (USE_TZ = True).
+    environment:
+      TZ: ${TZ:-America/Sao_Paulo}
+
+    ports:
+      - "${WEB_BIND_ADDRESS}:${WEB_PORT}:8000"
+
+    volumes:
+      - ./templates:/app/templates:ro
+      - pca_data:/app/data
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+
+  # Fase 32 (18/09/2026) — revista nesta data: serviço PERMANENTE, não
+  # sob demanda (`docker compose run --rm`, como o desenho original previa).
+  # Sobe junto com `web` num `docker compose up -d` normal (sem `profiles:`)
+  # porque a ação "Atualizar com o SEI" do Admin precisa
+  # dele de pé o tempo todo para atender pedidos gravados em
+  # `data/sei/pedidos/`; o cron do host passa a usar `docker compose exec -T
+  # robo python manage.py sei_sincronizar` (container já de pé) em vez de
+  # `run --rm` — a linha de cron em si só é documentada, não instalada, no
+  # plano de fechamento (32-06).
+  robo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: robo
+    command: ["python", "manage.py", "sei_atender"]
+    restart: unless-stopped
+    # entrypoint.sh (herdado do alvo runtime por FROM) roda migrate+gunicorn;
+    # sem isto o command acima viraria argumento ignorado por ele (sem migração/sem servidor web no robô).
+    entrypoint: []
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - pca_data:/app/data
+    # §8.1 ponto 1 (medida OBRIGATÓRIA de memória): um vazamento mata o
+    # container robo, nunca o host — a execução fica erro e o card avisa.
+    mem_limit: 3g
+    memswap_limit: 3g
+
+  backup:
+    build:
+      context: ./ops/backup
+    restart: unless-stopped
+    init: true
+    environment:
+      RCLONE_CONFIG_R2_TYPE: s3
+      RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+      RCLONE_CONFIG_R2_NO_CHECK_BUCKET: "true"
+      RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      RCLONE_CONFIG_R2_ENDPOINT: ${R2_ENDPOINT}
+      R2_BUCKET: ${R2_BUCKET}
+      SQLITE_PATH: /data/db.sqlite3
+    volumes:
+      - pca_data:/data
+
+volumes:
+  pca_data:
+    external: true
+    name: ${DATA_VOLUME:-pca_data}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% comment %}Gerenciar exercícios — lista simples (poucos exercícios, sem busca/paginação). "Encerrar", "Iniciar virada" e "Gerar itens de N+1" são links normais para páginas próprias, nunca modal.{% endcomment %}
+{% load ui %}
+{% block titulo %}Gerenciar exercícios{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Administração</div>
+      <h1 class="page-title">Gerenciar exercícios</h1>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12 col-xl-10 col-xxl-8">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Exercícios cadastrados</h2>
+          <div class="card-subtitle">Encerre um exercício, prepare a virada para o ano seguinte ou gere os itens de renovação.</div>
+        </div>
+      </div>
+      <div class="list-group list-group-flush" role="list" aria-label="Exercícios cadastrados">
+        {% for exercicio in exercicios %}
+        <div class="list-group-item" role="listitem">
+          <div class="row g-2 align-items-center">
+            <div class="col-auto">
+              <span class="avatar {% if exercicio.situacao == 'aberto' %}bg-green-lt{% else %}bg-secondary-lt{% endif %}"><i class="ti {% if exercicio.situacao == 'aberto' %}ti-calendar-event{% else %}ti-lock{% endif %}" aria-hidden="true"></i></span>
+            </div>
+            <div class="col">
+              <div class="fw-bold">PCA {{ exercicio.ano }}</div>
+              <div>{% if exercicio.situacao == "aberto" %}{% tag_status "Aberto" "sucesso" %}{% else %}{% tag_status "Fechado" "neutro" %}{% endif %}</div>
+            </div>
+            <div class="col-12 col-md-auto">
+              <div class="btn-list justify-content-md-end">
+                {% if exercicio.situacao == "aberto" %}
+                <a class="btn btn-sm" href="{% url 'pca:encerrar_confirmar' exercicio.ano %}"><i class="ti ti-lock me-1" aria-hidden="true"></i>Encerrar exercício</a>
+                {% endif %}
+                {% if exercicio.ano == ano_aberto_mais_recente and ano_destino_virada %}
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'pca:virada' ano_destino_virada %}"><i class="ti ti-arrow-big-right-lines me-1" aria-hidden="true"></i>Iniciar virada</a>
+                {% endif %}
+                {% if exercicio.ano == ano_aberto_mais_recente and pode_gerar_n1 %}
+                <a class="btn btn-sm" href="{% url 'pca:gerar_n1' exercicio.ano %}"><i class="ti ti-copy-plus me-1" aria-hidden="true"></i>Gerar itens de {{ exercicio.ano|add:1 }}</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="empty py-4">
+          <div class="empty-icon"><i class="ti ti-calendar-off" aria-hidden="true"></i></div>
+          <p class="empty-title">Nenhum exercício cadastrado</p>
+          <p class="empty-subtitle text-secondary">Nenhum exercício cadastrado. Crie exercícios pela importação de planilha ou pela virada de exercício.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

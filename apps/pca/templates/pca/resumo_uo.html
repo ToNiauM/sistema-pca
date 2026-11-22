@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% comment %}
+Resumo por unidade (casca DSGov) — mesma história da casca Tabler (commit ccb140a), em três passos, da esquerda
+para a direita:
+  1. Previstos − Cancelados = Ativos
+  2. Ativos = Vigentes (contrato em vigor, fora da meta) + Nova Contratação + Renovação (+ outros tipos, se houver)
+  3. Meta = Ativos − Vigentes = Concluídos + Em tramitação + No prazo + Atrasados
+A faixa de cima (três br-card) conta a história do total; a matriz (`telas/matriz.md`, `dsgov-matriz`) repete a
+mesma sequência por unidade, com o % sob cada número; abaixo de md, um br-card por unidade no lugar da matriz.
+A situação de todos os ativos (com vigentes) e a participação no PCA ficam na análise complementar recolhida
+(`_resumo_uo_detalhamento.html`). Todo número leva à /tabela filtrada (hrefs prontos de `_hrefs_resumo_uo`);
+os números vêm de `apps.pca.resumo_uo.calcular_resumo_uo` — este template só itera.
+Matriz (pedido do usuário, 29/09/2026 — mesma da casca Tabler): Unidade | Previstos (Totais, Cancelados, Ativos) |
+Tipo (NC, RN, VG) | Meta PCA (Concluído, Em tramitação, No prazo, Atrasado) | Total concluído (inclui vigentes),
+número e % centralizados. Percentuais: Totais = participação no PCA; cancelados/ativos sobre os previstos; tipos
+sobre os ativos; situação sobre a meta; Total concluído sobre os ativos.
+As barras empilhadas da casca Tabler não têm equivalente no DSGov 3.7.0 sem style inline: viraram legenda em
+br-list (bolinha `br-tag status` + número + %), e a barra da meta sob a unidade virou texto
+(`_resumo_barra_meta.html`).
+{% endcomment %}
+{% load dsgov %}
+{% block titulo %}{{ nome_tela }} — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+{% block conteudo %}
+{% url 'pca:tabela' as url_tabela %}
+<div class="d-flex flex-wrap align-items-center mb-4">
+  <div class="mr-3">
+    <p class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold mb-1">Acompanhamento</p>
+    <h1 class="mt-0 mb-0">Resumo por unidade — PCA {{ exercicio.ano|default:"—" }}</h1>
+  </div>
+  <div class="ml-auto mt-2 dsgov-nao-imprimir">
+    <a class="br-button secondary mr-2" href="{% url 'pca:exportar_resumo_uo_xlsx' %}?{{ querystring_filtros }}"><i class="fas fa-file-excel mr-1" aria-hidden="true"></i>Exportar XLSX</a>
+    <button class="br-button secondary mr-2" type="button" onclick="window.print()"><i class="fas fa-print mr-1" aria-hidden="true"></i>Imprimir</button>
+    <a class="br-button" href="{% url 'core:inicio' %}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+  </div>
+</div>
+
+{% if linhas %}
+<h2 class="sr-only">A história do PCA {{ exercicio.ano }}</h2>
+<div class="row dsgov-linha-cards">
+  {% for grafico in graficos %}{% include "dsgov/_grafico_card.html" %}{% endfor %}
+</div>
+{% endif %}
+
+<h2 class="text-up-01 mb-1">Resumo por unidade organizacional</h2>
+<p class="text-down-01 text-gray-70 mb-3">Mesma sequência dos três passos acima. Clique em qualquer número para abrir os processos.</p>
+
+<div class="br-table small dsgov-matriz dsgov-matriz-compacta dsgov-matriz-uniforme d-none d-md-block">
+  <div class="table-header"></div>
+  <table>
+    <caption class="sr-only">Resumo por unidade: previstos, tipo, meta do PCA e total concluído</caption>
+    <colgroup><col class="dsgov-col-rotulo"></colgroup>
+    <colgroup><col><col><col></colgroup>
+    <colgroup><col class="dsgov-col-estreita"><col class="dsgov-col-estreita"><col class="dsgov-col-estreita"></colgroup>
+    <colgroup><col><col><col><col></colgroup>
+    <colgroup><col></colgroup>
+    <thead>
+      <tr>
+        <th scope="col" rowspan="2" class="dsgov-rotulo-linha">Unidade</th>
+        <th scope="colgroup" colspan="3" class="dsgov-grupo dsgov-separador">Previstos</th>
+        <th scope="colgroup" colspan="3" class="dsgov-grupo dsgov-separador dsgov-faixa">Tipo <span class="text-weight-regular">(% dos ativos)</span></th>
+        <th scope="colgroup" colspan="4" class="dsgov-grupo dsgov-separador">Meta PCA (NC + RN) <span class="text-weight-regular">(% da meta)</span></th>
+        <th scope="col" rowspan="2" class="text-center dsgov-separador dsgov-faixa">Total concluído<br><span class="text-weight-regular text-gray-70">(inclui vigentes)</span></th>
+      </tr>
+      <tr>
+        <th scope="col" class="text-center dsgov-separador">Totais</th>
+        <th scope="col" class="text-center">Cancelados</th>
+        <th scope="col" class="text-center">Ativos</th>
+        <th scope="col" class="text-center dsgov-separador dsgov-faixa"><abbr title="Nova contratação">NC</abbr></th>
+        <th scope="col" class="text-center dsgov-faixa"><abbr title="Renovação">RN</abbr></th>
+        <th scope="col" class="text-center dsgov-faixa"><abbr title="Vigente (contrato em vigor)">VG</abbr></th>
+        <th scope="col" class="text-center dsgov-separador">Concluído</th>
+        <th scope="col" class="text-center">Em tramitação</th>
+        <th scope="col" class="text-center">No prazo</th>
+        <th scope="col" class="text-center">Atrasado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in linhas %}
+      <tr>
+        <th scope="row" class="dsgov-rotulo-linha"><a href="{{ url_tabela }}?{{ linha.hrefs.uo }}" aria-label="{{ linha.uo }} — abrir a tabela filtrada">{{ linha.uo }}</a>{% include "pca/_resumo_barra_meta.html" with l=linha %}</th>
+        {% include "pca/_resumo_linha_celulas.html" with l=linha rotulo_linha=linha.uo %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="12">Nenhum processo no recorte atual.</td></tr>
+      {% endfor %}
+    </tbody>
+    {% if linhas %}
+    <tfoot>
+      <tr>
+        <th scope="row" class="dsgov-rotulo-linha">TOTAL{% include "pca/_resumo_barra_meta.html" with l=total %}</th>
+        {% include "pca/_resumo_linha_celulas.html" with l=total rotulo_linha="TOTAL" %}
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+</div>
+
+<div class="d-md-none">
+  {% for linha in linhas %}{% include "pca/_resumo_uo_cartao.html" with l=linha rotulo_linha=linha.uo %}{% empty %}
+  <p class="text-gray-70">Nenhum processo no recorte atual.</p>
+  {% endfor %}
+  {% if linhas %}{% include "pca/_resumo_uo_cartao.html" with l=total rotulo_linha="TOTAL" %}{% endif %}
+</div>
+
+<p class="text-down-01 text-gray-70 mt-2 mb-1"><strong>Como ler:</strong> Ativos = Totais − Cancelados · Meta PCA = NC + RN (os ativos menos os vigentes) · Concluído + Em tramitação + No prazo + Atrasado = Meta PCA · Total concluído soma todos os ativos concluídos, inclusive os vigentes.</p>
+<p class="text-down-01 text-gray-70 mb-4">NC = Nova Contratação · RN = Renovação · VG = Vigente</p>
+
+{% include "pca/_resumo_uo_detalhamento.html" %}
+
+<p class="text-down-01 text-gray-70 mb-0">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+{% endblock %}
+
+{% block scripts %}
+{% if graficos %}{% load static %}<script src="{% static 'dsgov/vendor/echarts/echarts.min.js' %}"></script><script src="{% static 'dsgov/js/echarts-dsgov.js' %}"></script>{% endif %}
+{% endblock %}

@@ -1,0 +1,242 @@
+{% comment %}
+O documento "Relatório da reunião" (base ABNT), COMUM às duas cascas. `relatorio` chega
+pronto de `apps.pca.relatorio_reuniao.apresentar_relatorio` (a partir dos fatos congelados ou ao vivo: textos, números das tabelas/gráficos,
+geometria dos SVG); aqui só se desenha. Classes neutras abnt-* (dsgov.css e pca-tabler.css); a página Tabler
+passa `casca_tabler=True` para as tabelas não ganharem o envoltório br-table do DSGov. Na casca DSGov cada tabela leva o
+`<div class="table-header">` vazio que o BRTable do core exige, e a 1ª célula de cada linha de dados é <th
+scope="row"> (o dsgov.js não transforma tabela com cabeçalho de linha em tabela ordenável). Sem style inline: o
+"Copiar relatório" e o "Baixar HTML" (pca/_relatorio_reuniao_script.html) copiam os estilos calculados.
+Relatório de período (`r.reuniao` vazio): sem os registros da reunião, e `r.secoes` renumera as seções seguintes.
+Sinais convencionais nas tabelas: – zero; .. não se aplica.
+Fonte única Calibri; a situação do PCA são 4 cartões (Quadro) e só há dois gráficos, ambos de colunas
+em SVG (`pca/_relatorio_reuniao_colunas.html`): valor previsto × contratado e itens ativos por unidade. Quadros, tabelas e
+gráficos são numerados em `r.quadros`, `r.tabelas` e `r.graficos`.
+{% endcomment %}
+{% load static %}
+{% with r=relatorio t=relatorio.tabelas gr=relatorio.graficos q=relatorio.quadros %}
+<article class="abnt-doc" id="relatorio-documento" aria-labelledby="relatorio-titulo">
+
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-cabecalho" role="presentation"><tbody><tr><td class="abnt-cabecalho-logo"><img src="{% static 'img/logo-cfc.png' %}" alt="Conselho Federal de Contabilidade" width="116" height="40"></td><td class="abnt-cabecalho-orgao"><div class="abnt-orgao">Conselho Federal de Contabilidade</div><div>Plano de Contratações Anual {{ r.exercicio.ano }}</div></td></tr></tbody></table></div>
+
+<p class="abnt-sobretitulo">Relatório de acompanhamento</p>
+<h1 class="abnt-titulo" id="relatorio-titulo">{{ r.titulo }}</h1>
+<p class="abnt-meta">{% if r.reuniao %}<b>Data:</b> {{ r.data_reuniao }}, Brasília &nbsp;·&nbsp; {% if r.condutor %}<b>Condução:</b> {{ r.condutor }} &nbsp;·&nbsp; {% endif %}{% endif %}<b>Período apurado:</b> {{ r.periodo_curto }}{% if r.em_andamento %} &nbsp;·&nbsp; <b>Situação:</b> reunião em andamento{% endif %}</p>
+
+<h2 class="abnt-secao">1 Introdução</h2>
+<p class="abnt-texto">{{ r.introducao }}</p>
+
+<h2 class="abnt-secao">2 Síntese {% if r.reuniao %}da reunião{% else %}do período{% endif %}</h2>
+<p class="abnt-texto">{{ r.sintese }}</p>
+
+{% if r.reuniao %}
+<div class="abnt-inteiro">
+<p class="abnt-legenda"><b>Quadro {{ q.indicadores }}</b> – Indicadores da reunião</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-quadro"><tbody><tr>
+<td><span class="abnt-quadro-numero">{{ r.registros.itens }}</span><span class="abnt-quadro-rotulo">{% if r.registros.itens == 1 %}item tratado{% else %}itens tratados{% endif %}</span></td>
+<td><span class="abnt-quadro-numero">{{ r.registros.unidades }}</span><span class="abnt-quadro-rotulo">{% if r.registros.unidades == 1 %}unidade{% else %}unidades{% endif %}</span></td>
+<td><span class="abnt-quadro-numero">{{ r.registros.cumpridos }}</span><span class="abnt-quadro-rotulo">{% if r.registros.cumpridos == 1 %}compromisso cumprido{% else %}compromissos cumpridos{% endif %}</span></td>
+<td><span class="abnt-quadro-numero">{{ r.registros.repactuados }}</span><span class="abnt-quadro-rotulo">{% if r.registros.repactuados == 1 %}prazo repactuado{% else %}prazos repactuados{% endif %}</span></td>
+<td><span class="abnt-quadro-numero">{{ r.registros.vencidos }}</span><span class="abnt-quadro-rotulo">{% if r.registros.vencidos == 1 %}compromisso vencido{% else %}compromissos vencidos{% endif %}</span></td>
+</tr></tbody></table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+</div>
+{% endif %}
+
+<div class="abnt-inteiro">
+<p class="abnt-legenda"><b>Tabela {{ t.movimentacao }}</b> – Movimentação do PCA {{ r.periodo_extenso }}</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w42"><col class="abnt-w10"><col class="abnt-w19"><col class="abnt-w19"><col class="abnt-w10"></colgroup>
+<thead><tr><th scope="col">Movimentação</th><th scope="col" class="abnt-n">Itens</th><th scope="col" class="abnt-n">Valor estimado (R$)</th><th scope="col" class="abnt-n">Valor contratado (R$)</th><th scope="col" class="abnt-n">Seção</th></tr></thead>
+<tbody>
+{% for l in r.tabela1 %}<tr><th scope="row">{{ l.rotulo }}</th><td class="abnt-n">{{ l.itens }}</td><td class="abnt-n">{{ l.estimado }}</td><td class="abnt-n">{{ l.contratado }}</td><td class="abnt-n">{{ l.secao }}</td></tr>
+{% endfor %}</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+<p class="abnt-fonte">Notas: valor estimado é o previsto no PCA; valor contratado é o do instrumento assinado. Sinais convencionais: – zero; .. não se aplica.</p>
+</div>
+
+<h2 class="abnt-secao">3 Situação do PCA</h2>
+<p class="abnt-texto">{{ r.situacao_texto }}</p>
+
+<div class="abnt-inteiro">
+<p class="abnt-legenda"><b>Quadro {{ q.situacao }}</b> – Itens ativos por situação</p>
+<div class="abnt-cartoes" role="list">
+{% for c in r.cartoes_situacao %}<div class="abnt-cartao {{ c.classe }}" role="listitem"><span class="abnt-cartao-numero">{{ c.n }}</span><span class="abnt-cartao-rotulo">{{ c.rotulo }}</span></div>
+{% endfor %}</div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+</div>
+
+<figure class="abnt-figura">
+<p class="abnt-legenda"><b>Gráfico {{ gr.valores }}</b> – Valor previsto e contratado</p>
+{% include "pca/_relatorio_reuniao_colunas.html" with g=r.grafico_valores descricao="Valor previsto e contratado, em milhões de reais" %}
+<p class="abnt-fonte">{{ r.fonte }}</p>
+</figure>
+
+<figure class="abnt-figura">
+<p class="abnt-legenda"><b>Gráfico {{ gr.unidades }}</b> – Itens ativos por unidade, por situação</p>
+{% include "pca/_relatorio_reuniao_colunas.html" with g=r.grafico_unidades descricao="Itens ativos por unidade (concluídos, em tramitação e a entregar à Gelic)" %}
+<p class="abnt-fonte">{{ r.fonte }}</p>
+{% if r.n_unidades_agrupadas %}<p class="abnt-fonte">Nota: outras {{ r.n_unidades_agrupadas }} unidades – {{ r.unidades_agrupadas }}.</p>{% endif %}
+</figure>
+
+{% if r.reuniao %}
+<h2 class="abnt-secao">4 Registros da reunião</h2>
+<p class="abnt-texto">{{ r.registros_texto }}</p>
+{% if r.registros.grupos %}
+<p class="abnt-legenda"><b>Tabela {{ t.registros }}</b> – Registros da reunião de {{ r.data_extenso }}, por unidade</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w7"><col class="abnt-w38"><col class="abnt-w35"><col class="abnt-w20"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Objeto</th><th scope="col">Situação e registro</th><th scope="col">Prazo de entrega</th></tr></thead>
+<tbody>
+{% for grupo in r.registros.grupos %}<tr><td colspan="4" class="abnt-grupo">{{ grupo.uo }}</td></tr>
+{% for l in grupo.linhas %}<tr><th scope="row">{{ l.item }}</th><td>{{ l.objeto }}</td><td><b>{{ l.situacao }}</b>{% if l.registro %} – {{ l.registro }}{% endif %}</td><td>{{ l.prazo }}{% if l.status %} ({{ l.status }}){% endif %}</td></tr>
+{% endfor %}{% endfor %}</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+<p class="abnt-fonte">Nota: prazo de entrega à Gelic – cumprido: entregue até o prazo assumido; repactuado: novo prazo assumido nesta reunião; em aberto: o prazo ainda não chegou; vencido: o prazo passou sem entrega nem novo prazo; –: nenhum prazo assumido.</p>
+{% endif %}
+{% endif %}
+
+<h2 class="abnt-secao">{{ r.secoes.movimentacao }} Movimentação do período</h2>
+<p class="abnt-texto">{{ r.movimentacao_texto }}</p>
+
+<h3 class="abnt-subsecao">{{ r.secoes.movimentacao }}.1 Contratações concluídas</h3>
+<p class="abnt-texto">{{ r.concluidas_texto }}</p>
+{% if r.concluidas %}
+<p class="abnt-legenda"><b>Tabela {{ t.concluidas }}</b> – Contratações concluídas {{ r.periodo_extenso }}</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w7"><col class="abnt-w53"><col class="abnt-w20"><col class="abnt-w20"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Objeto e contratação</th><th scope="col" class="abnt-n">Valor estimado (R$)</th><th scope="col" class="abnt-n">Valor contratado (R$)</th></tr></thead>
+<tbody>
+{% for c in r.concluidas %}<tr><th scope="row">{{ c.item }}</th><td>{{ c.objeto }}<span class="abnt-detalhe">{{ c.detalhe }}</span>{% for extra in c.extras %}<span class="abnt-detalhe">{{ extra }}</span>{% endfor %}</td><td class="abnt-n">{{ c.estimado_txt }}</td><td class="abnt-n">{{ c.contratado_txt }}</td></tr>
+{% endfor %}<tr class="abnt-total"><td colspan="2">Total</td><td class="abnt-n">{{ r.concluidas_total.estimado }}</td><td class="abnt-n">{{ r.concluidas_total.contratado }}</td></tr>
+</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+{% endif %}
+
+<h3 class="abnt-subsecao">{{ r.secoes.movimentacao }}.2 Itens incluídos no PCA</h3>
+<p class="abnt-texto">{{ r.incluidos_texto }}</p>
+{% if r.incluidos %}
+<p class="abnt-legenda"><b>Tabela {{ t.incluidos }}</b> – Itens incluídos no PCA {{ r.periodo_extenso }}, por mês previsto</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w7"><col class="abnt-w15"><col class="abnt-w60"><col class="abnt-w18"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Unidade</th><th scope="col">Objeto</th><th scope="col" class="abnt-n">Valor estimado (R$)</th></tr></thead>
+<tbody>
+{% for grupo in r.incluidos %}<tr><td colspan="4" class="abnt-grupo">{{ grupo.mes }}</td></tr>
+{% for l in grupo.linhas %}<tr><th scope="row">{{ l.item }}</th><td class="abnt-uo">{{ l.uo }}</td><td>{{ l.objeto }}{% for extra in l.extras %}<span class="abnt-detalhe">{{ extra }}</span>{% endfor %}</td><td class="abnt-n">{{ l.valor_txt }}</td></tr>
+{% endfor %}<tr class="abnt-subtotal"><td colspan="3">Subtotal{% if grupo.mes != 'Sem mês previsto' %} de {{ grupo.mes|lower }}{% endif %} ({{ grupo.n }} {% if grupo.n == 1 %}item{% else %}itens{% endif %})</td><td class="abnt-n">{{ grupo.subtotal_txt }}</td></tr>
+{% endfor %}<tr class="abnt-total"><td colspan="3">Total ({{ r.incluidos_n }} {% if r.incluidos_n == 1 %}item{% else %}itens{% endif %})</td><td class="abnt-n">{{ r.incluidos_total }}</td></tr>
+</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+{% endif %}
+
+<h3 class="abnt-subsecao">{{ r.secoes.movimentacao }}.3 Itens excluídos do PCA</h3>
+<p class="abnt-texto">{{ r.excluidos_texto }}</p>
+{% if r.excluidos %}
+<p class="abnt-legenda"><b>Tabela {{ t.excluidos }}</b> – Itens excluídos do PCA {{ r.periodo_extenso }}</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w7"><col class="abnt-w15"><col class="abnt-w42"><col class="abnt-w18"><col class="abnt-w18"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Unidade</th><th scope="col">Objeto</th><th scope="col">Exclusão</th><th scope="col" class="abnt-n">Valor estimado (R$)</th></tr></thead>
+<tbody>
+{% for l in r.excluidos %}<tr><th scope="row">{{ l.item }}</th><td class="abnt-uo">{{ l.uo }}</td><td>{{ l.objeto }}{% for extra in l.extras %}<span class="abnt-detalhe">{{ extra }}</span>{% endfor %}</td><td>{{ l.motivo }}</td><td class="abnt-n">{{ l.valor_txt }}</td></tr>
+{% endfor %}<tr class="abnt-total"><td colspan="4">Total</td><td class="abnt-n">{{ r.excluidos_total }}</td></tr>
+</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+{% endif %}
+
+<h3 class="abnt-subsecao">{{ r.secoes.movimentacao }}.4 Encaminhados à Gelic</h3>
+<p class="abnt-texto">{{ r.gelic_texto }}</p>
+{% if r.gelic %}
+<p class="abnt-legenda"><b>Tabela {{ t.gelic }}</b> – Itens encaminhados à Gelic {{ r.periodo_extenso }}</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w7"><col class="abnt-w15"><col class="abnt-w60"><col class="abnt-w18"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Unidade</th><th scope="col">Objeto</th><th scope="col" class="abnt-n">Envio à Gelic</th></tr></thead>
+<tbody>
+{% for l in r.gelic %}<tr><th scope="row">{{ l.item }}</th><td class="abnt-uo">{{ l.uo }}</td><td>{{ l.objeto }}{% for extra in l.extras %}<span class="abnt-detalhe">{{ extra }}</span>{% endfor %}</td><td class="abnt-n">{{ l.data }}</td></tr>
+{% endfor %}</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+{% endif %}
+
+<h3 class="abnt-subsecao">{{ r.secoes.movimentacao }}.5 Outras alterações</h3>
+<p class="abnt-texto">{{ r.alteracoes_texto }}</p>
+{% if r.alteracoes %}
+<p class="abnt-legenda"><b>Tabela {{ t.alteracoes }}</b> – Outras alterações {{ r.periodo_extenso }}, por tipo</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w7"><col class="abnt-w15"><col class="abnt-w32"><col class="abnt-w46"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Unidade</th><th scope="col">Objeto</th><th scope="col">Alteração</th></tr></thead>
+<tbody>
+{% for grupo in r.alteracoes %}<tr><td colspan="4" class="abnt-grupo">{{ grupo.tipo }}</td></tr>
+{% for l in grupo.linhas %}<tr><th scope="row">{{ l.item }}</th><td class="abnt-uo">{{ l.uo }}</td><td>{{ l.objeto }}</td><td>{% for m in l.mudancas %}<span class="abnt-alteracao">{% if m.campo %}<b>{{ m.campo }}:</b> {% endif %}{{ m.texto }}</span>{% endfor %}</td></tr>
+{% endfor %}{% endfor %}</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+{% endif %}
+
+{% if r.adiados %}
+<h3 class="abnt-subsecao">{{ r.secoes.movimentacao }}.6 Compromissos assumidos em reunião</h3>
+<p class="abnt-texto">{{ r.adiados_texto }}</p>
+<p class="abnt-legenda"><b>Tabela {{ t.adiados }}</b> – Compromissos assumidos em reunião {{ r.periodo_extenso }}</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w7"><col class="abnt-w15"><col class="abnt-w32"><col class="abnt-w46"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Unidade</th><th scope="col">Objeto</th><th scope="col">Compromisso</th></tr></thead>
+<tbody>
+{% for l in r.adiados %}<tr><th scope="row">{{ l.item }}</th><td class="abnt-uo">{{ l.uo }}</td><td>{{ l.objeto }}</td><td>{% for frase in l.frases %}<span class="abnt-alteracao">{{ frase }}</span>{% endfor %}</td></tr>
+{% endfor %}</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+{% endif %}
+
+<h2 class="abnt-secao">{{ r.secoes.solicitacoes }} Solicitações das unidades</h2>
+<p class="abnt-texto">{{ r.solicitacoes_texto }}</p>
+{% if r.solicitacoes.grupos %}
+<p class="abnt-legenda"><b>Tabela {{ t.solicitacoes }}</b> – Solicitações das unidades: decididas {{ r.periodo_extenso }} e em análise em {{ r.hoje_extenso }}</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab">
+<colgroup><col class="abnt-w7"><col class="abnt-w15"><col class="abnt-w42"><col class="abnt-w35"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Unidade</th><th scope="col">Pedido</th><th scope="col">Decisão</th></tr></thead>
+<tbody>
+{% for grupo in r.solicitacoes.grupos %}<tr><td colspan="4" class="abnt-grupo">{{ grupo.titulo }}</td></tr>
+{% for l in grupo.linhas %}<tr><th scope="row">{{ l.item }}</th><td class="abnt-uo">{{ l.uo }}</td><td><b>{{ l.pedido.campo }}:</b> {{ l.pedido.texto }}<span class="abnt-detalhe">{{ l.pedido.detalhe }}</span></td><td><b>{{ l.decisao.rotulo }}</b>{% if l.decisao.texto %} – {{ l.decisao.texto }}{% endif %}<span class="abnt-detalhe">{{ l.decisao.detalhe }}</span></td></tr>
+{% endfor %}{% endfor %}</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+<p class="abnt-fonte">Notas: cada linha é uma parte do pedido; item "Novo" é pedido de inclusão de item. Decididas: aprovadas, aprovadas com ajuste ou recusadas no período; prejudicadas e desistidas não entram. Em análise: situação na data de emissão do relatório.</p>
+{% endif %}
+
+<section class="abnt-anexo-paisagem" aria-labelledby="relatorio-anexo-1">
+<h2 class="abnt-anexo-titulo" id="relatorio-anexo-1">Anexo I – Resumo por unidade organizacional</h2>
+<p class="abnt-legenda"><b>Tabela {{ t.anexo_resumo }}</b> – Resumo por unidade organizacional em {{ r.hoje_extenso }}</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-resumo">
+<colgroup><col class="abnt-w11"><col class="abnt-w8"><col class="abnt-w8-5"><col class="abnt-w8"><col class="abnt-w7-5"><col class="abnt-w7-5"><col class="abnt-w7-5"><col class="abnt-w8-5"><col class="abnt-w8-5"><col class="abnt-w8"><col class="abnt-w7-5"><col class="abnt-w9-5"></colgroup>
+<thead>
+<tr><th rowspan="2" scope="col" class="abnt-resumo-uo">Unidade</th><th colspan="3" scope="colgroup" class="abnt-resumo-grupo abnt-sep">Previstos</th><th colspan="3" scope="colgroup" class="abnt-resumo-grupo abnt-sep">Tipo (% dos ativos)</th><th colspan="4" scope="colgroup" class="abnt-resumo-grupo abnt-sep">Meta PCA – NC + RN (% da meta)</th><th rowspan="2" scope="col" class="abnt-sep">Total concluído (inclui vigentes)</th></tr>
+<tr><th scope="col" class="abnt-sep">Totais</th><th scope="col">Cancelados</th><th scope="col">Ativos</th><th scope="col" class="abnt-sep">NC</th><th scope="col">RN</th><th scope="col">VG</th><th scope="col" class="abnt-sep">Concluído</th><th scope="col">Em tramitação</th><th scope="col">No prazo</th><th scope="col">Atrasado</th></tr>
+</thead>
+<tbody>
+{% for l in r.anexo_resumo.linhas %}<tr><th scope="row">{{ l.uo }}</th>{% for c in l.celulas %}<td{% if c.sep %} class="abnt-sep"{% endif %}>{% if c.n %}<span class="abnt-resumo-n">{{ c.n }}</span>{% if c.pct %}<span class="abnt-resumo-p">{{ c.pct }}</span>{% endif %}{% else %}–{% endif %}</td>{% endfor %}</tr>
+{% endfor %}{% with l=r.anexo_resumo.total %}<tr class="abnt-total"><th scope="row">{{ l.uo }}</th>{% for c in l.celulas %}<td{% if c.sep %} class="abnt-sep"{% endif %}>{% if c.n %}<span class="abnt-resumo-n">{{ c.n }}</span>{% if c.pct %}<span class="abnt-resumo-p">{{ c.pct }}</span>{% endif %}{% else %}–{% endif %}</td>{% endfor %}</tr>{% endwith %}
+</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+<p class="abnt-fonte">Notas: Ativos = Totais − Cancelados; Meta PCA = NC + RN; Concluído + Em tramitação + No prazo + Atrasado = Meta PCA. Percentuais: Totais sobre o PCA; Cancelados e Ativos sobre os previstos; NC, RN e VG sobre os ativos; colunas da meta sobre a meta da unidade; Total concluído sobre os ativos. NC = Nova Contratação; RN = Renovação; VG = Vigente. Sinal convencional: – dado numérico igual a zero.</p>
+</section>
+
+<section class="abnt-anexo" aria-labelledby="relatorio-anexo-2">
+<h2 class="abnt-anexo-titulo" id="relatorio-anexo-2">Anexo II – Processos do PCA {{ r.exercicio.ano }}, em ordem de item</h2>
+<p class="abnt-legenda"><b>Tabela {{ t.anexo_processos }}</b> – Processos do PCA {{ r.exercicio.ano }} em {{ r.hoje_extenso }}, em ordem de item</p>
+<div class="{% if not casca_tabler %}br-table {% endif %}abnt-tabela">{% if not casca_tabler %}<div class="table-header"></div>{% endif %}<table class="abnt-tab abnt-processos">
+<colgroup><col class="abnt-w6"><col class="abnt-w56"><col class="abnt-w13"><col class="abnt-w11"><col class="abnt-w14"></colgroup>
+<thead><tr><th scope="col">Item</th><th scope="col">Objeto</th><th scope="col">Unidade</th><th scope="col">Data atual</th><th scope="col">Situação</th></tr></thead>
+<tbody>
+{% for p in r.anexo_processos %}<tr><th scope="row">{{ p.item }}</th><td>{{ p.objeto }}</td><td class="abnt-uo">{{ p.uo }}</td><td class="abnt-uo">{{ p.data }}</td><td class="abnt-uo">{{ p.situacao }}</td></tr>
+{% endfor %}</tbody>
+</table></div>
+<p class="abnt-fonte">{{ r.fonte }}</p>
+<p class="abnt-fonte">Notas: data atual é o prazo atual de entrega à Gelic, o mesmo da tela Processos; – sem prazo registrado. Situação na data de emissão do relatório.</p>
+</section>
+
+</article>
+{% endwith %}

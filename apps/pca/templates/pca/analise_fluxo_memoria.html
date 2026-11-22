@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load dsgov %}
+
+{% comment %}
+Fase 37 (spec §5, itens 1-4) — memória de cálculo de UM item:
+fonte(s)/eventos considerados, eventos descartados, premissas e parcelas
+com fórmula em texto — a resposta direta a "de onde veio este número?"
+(`melhorias.md` §2.6). `telas/relatorio.md`: sem form GET próprio (só
+herda `cenario`/`indice` da querystring de origem), `br-table` simples,
+rodapé "Gerado em... Voltar". Simulação/cenário Oficial×Simulado (spec §5
+item 5) é escopo do plano, não desta tela ainda.
+{% endcomment %}
+
+{% block titulo %}Memória de cálculo — Item {{ processo.item_pca }}{% endblock %}
+
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Memória de cálculo — Item {{ processo.item_pca }}</h1>
+  <p class="mb-0">{{ processo.descricao_objeto|truncatechars:120 }}</p>
+</div>
+
+{% if comparacao_ativa %}
+<div class="br-message warning mb-3 dsgov-nao-imprimir">
+  <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Simulação ativa — {{ variaveis_alteradas|length }} variável(is) alterada(s)</span>
+    {% if variaveis_alteradas %}
+    <ul class="mb-0">
+      {% for variavel in variaveis_alteradas %}
+      <li>{{ variavel }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if not memoria %}
+<div class="br-message warning mb-3">
+  <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert"><span class="message-body">Sem dado suficiente para projeção deste item.</span></div>
+</div>
+{% else %}
+
+<h2 class="text-up-01 mb-3">Fonte e eventos considerados</h2>
+{% if memoria.fontes %}
+<ul>
+  {% for fonte in memoria.fontes %}
+  <li>{{ fonte }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>Nenhuma fonte registrada para este item.</p>
+{% endif %}
+
+<h2 class="text-up-01 mb-3">Eventos descartados</h2>
+{% if memoria.descartados %}
+<ul>
+  {% for descartado in memoria.descartados %}
+  <li>{{ descartado }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>Nenhum evento descartado.</p>
+{% endif %}
+
+<h2 class="text-up-01 mb-3">Premissas aplicadas a este item</h2>
+{% if memoria.premissas %}
+<ul>
+  {% for premissa in memoria.premissas %}
+  <li>{{ premissa }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>Nenhuma premissa aplicada.</p>
+{% endif %}
+
+{% if comparacao_ativa %}
+{% comment %}
+Fase 37 (spec §5 item 5) — memória DUPLA: as parcelas Oficial e
+Simulado lado a lado (empilhadas em telas estreitas via `col-12 col-md-6`);
+`br-tag` "alterado" em toda linha cuja `(competência, camada, valor)`
+difira entre as duas (`linha.alterado`, calculado na view).
+{% endcomment %}
+<h2 class="text-up-01 mb-3">Parcelas — Oficial × Simulado</h2>
+<div class="row">
+  <div class="col-12 col-md-6 mb-4">
+    <h3 class="text-up-01 mb-2">Oficial</h3>
+    <div class="br-table">
+      <div class="table-header"></div>
+      <table>
+        <caption class="sr-only">Parcelas oficiais do item {{ processo.item_pca }}</caption>
+        <thead><tr><th scope="col">Competência</th><th scope="col">Camada</th><th scope="col" class="dsgov-numero">Valor</th><th scope="col"></th></tr></thead>
+        <tbody>
+          {% for linha in linhas_oficial_comparacao %}
+          <tr><td data-th="Competência">{{ linha.competencia }}</td><td data-th="Camada">{{ linha.camada }}</td><td class="dsgov-numero" data-th="Valor">{{ linha.valor }}</td><td>{% if linha.alterado %}<span class="br-tag bg-warning small">alterado</span>{% endif %}</td></tr>
+          {% empty %}
+          <tr><td colspan="4">Nenhuma parcela projetada para este item.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 mb-4">
+    <h3 class="text-up-01 mb-2">Simulado</h3>
+    <div class="br-table">
+      <div class="table-header"></div>
+      <table>
+        <caption class="sr-only">Parcelas simuladas do item {{ processo.item_pca }}</caption>
+        <thead><tr><th scope="col">Competência</th><th scope="col">Camada</th><th scope="col" class="dsgov-numero">Valor</th><th scope="col"></th></tr></thead>
+        <tbody>
+          {% for linha in linhas_simulada_comparacao %}
+          <tr><td data-th="Competência">{{ linha.competencia }}</td><td data-th="Camada">{{ linha.camada }}</td><td class="dsgov-numero" data-th="Valor">{{ linha.valor }}</td><td>{% if linha.alterado %}<span class="br-tag bg-warning small">alterado</span>{% endif %}</td></tr>
+          {% empty %}
+          <tr><td colspan="4">Nenhuma parcela projetada para este item na simulação.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% else %}
+<h2 class="text-up-01 mb-3">Parcelas</h2>
+<div class="br-table mb-4">
+  <div class="table-header"></div>
+  <table>
+    <caption class="sr-only">Parcelas do item {{ processo.item_pca }}, por competência e camada</caption>
+    <thead><tr>{% for c in tabela_parcelas.colunas %}<th scope="col"{% if not forloop.first %} class="dsgov-numero"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for linha in tabela_parcelas.linhas %}
+      <tr{% if linha.0.valor == "Total" %} class="text-bold"{% endif %}>{% for cel in linha %}<td{% if not forloop.first %} class="dsgov-numero"{% endif %} data-th="{{ tabela_parcelas.colunas|slice:forloop.counter|last }}">{{ cel.valor }}</td>{% endfor %}</tr>
+      {% empty %}
+      <tr><td colspan="{{ tabela_parcelas.colunas|length }}">Nenhuma parcela projetada para este item.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="dsgov-nao-imprimir d-flex flex-wrap align-items-center justify-content-between mt-4">
+  <p class="text-down-01 text-gray-70 mb-0">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+  <div>
+    <button class="br-button secondary mr-2" type="button" onclick="window.print()"><i class="fas fa-print mr-1" aria-hidden="true"></i>Imprimir</button>
+    <a class="br-button secondary" href="{% url 'pca:analise_fluxo' %}?exercicio={{ exercicio.ano }}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+  </div>
+</div>
+{% endblock %}

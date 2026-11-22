@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+Fase 39 — tela "Assistente": cabeçalho
+enxuto, fio de conversa em bolhas (padrão de mercado, respeitando o
+DSGov — só classes de core.min.css), marca d'água do CFC e
+caixa de pergunta por último com botão circular de enviar. Sem CSS/JS
+próprio. Referências e rodapé de atualidade vêm sempre da aplicação
+(`views.py`/`renderizacao.py`), nunca do modelo.
+
+O form de pergunta passou a usar HTMX: envia
+por `hx-post`, mostra "Digitando…" e troca só `#area-chat`, sem recarregar
+a página (sem isso, cada pergunta parava a tela por 5–12s e recarregava
+inteira). `method="post"`/`action` continuam para o fallback sem JS.
+
+Pedido do usuário testando no celular: a caixa
+de escrita agora fica presa ao rodapé da janela, como WhatsApp/Telegram.
+`dsgov-chat`/`dsgov-chat-caixa` (padrão DSGov, fonte da verdade — o core
+3.7.0 não tem utilitário de position) envolvem o fio da conversa e o form.
+
+Pedido do usuário ("tente manter o mesmo
+dsgov… questão maior de espaçamento"): respiro de chat (ChatGPT/Claude/
+Gemini) SEM CSS novo. `row justify-content-center` + `col-12 col-lg-10
+col-xl-8` (grid do core 3.7.0) envolve o contexto do topo + `.dsgov-chat`
+numa coluna central de leitura; as linhas de troca perderam o `col-lg-8`
+interno (a coluna externa já limita a largura, encolher duas vezes ficava
+estreito demais). `rounder-lg` (utilitário já usado nas bolhas) no
+`br-card` do composer.
+
+`data-composer` no `textarea#pergunta-texto`
+liga o comportamento de teclado (Enter envia, Alt+Enter/Shift+Enter
+quebram linha, cresce com o texto) que vive em `dsgov.js` (padrão DSGov,
+fonte da verdade — nunca JS inline neste template).
+{% endcomment %}
+
+{% block titulo %}Assistente de IA{% endblock %}
+
+{% block conteudo %}
+<h1>Assistente de IA</h1>
+
+{% if sem_exercicio %}
+<p class="text-gray-70">Nenhum exercício cadastrado ainda.</p>
+{% else %}
+
+<div id="area-chat">
+{% comment %} na carga completa quem mostra as mensagens
+é o `_mensagens.html` incluído por `base.html`, fora de `#area-chat`; numa
+troca htmx (`hx-select="#area-chat"` corta tudo fora daqui), sem este
+include as mensagens de `django.contrib.messages` desapareceriam.{% endcomment %}
+{% if request.htmx %}{% include "dsgov/_mensagens.html" %}{% endif %}
+
+<div class="row justify-content-center">
+<div class="col-12 col-lg-10 col-xl-8">
+
+<div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+  <p class="text-down-01 text-gray-70 mb-0">
+    Somente leitura · Exercício {{ exercicio.ano }} · {{ consumo.perguntas }} de {{ limite }} perguntas hoje
+    · Textos indexados em {{ indice_publicado_em }}
+  </p>
+  <form method="post" action="{% url 'assistente:nova_conversa' %}">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}">
+    <button class="br-button secondary small" type="submit">
+      <i class="fas fa-plus" aria-hidden="true"></i> Nova conversa
+    </button>
+  </form>
+</div>
+
+<div class="dsgov-chat">
+<section aria-label="Conversa">
+  {% if trocas %}
+    {% for troca in trocas %}
+    <div class="row justify-content-end mb-3">
+      <div class="col-11 col-md-9">
+        <div class="bg-blue-warm-vivid-5 rounder-lg p-2x">
+          <p class="mb-0">{{ troca.pergunta }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-auto pr-0">
+        {% comment %} (feedback do usuário): só o símbolo do CFC, sem
+        o círculo/fundo do `br-avatar` — o PNG com transparência ficava recortado
+        e "quebrado" dentro do avatar. Decorativo: `alt=""`, tamanho por atributo.{% endcomment %}
+        <img src="{% static 'img/simbolo-cfc.png' %}" width="32" height="33" alt="" aria-hidden="true" title="Assistente de IA">
+      </div>
+      <div class="col-11 col-md-9">
+        <div class="bg-gray-2 rounder-lg p-2x">{{ troca.resposta_html }}</div>
+        {% if troca.referencias_html %}
+        <div class="mt-1">{{ troca.referencias_html }}</div>
+        {% endif %}
+        <p class="text-down-02 text-gray-60 mb-0 mt-1">{{ troca.rodape }}</p>
+      </div>
+    </div>
+    {% endfor %}
+    <div class="d-flex justify-content-center py-3">
+      <img src="{% static 'img/logo-cfc-2.png' %}" class="opacity-xs" width="160" height="163" alt="" aria-hidden="true">
+    </div>
+  {% else %}
+    <div class="d-flex flex-column align-items-center py-5x">
+      <img src="{% static 'img/logo-cfc-2.png' %}" class="opacity-xs mb-3" width="240" height="244" alt="" aria-hidden="true">
+      <p class="text-up-02 text-gray-70 mb-1">Pergunte sobre o PCA</p>
+      <p class="text-gray-70">Pergunte sobre processos, prazos e contratos do PCA…</p>
+      <div class="d-flex flex-wrap justify-content-center align-self-stretch">
+        <a class="br-button secondary small rounder-pill m-1" href="?exercicio={{ exercicio.ano }}&amp;sugestao=Quantos%20itens%20est%C3%A3o%20atrasados%3F">Quantos itens estão atrasados?</a>
+        <a class="br-button secondary small rounder-pill m-1" href="?exercicio={{ exercicio.ano }}&amp;sugestao=Quais%20processos%20tiveram%20altera%C3%A7%C3%A3o%20hoje%3F">Quais processos tiveram alteração hoje?</a>
+        <a class="br-button secondary small rounder-pill m-1" href="?exercicio={{ exercicio.ano }}&amp;sugestao=Qual%20foi%20a%20%C3%BAltima%20altera%C3%A7%C3%A3o%20de%20acompanhamento%20no%20item%20do%20Seguro%20Predial%3F">Última alteração no item do Seguro Predial?</a>
+        <a class="br-button secondary small rounder-pill m-1" href="?exercicio={{ exercicio.ano }}&amp;sugestao=Em%20qual%20unidade%20est%C3%A1%20o%20processo%20da%20SPW%3F">Em qual unidade está o processo da SPW?</a>
+        <a class="br-button secondary small rounder-pill m-1" href="?exercicio={{ exercicio.ano }}&amp;sugestao=Quem%20assinou%20o%20contrato%20referente%20ao%20item%2037%3F">Quem assinou o contrato do item 37?</a>
+        <a class="br-button secondary small rounder-pill m-1" href="?exercicio={{ exercicio.ano }}&amp;sugestao=Quais%20contratos%20vencem%20at%C3%A9%20o%20fim%20do%20ano%3F">Quais contratos vencem até o fim do ano?</a>
+      </div>
+    </div>
+  {% endif %}
+  {% if andamento %}
+  {% comment %} a pergunta ainda em processamento
+  aparece como bolha do usuário, seguida da bolha de progresso com polling
+  htmx; some assim que `assistente:andamento` concluir/errar.{% endcomment %}
+  <div class="row justify-content-end mb-3">
+    <div class="col-11 col-md-9">
+      <div class="bg-blue-warm-vivid-5 rounder-lg p-2x">
+        <p class="mb-0">{{ andamento.pergunta }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col-auto pr-0">
+      <img src="{% static 'img/simbolo-cfc.png' %}" width="32" height="33" alt="" aria-hidden="true" title="Assistente de IA">
+    </div>
+    <div class="col-11 col-md-9">
+      {% include "assistente/_bolha_andamento.html" with requisicao_id=andamento.requisicao_id etapa=andamento.etapa texto_parcial_html=andamento.texto_parcial_html destino_pagina=andamento.destino_pagina %}
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+{% if quota_esgotada %}
+<div class="br-message warning mb-3">
+  <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-body">
+      Você atingiu o limite de {{ limite }} perguntas por dia. O limite renova à meia-noite.
+    </span>
+  </div>
+</div>
+{% endif %}
+
+<div class="dsgov-chat-caixa">
+<form method="post" action="{% url 'assistente:perguntar' %}" id="pergunta"
+      hx-post="{% url 'assistente:perguntar' %}"
+      hx-target="#area-chat"
+      hx-select="#area-chat"
+      hx-swap="outerHTML show:#pergunta:bottom"
+      hx-indicator="#digitando"
+      hx-disabled-elt="find button[type=submit]">
+  {% csrf_token %}
+  <input type="hidden" name="requisicao_id" value="{{ requisicao_id }}">
+  <input type="hidden" name="exercicio" value="{{ exercicio.ano }}">
+  <div class="br-card shadow-sm rounder-lg p-2x">
+    <div class="d-flex align-items-end">
+      <div class="br-textarea flex-fill{% if form.pergunta.errors %} danger{% endif %}">
+        <label for="pergunta-texto" class="sr-only">Sua pergunta</label>
+        <textarea
+          id="pergunta-texto"
+          name="pergunta"
+          rows="2"
+          maxlength="1000"
+          placeholder="Pergunte sobre processos, contratos, prazos…"
+          aria-controls="pergunta-texto-limite"
+          data-composer
+          {% if quota_esgotada %}disabled{% endif %}
+        >{{ sugestao }}</textarea>
+        <div class="text-base mt-1">
+          <span class="limit" aria-live="polite">Limite máximo de <strong>1000</strong> caracteres</span>
+          <span class="current" aria-live="polite" role="status" id="pergunta-texto-limite"></span>
+        </div>
+        {% if form.pergunta.errors %}
+        <span class="feedback danger" role="alert"><i class="fas fa-times-circle" aria-hidden="true"></i>{{ form.pergunta.errors.0 }}</span>
+        {% endif %}
+      </div>
+      <button class="br-button circle primary ml-2" type="submit" aria-label="Perguntar" {% if quota_esgotada %}disabled{% endif %}>
+        <i class="fas fa-paper-plane" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+  <p class="text-down-02 text-gray-60 mt-1 d-flex justify-content-between align-items-center">
+    <span>O assistente só lê dados do PCA e responde com base nas ferramentas do sistema. Pode errar — confira as referências. · Enter envia · Alt+Enter quebra linha</span>
+    <span id="digitando" class="htmx-indicator d-inline-flex align-items-center text-gray-70" aria-live="polite">
+      <span class="br-loading small mr-1" role="progressbar" aria-label="Assistente digitando"></span>Digitando…
+    </span>
+  </p>
+</form>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+
+{% endif %}
+{% endblock %}

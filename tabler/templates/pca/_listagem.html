@@ -1,0 +1,20 @@
+{% comment %}
+Conteúdo COMPLETO do alvo `#listagem` (tabler): chips de filtro ativo + card da tabela (colunas, exportar,
+paginação) + contêiner do modal de acompanhamento. É também a resposta inteira de `tabela_view` para HTMX.
+Numa troca por HTMX as mensagens (ex.: "Acompanhamento do item N registrado.") são desenhadas aqui mesmo, sem OOB
+(a resposta é só `_listagem.html`) e sem repetir o id `#mensagens` da base; na carga completa quem mostra é a base.
+{% endcomment %}
+{% if request.htmx and messages %}
+<div class="mb-3">
+{% for m in messages %}
+  {% if "error" in m.tags %}{% include "ui/_mensagem.html" with cor="danger" icone="ti-alert-circle" %}
+  {% elif "warning" in m.tags %}{% include "ui/_mensagem.html" with cor="warning" icone="ti-alert-triangle" %}
+  {% elif "success" in m.tags %}{% include "ui/_mensagem.html" with cor="success" icone="ti-circle-check" %}
+  {% else %}{% include "ui/_mensagem.html" with cor="info" icone="ti-info-circle" %}{% endif %}
+{% endfor %}
+</div>
+{% endif %}
+{% include "pca/_filtros_ativos_tabela.html" %}
+{% include "pca/_tabela_resultado.html" %}
+{% comment %}O modal vive DENTRO de `#listagem`: qualquer troca da listagem o esvazia e o fecha.{% endcomment %}
+<div id="modal-acompanhamento"></div>

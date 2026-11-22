@@ -1,0 +1,47 @@
+site_name: PCA CFC
+site_description: Acompanhamento do Plano de Contratações Anual do CFC — documentação técnica.
+site_url: https://toniaum.github.io/sistema-pca/tecnica/
+docs_dir: docs
+theme:
+  name: material
+  language: pt-BR
+  features: [navigation.sections, navigation.top, navigation.footer, content.code.copy, search.suggest, toc.follow]
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      toggle: { icon: material/weather-night, name: Modo escuro }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      toggle: { icon: material/weather-sunny, name: Modo claro }
+
+# Os documentos apontam para arquivos do repositório fora de docs/ (compose.yml, ops/...):
+# no site esses links não resolvem, e isso não deve derrubar o --strict.
+validation:
+  links:
+    not_found: info
+    unrecognized_links: info
+
+nav:
+  - Início: index.md
+  - Sobre o sistema: sobre-o-sistema.md
+  - Arquitetura: arquitetura.md
+  - Operação: operacao.md
+  - Deployment: deployment.md
+  - Funcionalidades:
+      - Solicitações das unidades: solicitacoes.md
+      - Relatório da reunião congelado: relatorio-congelado.md
+      - Análises (fluxo de caixa, estatísticas, prazos): analises-fluxo-de-caixa.md
+      - Assistente: assistente.md
+  - Integração com o SEI:
+      - Extensões SEI Pro (sem robô): integracao-sei-pro.md
+      - API para a extensão (contrato v1): api-extensao-sei.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc: { permalink: true }
+  - pymdownx.superfences
+  - pymdownx.details

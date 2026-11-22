@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% comment %}
+Nova reunião (versão Tabler). Sucesso: messages.success + redirect para pca:reuniao_listagem.
+{% endcomment %}
+{% block titulo %}Nova reunião{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Reuniões</div>
+      <h1 class="page-title">Nova reunião</h1>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6">
+    <form class="card" method="post" novalidate>
+      {% csrf_token %}
+      <div class="card-body">
+        {{ form }}
+        {% url 'pca:reuniao_listagem' as url_cancelar %}
+        {% include "ui/_acoes_formulario.html" with url_cancelar=url_cancelar %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

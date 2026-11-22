@@ -1,0 +1,15 @@
+{% comment %}kpi = {"rotulo", "valor" (já formatado), "apoio" (opcional), "icone" (classe de ícone), "url" (opcional)}; sem_apoio=True no include esconde a linha de apoio; icone_no_valor=True leva o ícone para a linha do número (cartões estreitos).{% endcomment %}
+{% load ui %}
+<div class="{{ col_kpi|default:'col-sm-6 col-xl-3' }}">
+  <div class="card card-sm h-100{% if kpi.url %} card-link card-link-pop{% endif %}">
+    {% if kpi.url %}<a class="stretched-link" href="{{ kpi.url }}" aria-label="{{ kpi.rotulo }}: ver detalhes"></a>{% endif %}
+    <div class="card-body">
+      <div class="d-flex align-items-center">
+        <div class="subheader">{{ kpi.rotulo }}</div>
+        {% if kpi.icone and not icone_no_valor %}<span class="avatar avatar-sm bg-{{ cor_kpi|default:"primary" }}-lt ms-auto"><i class="{{ kpi.icone|ti }}" aria-hidden="true"></i></span>{% endif %}
+      </div>
+      {% if icone_no_valor %}<div class="d-flex align-items-center mt-2"><div class="h1 mb-0 lh-1">{{ kpi.valor }}</div>{% if kpi.icone %}<span class="avatar avatar-sm bg-{{ cor_kpi|default:"primary" }}-lt ms-auto"><i class="{{ kpi.icone|ti }}" aria-hidden="true"></i></span>{% endif %}</div>{% else %}<div class="h1 mb-0 mt-2 lh-1">{{ kpi.valor }}</div>{% endif %}
+      {% if kpi.apoio and not sem_apoio %}<div class="text-secondary small mt-2">{{ kpi.apoio }}</div>{% endif %}
+    </div>
+  </div>
+</div>

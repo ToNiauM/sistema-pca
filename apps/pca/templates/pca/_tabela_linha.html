@@ -1,0 +1,42 @@
+{% comment %}
+Fase 26 — linha da tela Processos no padrão
+`listagem.md`. Zero edição inline, zero Custom Element de
+webcomponent, zero `hx-swap-oob` (a linha nunca é reemitida sozinha —
+A resposta HTMX da tabela é sempre `_tabela_resultado.html`
+inteiro). A coluna Situação é só leitura (comportamento fechado pelo
+"nenhuma célula é editável"); alterar a situação continua
+sendo uma ação do detalhe (`pca:transicao_processo`, alcançável por Ver/
+Editar), não da linha da tabela.
+
+Fase 28 — as células fixas cedem lugar ao loop
+`cabecalhos_dinamicos` (mesmo padrão de `core/templates/core/inicio.html`,
+`pendencias.colunas`): `situacao` (composta) inclui `_tabela_situacao.html`;
+`mes_previsto` usa o filtro `nome_mes`; `item_pca` é sempre link ao
+detalhe; `tipo == "status"` usa `{% tag_status %}`; as demais passam pelo
+filtro genérico `exibir`. `Ações` NUNCA passa pelo loop — fica fora da
+seleção de colunas e do XLSX. Alinhamento (igual à casca
+Tabler): R$ à direita; Item, números, datas, mês e situação ao centro; texto à esquerda.
+{% endcomment %}
+{% load dsgov pca_listagem sei_links %}
+<tr id="item-{{ p.pk }}">
+  {% for col in cabecalhos_dinamicos %}
+  <td data-th="{{ col.rotulo }}"{% if col.tipo == "moeda" %} class="dsgov-numero"{% elif col.tipo == "numero" or col.tipo == "data" or col.tipo == "status" or col.tipo == "booleano" or col.chave == "mes_previsto" %} class="text-center text-nowrap"{% endif %}>
+    {% if col.chave == "situacao" %}
+      {% include "pca/_tabela_situacao.html" %}
+    {% elif col.chave == "mes_previsto" %}
+      {{ p.mes_previsto|nome_mes|default:"Sem mês previsto" }}
+    {% elif col.chave == "item_pca" %}
+      <a href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">{{ p.item_pca }}</a>
+    {% elif col.chave == "numeros_sei" %}
+      {% for sei in p.numeros_sei.all %}{{ sei.numero_sei|link_sei }}{% if not forloop.last %} {% endif %}{% empty %}—{% endfor %}
+    {% elif col.tipo == "status" %}
+      {% tag_status p|atributo:col.campo p|atributo:col.chave %}
+    {% else %}
+      {{ p|exibir:col }}
+    {% endif %}
+  </td>
+  {% endfor %}
+  <td data-th="Ações" class="dsgov-acoes">
+    {% include "pca/_acoes_item.html" %}
+  </td>
+</tr>

@@ -1,0 +1,37 @@
+{% load dsgov %}{% comment %}
+Cartão de uma unidade (ou do TOTAL) no celular, no lugar da matriz: os mesmos 11 números e rótulos das colunas,
+agrupados como no cabeçalho (Previstos · Tipo · Meta PCA · Total concluído), cada um com o % pequeno embaixo.
+Parâmetros: l (linha ou total), rotulo_linha.
+{% endcomment %}
+<div class="br-card mb-2">
+  <div class="card-header">
+    <div class="d-flex align-items-center">
+      {% if l.hrefs.uo and rotulo_linha != "TOTAL" %}<a class="text-weight-semi-bold" href="{% url 'pca:tabela' %}?{{ l.hrefs.uo }}">{{ rotulo_linha }}</a>{% else %}<span class="text-weight-semi-bold">{{ rotulo_linha }}</span>{% endif %}
+      {% if l.meta %}<span class="br-tag bg-success ml-auto"><span>{{ l.percentual_concluido_meta|percentual }} da meta</span></span>{% endif %}
+    </div>
+  </div>
+  <div class="card-content">
+    <div class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold">Previstos</div>
+    <div class="row">
+      {% include "pca/_resumo_cartao_valor.html" with col="col-4" rotulo="Totais" n=l.total_previsto pct=l.percentual_no_pca href=l.hrefs.total_previsto uo=rotulo_linha %}
+      {% include "pca/_resumo_cartao_valor.html" with col="col-4" rotulo="Cancelados" n=l.cancelados pct=l.percentual_cancelados href=l.hrefs.cancelados uo=rotulo_linha cor="text-gray-70" %}
+      {% include "pca/_resumo_cartao_valor.html" with col="col-4" rotulo="Ativos" n=l.ativos pct=l.percentual_ativos href=l.hrefs.ativos uo=rotulo_linha %}
+    </div>
+    <div class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold">Tipo (% dos ativos)</div>
+    <div class="row">
+      {% include "pca/_resumo_cartao_valor.html" with col="col-4" rotulo="NC" titulo="Nova contratação" n=l.nova pct=l.percentual_nova href=l.hrefs.nova uo=rotulo_linha %}
+      {% include "pca/_resumo_cartao_valor.html" with col="col-4" rotulo="RN" titulo="Renovação" n=l.renovacao pct=l.percentual_renovacao href=l.hrefs.renovacao uo=rotulo_linha %}
+      {% include "pca/_resumo_cartao_valor.html" with col="col-4" rotulo="VG" titulo="Vigente" n=l.vigente pct=l.percentual_vigente href=l.hrefs.vigente uo=rotulo_linha cor="text-gray-70" %}
+    </div>
+    <div class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold">Meta PCA (NC + RN) (% da meta)</div>
+    <div class="row">
+      {% include "pca/_resumo_cartao_valor.html" with col="col-6" rotulo="Concluído" n=l.concluido_meta pct=l.percentual_concluido_meta href=l.hrefs.concluido_meta uo=rotulo_linha cor="text-green-cool-vivid-50" %}
+      {% include "pca/_resumo_cartao_valor.html" with col="col-6" rotulo="Em tramitação" n=l.em_tramitacao pct=l.percentual_em_tramitacao href=l.hrefs.em_tramitacao uo=rotulo_linha cor="text-blue-warm-vivid-70" %}
+      {% include "pca/_resumo_cartao_valor.html" with col="col-6" rotulo="No prazo" n=l.no_prazo pct=l.percentual_no_prazo href=l.hrefs.no_prazo uo=rotulo_linha cor="text-green-cool-vivid-50" %}
+      {% include "pca/_resumo_cartao_valor.html" with col="col-6" rotulo="Atrasado" n=l.fora_prazo pct=l.percentual_fora_prazo href=l.hrefs.fora_prazo uo=rotulo_linha cor="text-red-vivid-50" %}
+    </div>
+    <div class="row">
+      {% include "pca/_resumo_cartao_valor.html" with col="col-12" rotulo="Total concluído (inclui vigentes) — % dos ativos" n=l.concluido pct=l.percentual_concluido href=l.hrefs.concluido uo=rotulo_linha cor="text-green-cool-vivid-50" %}
+    </div>
+  </div>
+</div>

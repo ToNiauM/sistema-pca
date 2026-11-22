@@ -1,0 +1,7 @@
+{% load dsgov %}{% comment %}
+Célula numérica da matriz do Resumo (casca DSGov, `telas/matriz.md`): número que filtra a /tabela e, quando
+`com_pct`, o percentual pequeno logo abaixo (a base do % está no cabeçalho do grupo). Espelha o
+`_resumo_celula.html` da casca Tabler (ccb140a). Parâmetros: n, href, uo, rotulo; opcionais: sem_link,
+pct + com_pct=True, cor (utilitário text-* do core.min.css), separador, destaque, faixa (grupo com fundo), centro (text-center no lugar de
+dsgov-numero — matriz principal do Resumo, número e % centralizados).
+{% endcomment %}<td class="{% if centro %}text-center{% else %}dsgov-numero{% endif %}{% if separador %} dsgov-separador{% endif %}{% if destaque %} dsgov-destaque{% endif %}{% if faixa %} dsgov-faixa{% endif %}{% if not n %} text-gray-70{% elif cor %} {{ cor }}{% endif %}">{% if sem_link %}{{ n|numero }}{% else %}<a href="{% url 'pca:tabela' %}?{{ href }}" aria-label="{{ uo }}, {{ rotulo }}: {{ n|numero }} — abrir a tabela filtrada">{{ n|numero }}</a>{% endif %}{% if com_pct and n %}<div class="text-down-02 text-gray-70">{{ pct|percentual }}</div>{% endif %}</td>

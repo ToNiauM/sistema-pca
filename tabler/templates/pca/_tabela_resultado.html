@@ -1,0 +1,135 @@
+{% comment %}
+Parte de `#listagem` (tabler): card com contagem + soma, ações "Colunas" e "Exportar XLSX" (dentro do alvo para
+sempre levarem a querystring corrente), seletor de colunas recolhido (`#form-colunas`, 4 seções; Item/Objeto
+obrigatórios = caixa desabilitada + hidden irmão), tabela de colunas dinâmicas e paginação 10/20/50. Sem OOB.
+{% endcomment %}
+{% load ui pca_ui %}
+{% comment %}
+Alternância Lista | Tabela (parâmetro `vista`, guardado no estado da tela).
+`#estado-vista` só existe na Lista e entra no `hx-include` dos forms de filtro e de colunas.
+{% endcomment %}
+{% if vista == "lista" %}<form id="estado-vista" class="d-none" aria-hidden="true"><input type="hidden" name="vista" value="lista"></form>{% endif %}
+<div class="card">
+  <div class="card-header flex-wrap gap-2 py-2">
+    <div class="me-auto">
+      <h2 class="card-title">{{ pagina.paginator.count }} processo{{ pagina.paginator.count|pluralize }}</h2>
+      {% if pagina.object_list %}
+      <div class="card-subtitle small">Soma do valor estimado (resultado filtrado): <strong class="text-body">{{ soma_filtrada|moeda }}</strong></div>
+      {% endif %}
+    </div>
+    <div class="btn-list">
+      {% if pagina.object_list %}
+      <div class="dropdown d-md-none">
+        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="ti ti-arrows-sort me-1" aria-hidden="true"></i>Ordenar
+        </button>
+        <div class="dropdown-menu">
+          {% for cab in cabecalhos_dinamicos %}{% if cab.ordenavel %}
+          {% if request.GET.ordenar == cab.chave and request.GET.dir != "desc" %}
+            {% url_com ordenar=cab.chave dir="desc" pagina=None as url_ordem %}
+          {% else %}
+            {% url_com ordenar=cab.chave dir="asc" pagina=None as url_ordem %}
+          {% endif %}
+          <a class="dropdown-item{% if request.GET.ordenar == cab.chave %} active{% endif %}" href="{{ url_ordem }}" hx-get="{{ url_ordem }}" hx-target="#listagem" hx-push-url="true">
+            {{ cab.rotulo }}
+            {% if request.GET.ordenar == cab.chave %}<i class="ti {% if request.GET.dir == 'desc' %}ti-sort-descending{% else %}ti-sort-ascending{% endif %} ms-auto" aria-hidden="true"></i>{% endif %}
+          </a>
+          {% endif %}{% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      <div class="btn-group" role="group" aria-label="Ver como">
+        <a class="btn btn-sm{% if vista == 'lista' %} active{% endif %}" href="{% url_com vista='lista' pagina=None %}" hx-get="{% url_com vista='lista' pagina=None %}" hx-target="#listagem" hx-push-url="true"{% if vista == "lista" %} aria-current="true"{% endif %}><i class="ti ti-list me-1" aria-hidden="true"></i>Lista</a>
+        <a class="btn btn-sm{% if vista == 'tabela' %} active{% endif %}" href="{% url_com vista='tabela' pagina=None %}" hx-get="{% url_com vista='tabela' pagina=None %}" hx-target="#listagem" hx-push-url="true"{% if vista == "tabela" %} aria-current="true"{% endif %}><i class="ti ti-table me-1" aria-hidden="true"></i>Tabela</a>
+      </div>
+      {% if vista == "tabela" %}
+      <button class="btn btn-sm collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acordeao-colunas-conteudo"
+              aria-controls="acordeao-colunas-conteudo" aria-expanded="false">
+        <i class="ti ti-columns-3 me-1" aria-hidden="true"></i>Colunas
+      </button>
+      {% endif %}
+      <a class="btn btn-sm"
+         href="{% url 'pca:exportar_xlsx' %}?{{ querystring_filtros }}{% for chave in colunas_selecionadas %}&colunas={{ chave }}{% endfor %}">
+        <i class="ti ti-file-spreadsheet me-1" aria-hidden="true"></i>Exportar XLSX
+      </a>
+    </div>
+  </div>
+  <div class="collapse border-bottom" id="acordeao-colunas-conteudo">
+    <div class="card-body bg-body-tertiary">
+      <form id="form-colunas" hx-get="{% url 'pca:tabela' %}" hx-target="#listagem"
+            hx-push-url="true" hx-include="#filtros-processos, #estado-vista" aria-label="Colunas exibidas">
+        <input type="hidden" name="exercicio" value="{{ exercicio.ano }}">
+        <div class="row g-3">
+          {% for secao_nome, colunas_secao in colunas_por_secao %}
+          <fieldset class="col-12 col-sm-6 col-xl-3">
+            <legend class="subheader mb-2">{{ secao_nome }}</legend>
+            {% for col in colunas_secao %}
+            <label class="form-check form-check-sm mb-1">
+              <input class="form-check-input" id="coluna-{{ col.chave }}" name="colunas" type="checkbox" value="{{ col.chave }}"
+                     {% if col.chave in colunas_selecionadas %}checked="checked"{% endif %}
+                     {% if col.chave in colunas_obrigatorias %}disabled="disabled"{% endif %}>
+              <span class="form-check-label">{{ col.rotulo }}</span>
+            </label>
+            {% if col.chave in colunas_obrigatorias %}
+            <input type="hidden" name="colunas" value="{{ col.chave }}">
+            {% endif %}
+            {% endfor %}
+          </fieldset>
+          {% endfor %}
+        </div>
+        <div class="btn-list mt-3">
+          <button class="btn btn-sm" type="submit"><i class="ti ti-check me-1" aria-hidden="true"></i>Aplicar colunas</button>
+          <a class="btn btn-sm btn-ghost-secondary" href="{% url 'pca:tabela' %}?{{ querystring_colunas_padrao }}"
+             hx-get="{% url 'pca:tabela' %}?{{ querystring_colunas_padrao }}"
+             hx-target="#listagem" hx-push-url="true">Restaurar padrão</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% if pagina.object_list and vista == "lista" %}
+  <div class="list-group list-group-flush">
+    {% for p in pagina.object_list %}
+      {% include "pca/_lista_item.html" %}
+    {% endfor %}
+  </div>
+  {% paginacao pagina "#listagem" %}
+  {% elif pagina.object_list %}
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover">
+      <caption class="visually-hidden">Processos do PCA {{ exercicio.ano }}</caption>
+      <thead>
+        <tr>
+          {% for cab in cabecalhos_dinamicos %}
+          <th scope="col" data-coluna="{{ cab.chave }}" class="{% if cab.chave == 'item_pca' %}w-1 text-center {% elif cab.chave != 'descricao_objeto' %}d-none d-md-table-cell {% endif %}text-nowrap">
+            {% if cab.ordenavel %}{% ordenar_por_tabela cab.chave cab.rotulo %}{% else %}{{ cab.rotulo }}{% endif %}
+          </th>
+          {% endfor %}
+          <th scope="col" class="w-1 text-center pca-col-acoes"><span class="d-none d-md-inline">Ações</span><span class="visually-hidden d-md-none">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pagina.object_list %}
+          {% include "pca/_tabela_linha.html" %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% paginacao pagina "#listagem" %}
+  {% else %}
+  <div class="card-body">
+    <div class="empty py-4">
+      <div class="empty-icon"><i class="ti ti-filter-off display-6" aria-hidden="true"></i></div>
+      <p class="empty-title">Nenhum processo com esses filtros.</p>
+      <p class="empty-subtitle text-secondary">A combinação atual não retorna nenhum dos {{ total_geral }} processos do PCA {{ exercicio.ano }}. Remova um filtro para ampliar o resultado.</p>
+      {% if tags %}
+      <div class="empty-action">
+        <a class="btn" href="{% url 'pca:tabela' %}?limpar=1{% if querystring_limpar %}&{{ querystring_limpar }}{% endif %}"
+           hx-get="{% url 'pca:tabela' %}?limpar=1{% if querystring_limpar %}&{{ querystring_limpar }}{% endif %}" hx-target="#listagem" hx-push-url="true">
+          <i class="ti ti-eraser me-1" aria-hidden="true"></i>Limpar filtros
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>

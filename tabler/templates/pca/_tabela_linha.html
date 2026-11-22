@@ -1,0 +1,63 @@
+{% comment %}
+Linha da tela Processos (tabler): células pelo loop `cabecalhos_dinamicos` (situação composta, mês por nome, Item
+sempre link ao detalhe, nº SEI como link, `status` com selo, o resto pelo filtro `exibir`). Nenhuma célula é
+editável. Alinhamento: R$ à direita; Item, números, datas, mês e situação ao centro;
+texto à esquerda — títulos sempre ao centro (`_tabela_resultado.html`). No celular só ficam Item, Objeto e Ações: as demais colunas escolhidas aparecem empilhadas, em
+miniatura, debaixo do objeto. "Ações" fica fora do loop (fora da seleção de colunas e do XLSX).
+{% endcomment %}
+{% load ui pca_ui %}
+<tr id="item-{{ p.pk }}">
+  {% for col in cabecalhos_dinamicos %}
+  <td data-th="{{ col.rotulo }}" class="{% if col.tipo == 'moeda' %}text-end text-nowrap {% elif col.tipo == 'numero' or col.tipo == 'data' or col.tipo == 'status' or col.tipo == 'booleano' or col.chave == 'mes_previsto' %}text-center text-nowrap {% endif %}{% if col.chave == 'item_pca' %}text-nowrap {% elif col.chave != 'descricao_objeto' %}d-none d-md-table-cell {% endif %}">
+    {% if col.chave == "situacao" %}
+      {% include "pca/_tabela_situacao.html" %}
+    {% elif col.chave == "mes_previsto" %}
+      {{ p.mes_previsto|nome_mes|default:"Sem mês previsto" }}
+    {% elif col.chave == "item_pca" %}
+      <a class="fw-bold" href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">{{ p.item_pca }}</a>
+    {% elif col.chave == "numeros_sei" %}
+      {% for sei in p.numeros_sei.all %}<span class="text-nowrap">{{ sei.numero_sei|link_sei }}</span>{% if not forloop.last %} {% endif %}{% empty %}—{% endfor %}
+    {% elif col.tipo == "status" %}
+      {% tag_status p|atributo:col.campo p|atributo:col.chave %}
+    {% else %}
+      {{ p|exibir:col }}
+      {% if col.chave == "descricao_objeto" %}
+      <div class="d-md-none d-flex flex-wrap align-items-center column-gap-3 row-gap-1 mt-1 small text-secondary">
+        {% for outra in cabecalhos_dinamicos %}
+          {% if outra.chave == "situacao" %}<span>{% include "pca/_tabela_situacao.html" %}</span>
+          {% elif outra.chave == "mes_previsto" %}<span>{{ outra.rotulo }}: <span class="text-body">{{ p.mes_previsto|nome_mes|default:"Sem mês previsto" }}</span></span>
+          {% elif outra.chave == "numeros_sei" %}<span>{{ outra.rotulo }}: {% for sei in p.numeros_sei.all %}{{ sei.numero_sei|link_sei }}{% if not forloop.last %} {% endif %}{% empty %}—{% endfor %}</span>
+          {% elif outra.tipo == "status" %}<span>{% tag_status p|atributo:outra.campo p|atributo:outra.chave %}</span>
+          {% elif outra.chave != "item_pca" and outra.chave != "descricao_objeto" %}<span>{{ outra.rotulo }}: <span class="text-body">{{ p|exibir:outra }}</span></span>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endif %}
+  </td>
+  {% endfor %}
+  <td data-th="Ações" class="text-center text-nowrap py-1">
+    <div class="btn-list flex-nowrap justify-content-center gap-1">
+      <a class="btn btn-sm btn-icon btn-ghost-secondary d-none d-md-inline-flex"
+         href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}"
+         aria-label="Ver item {{ p.item_pca }}" title="Ver item {{ p.item_pca }}">
+        <i class="ti ti-eye" aria-hidden="true"></i>
+      </a>
+      {% if perms.pca.editar_pca %}
+      <a class="btn btn-sm btn-icon btn-ghost-secondary"
+         href="{% url 'pca:editar_processo' p.exercicio.ano p.item_pca %}"
+         aria-label="Editar item {{ p.item_pca }}" title="Editar item {{ p.item_pca }}">
+        <i class="ti ti-pencil" aria-hidden="true"></i>
+      </a>
+      <a class="btn btn-sm btn-icon btn-ghost-primary"
+         href="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}"
+         hx-get="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}"
+         hx-target="#modal-acompanhamento" hx-swap="innerHTML"
+         aria-label="Registrar acompanhamento do item {{ p.item_pca }}"
+         title="Registrar acompanhamento do item {{ p.item_pca }}">
+        <i class="ti ti-calendar-plus" aria-hidden="true"></i>
+      </a>
+      {% endif %}
+    </div>
+  </td>
+</tr>

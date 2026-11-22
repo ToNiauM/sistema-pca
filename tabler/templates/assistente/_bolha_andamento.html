@@ -1,0 +1,21 @@
+{% comment %}Bolha "pensando" do pseudo-streaming: poll HTMX a cada 700ms (sem SSE, sem JS próprio). `texto_parcial_html` já vem do renderizador fechado — nunca texto cru do modelo. Ao concluir/errar/lease vencido, assistente:andamento responde com HX-Location e a área inteira é re-renderizada; o polling cessa porque o elemento com hx-trigger deixa de existir. "Atualizar" é o fallback sem JavaScript (GET normal).{% endcomment %}
+<div id="bolha-andamento" class="chat-bubble bg-surface border shadow-sm"
+     hx-get="{% url 'assistente:andamento' requisicao_id %}"
+     hx-trigger="load delay:400ms, every 700ms"
+     hx-target="this"
+     hx-swap="outerHTML">
+  {% if texto_parcial_html %}
+  <div class="chat-bubble-body markdown mb-2">{{ texto_parcial_html }}</div>
+  {% else %}
+  <div class="placeholder-glow mb-2" aria-hidden="true">
+    <span class="placeholder placeholder-sm col-9 rounded"></span>
+    <span class="placeholder placeholder-sm col-7 rounded"></span>
+    <span class="placeholder placeholder-sm col-5 rounded"></span>
+  </div>
+  {% endif %}
+  <div class="d-flex align-items-center gap-2 small text-secondary">
+    <span class="spinner-grow spinner-grow-sm text-primary" role="progressbar" aria-label="Assistente processando"></span>
+    <span aria-live="polite">{{ etapa }}</span>
+    <a class="ms-auto link-secondary" href="{{ destino_pagina }}"><i class="ti ti-refresh me-1" aria-hidden="true"></i>Atualizar</a>
+  </div>
+</div>

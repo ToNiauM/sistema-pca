@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% comment %}Descartar o rascunho de virada como página própria (nunca modal). POST real em pca:virada_descartar.{% endcomment %}
+{% block titulo %}Descartar virada — PCA {{ rascunho.ano_destino }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Virada de exercício · PCA {{ rascunho.ano_destino }}</div>
+      <h1 class="page-title">Descartar rascunho de virada?</h1>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6">
+    <div class="card">
+      <div class="card-status-top bg-warning"></div>
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3">
+          <span class="avatar bg-warning-lt flex-shrink-0"><i class="ti ti-alert-triangle fs-2" aria-hidden="true"></i></span>
+          <div role="alert">
+            <h2 class="h3 mb-1">Esta ação apaga toda a seleção e os ajustes feitos.</h2>
+            <p class="text-secondary mb-0">Nenhum processo é copiado para o PCA {{ rascunho.ano_destino }}; o rascunho volta ao estado inicial (nenhum item selecionado).</p>
+          </div>
+        </div>
+      </div>
+      <form method="post" action="{% url 'pca:virada_descartar' rascunho.ano_destino %}" class="card-footer">
+        {% csrf_token %}
+        <div class="d-flex justify-content-end gap-2">
+          <a class="btn btn-link link-secondary" href="{% url 'pca:virada' rascunho.ano_destino %}">Cancelar</a>
+          <button class="btn btn-danger" type="submit"><i class="ti ti-trash me-2" aria-hidden="true"></i>Descartar rascunho</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

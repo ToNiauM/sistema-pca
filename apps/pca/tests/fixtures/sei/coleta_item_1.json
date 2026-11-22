@@ -1,0 +1,138 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000028.000057/2024-77",
+      "resultado": "ok",
+      "item": 1,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "25/06/2024 08:40",
+            "unidade": "DEGEP",
+            "descricao": "Processo público gerado"
+          },
+          "ultimo": {
+            "data_hora": "13/02/2026 15:42",
+            "unidade": "DELIC",
+            "descricao": "Cancelada disponibilização do bloco 10296 para VIPAD"
+          },
+          "recebimentos": {
+            "DELIC": "03/07/2024 16:13",
+            "DEGEP": "11/07/2024 14:45",
+            "DECONT": "10/09/2024 13:01",
+            "PROJUR": "20/01/2025 08:38",
+            "COAD": "03/02/2026 16:09"
+          },
+          "conclusoes_na_unidade": {
+            "DELIC": "12/02/2026 12:10"
+          },
+          "assinaturas_no_historico": [
+            {
+              "data_hora": "23/01/2026 16:16",
+              "unidade": "VIPAD",
+              "protocolo": "1204703",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "10/02/2026 11:33",
+              "unidade": "VIPAD",
+              "protocolo": "1229914",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "11/02/2026 08:55",
+              "unidade": "DELIC",
+              "protocolo": "1229914",
+              "tipo": "Contrato",
+              "papel": "externo"
+            }
+          ],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "03/07/2024 16:13"
+          }
+        }
+      },
+      "documentos_contratuais": [
+        {
+          "id_documento": "414477",
+          "protocolo": "0393857",
+          "rotulo": "Contrato Vigente CAU/ES",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "arvore_processar_html",
+          "conteudo": "externo_nao_baixado"
+        },
+        {
+          "id_documento": "871110",
+          "protocolo": "0822179",
+          "rotulo": "Contrato vigente TJ/TO",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "arvore_processar_html",
+          "conteudo": "externo_nao_baixado"
+        },
+        {
+          "id_documento": "1270615",
+          "protocolo": "1204703",
+          "rotulo": "Contrato nº 03/2026",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 90743,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "03/2026",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "23/01/2026",
+              "hora": "16:16"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": false,
+          "ultima_assinatura": "23/01/2026 16:16",
+          "ultima_assinatura_cfc": "23/01/2026 16:16",
+          "tipo": "contrato",
+          "valor": null
+        },
+        {
+          "id_documento": "1297242",
+          "protocolo": "1229914",
+          "rotulo": "Contrato Nº 11/2026",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 101010,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "11/2026",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "10/02/2026",
+              "hora": "11:33"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "11/02/2026",
+              "hora": "08:55"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "11/02/2026 08:55",
+          "ultima_assinatura_cfc": "10/02/2026 11:33",
+          "tipo": "contrato",
+          "valor": null
+        }
+      ]
+    }
+  ]
+}

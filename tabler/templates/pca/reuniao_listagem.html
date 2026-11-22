@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% comment %}
+Reuniões (versão Tabler) — listagem simples (sem busca/paginação) + ação principal "Nova reunião".
+{% endcomment %}
+{% load ui %}
+{% block titulo %}Reuniões{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Acompanhamento</div>
+      <h1 class="page-title">Reuniões</h1>
+    </div>
+    {% if perms.pca.editar_pca %}
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <a class="btn btn-primary" href="{% url 'pca:criar_reuniao' %}"><i class="ti ti-plus me-2" aria-hidden="true"></i>Nova reunião</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12 col-xl-8">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Reuniões cadastradas</h2>
+        <div class="card-actions"><span class="badge bg-secondary-lt">{{ reunioes|length }}</span></div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
+          <caption class="visually-hidden">Reuniões cadastradas</caption>
+          <thead>
+            <tr>
+              <th scope="col">Data</th>
+              <th scope="col">Condutor</th>
+              <th scope="col">Situação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for reuniao in reunioes %}
+            <tr>
+              <td data-th="Data" class="text-nowrap fw-medium">{{ reuniao.data|data_br }}</td>
+              <td data-th="Condutor">{% if reuniao.condutor %}{{ reuniao.condutor.get_full_name|default:reuniao.condutor.email }}{% else %}—{% endif %}</td>
+              <td data-th="Situação" class="text-nowrap">
+                {% if reuniao.situacao == "aberta" %}{% tag_status "Aberta" "sucesso" %}{% else %}{% tag_status "Fechada" "neutro" %}{% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3">
+                <div class="empty py-4">
+                  <div class="empty-icon"><i class="ti ti-calendar-event" aria-hidden="true"></i></div>
+                  <p class="empty-title">Nenhuma reunião cadastrada.</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

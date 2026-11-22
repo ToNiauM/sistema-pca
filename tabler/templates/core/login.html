@@ -1,0 +1,84 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Entrar · {{ APP.SISTEMA }}</title>
+  <meta name="theme-color" content="#1d273b"/>
+  {% include "ui/_tema.html" %}
+  <link rel="icon" href="{% static 'img/icon-192.png' %}"/>
+  <link rel="stylesheet" href="{% static 'tabler/vendor/tabler.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'tabler/vendor/tabler-themes.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'tabler/vendor/tabler-icons/tabler-icons.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'tabler/css/pca-tabler.css' %}"/>
+</head>
+<body class="d-flex flex-column">
+<div class="row g-0 flex-fill min-vh-100">
+  <div class="col-12 col-lg-6 col-xl-5 border-top-wide border-primary d-flex flex-column justify-content-center">
+    <div class="container container-tight my-5 px-lg-5">
+      <div class="mb-5 d-flex align-items-center gap-3">
+        {% if APP.LOGO %}<img src="{% static APP.LOGO %}" alt="{{ APP.ORGAO }}" height="44"/>{% else %}<span class="h2 mb-0">{{ APP.ORGAO_SIGLA }}</span>{% endif %}
+      </div>
+      <h1 class="h2 mb-1">Entrar no {{ APP.SISTEMA }}</h1>
+      <p class="text-secondary mb-4">{{ APP.SISTEMA_SUBTITULO }}</p>
+      {% if erro %}
+      <div class="alert alert-danger" role="alert">
+        <div class="d-flex align-items-start gap-2"><i class="ti ti-alert-circle fs-2 lh-1" aria-hidden="true"></i>
+          <div><div class="fw-bold">{% if bloqueado %}Acesso bloqueado.{% else %}Não foi possível entrar.{% endif %}</div><div>{{ erro }}</div></div>
+        </div>
+      </div>
+      {% endif %}
+      <form method="post" action="{% url 'core:login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" autocomplete="on">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label" for="id_username">E-mail institucional</label>
+          <div class="input-icon">
+            <span class="input-icon-addon"><i class="ti ti-mail" aria-hidden="true"></i></span>
+            <input class="form-control form-control-lg" id="id_username" name="username" type="email" value="{{ usuario_digitado }}" placeholder="nome@cfc.org.br" autocomplete="username" required autofocus/>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label" for="id_password">Senha</label>
+          <div class="input-group input-group-flat">
+            <input class="form-control form-control-lg" id="id_password" name="password" type="password" placeholder="Sua senha" autocomplete="current-password" required/>
+            <span class="input-group-text">
+              <button class="btn btn-link link-secondary p-0" type="button" id="mostrar-senha" aria-label="Exibir senha" aria-pressed="false" title="Exibir senha"><i class="ti ti-eye" aria-hidden="true"></i></button>
+            </span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg w-100" type="submit"{% if bloqueado %} disabled{% endif %}>Entrar</button>
+      </form>
+      <p class="text-secondary small mt-5 mb-0">{{ APP.ORGAO }}</p>
+    </div>
+  </div>
+  <div class="col-lg-6 col-xl-7 d-none d-lg-flex bg-dark text-white" data-bs-theme="dark">
+    <div class="d-flex flex-column justify-content-between p-5 w-100">
+      <div class="d-flex align-items-center gap-2 text-white-50 small text-uppercase fw-bold"><i class="ti ti-shield-check" aria-hidden="true"></i>Ambiente institucional seguro</div>
+      <div>
+        <div class="display-6 fw-bold mb-3 lh-sm">Plano de Contratações Anual<br/>do começo ao fim, em um só lugar.</div>
+        <p class="text-white-50 fs-3 mb-5">Planejamento, tramitação, execução contratual e reuniões de acompanhamento com a equipe, no mesmo sistema.</p>
+        <div class="row g-3">
+          <div class="col-sm-4"><div class="d-flex align-items-center gap-2"><span class="avatar bg-primary text-white"><i class="ti ti-layout-dashboard" aria-hidden="true"></i></span><span class="small">Painel e análises</span></div></div>
+          <div class="col-sm-4"><div class="d-flex align-items-center gap-2"><span class="avatar bg-green text-white"><i class="ti ti-list-details" aria-hidden="true"></i></span><span class="small">Processos em tempo real</span></div></div>
+          <div class="col-sm-4"><div class="d-flex align-items-center gap-2"><span class="avatar bg-orange text-white"><i class="ti ti-calendar-event" aria-hidden="true"></i></span><span class="small">Prazos e calendário</span></div></div>
+        </div>
+      </div>
+      <div class="text-white-50 small">{{ APP.RODAPE_TEXTO }}</div>
+    </div>
+  </div>
+</div>
+<script src="{% static 'tabler/vendor/tabler.min.js' %}"></script>
+<script>
+(function () {
+  var b = document.getElementById("mostrar-senha"), c = document.getElementById("id_password");
+  b.addEventListener("click", function () {
+    var mostrar = c.type === "password";
+    c.type = mostrar ? "text" : "password";
+    b.setAttribute("aria-pressed", String(mostrar));
+    b.setAttribute("aria-label", mostrar ? "Ocultar senha" : "Exibir senha");
+    b.querySelector("i").className = mostrar ? "ti ti-eye-off" : "ti ti-eye";
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{% comment %}Rodapé padrão de formulário: cancelar (terciário) à esquerda do primário. url_cancelar obrigatório.{% endcomment %}
+<div class="dsgov-acoes-formulario">
+  <a class="br-button" href="{{ url_cancelar }}">Cancelar</a>
+  <button class="br-button primary" type="submit"><i class="fas fa-save mr-1" aria-hidden="true"></i>{{ rotulo_salvar|default:"Salvar" }}</button>
+</div>

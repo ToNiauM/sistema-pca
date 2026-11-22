@@ -1,0 +1,5 @@
+{% comment %}Rodapé padrão de formulário: Cancelar à esquerda do botão principal. url_cancelar obrigatório.{% endcomment %}
+<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top">
+  <a class="btn btn-link link-secondary" href="{{ url_cancelar }}">Cancelar</a>
+  <button class="btn btn-primary" type="submit"><i class="ti ti-device-floppy me-2" aria-hidden="true"></i>{{ rotulo_salvar|default:"Salvar" }}</button>
+</div>

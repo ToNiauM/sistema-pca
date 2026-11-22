@@ -1,0 +1,14 @@
+{% comment %}
+Um gráfico de colunas (verticais ou empilhadas) do Relatório da reunião, em SVG inline
+(comum às duas cascas). `g` chega pronto de `apps.pca.relatorio_reuniao._grafico_colunas`: viewBox, linha de
+base, colunas com segmentos, total em cima, rótulo reto ou inclinado embaixo e legenda centralizada; `descricao`
+é o título do gráfico para o aria-label. Texto vindo dos fatos passa pelo autoescape (sem filtro de marcação);
+os atributos numéricos (x, y, transform) vêm só da geometria. Cor só por classe (abnt-cor-*), sem style inline
+nem cor em atributo: "Copiar relatório"/"Baixar HTML" convertem este SVG em PNG com os estilos calculados.
+{% endcomment %}
+<svg class="abnt-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ g.largura }} {{ g.altura }}" width="{{ g.largura }}" height="{{ g.altura }}" role="img" focusable="false" aria-label="{{ descricao }}: {% for c in g.colunas %}{{ c.rotulo }}, {{ c.valor }}{% if not forloop.last %}; {% endif %}{% endfor %}.">
+<line class="abnt-grafico-eixo" x1="{{ g.eixo_x1 }}" y1="{{ g.base_y }}" x2="{{ g.eixo_x2 }}" y2="{{ g.base_y }}"></line>
+{% for c in g.colunas %}{% for s in c.segmentos %}<rect class="{{ s.classe }}" x="{{ s.x }}" y="{{ s.y }}" width="{{ s.w }}" height="{{ s.h }}"></rect>{% endfor %}<text class="abnt-grafico-valor" x="{{ c.x }}" y="{{ c.y_valor }}">{{ c.valor }}</text>
+<text class="abnt-grafico-categoria{% if g.inclinado %} abnt-grafico-inclinado{% endif %}" x="{{ c.rotulo_x }}" y="{{ c.rotulo_y }}"{% if c.transform %} transform="{{ c.transform }}"{% endif %}>{{ c.rotulo }}</text>
+{% endfor %}{% if g.legenda %}<text class="abnt-grafico-legenda" x="{{ g.legenda_x }}" y="{{ g.legenda_y }}">{% for item in g.legenda %}<tspan class="{{ item.classe }}"{% if not forloop.first %} dx="14"{% endif %}>■</tspan><tspan dx="4">{{ item.texto }}</tspan>{% endfor %}</text>{% endif %}
+</svg>

@@ -1,0 +1,44 @@
+{% comment %}Um campo Django → um controle do Tabler, escolhido pelo tipo do widget.{% endcomment %}
+{% load ui %}
+{% with tipo=field.widget_type erro=field.errors.0 ajuda=field.help_text %}
+{% if tipo == "checkbox" %}
+  <label class="form-check mb-0">
+    {{ field|widget_classe:"form-check-input" }}
+    <span class="form-check-label">{{ field.label }}</span>
+    {% if ajuda %}<span class="form-check-description" id="{{ field.auto_id }}_ajuda">{{ ajuda }}</span>{% endif %}
+  </label>
+  {% if erro %}<div class="invalid-feedback d-block" role="alert" id="{{ field.auto_id }}_erro">{{ erro }}</div>{% endif %}
+
+{% elif tipo == "radioselect" or tipo == "checkboxselectmultiple" %}
+  <fieldset{% if ajuda or erro %} aria-describedby="{% if ajuda %}{{ field.auto_id }}_ajuda{% endif %}{% if erro %} {{ field.auto_id }}_erro{% endif %}"{% endif %}>
+    <legend class="form-label{% if field.field.required %} required{% endif %}">{{ field.label }}</legend>
+    {% if ajuda %}<div class="form-hint mb-2" id="{{ field.auto_id }}_ajuda">{{ ajuda }}</div>{% endif %}
+    {% for opcao in field %}
+    <label class="form-check">
+      <input class="form-check-input{% if erro %} is-invalid{% endif %}" type="{% if tipo == 'radioselect' %}radio{% else %}checkbox{% endif %}" name="{{ field.html_name }}" value="{{ opcao.data.value }}" id="{{ opcao.id_for_label }}"{% if opcao.data.selected %} checked{% endif %}{% if field.field.disabled %} disabled{% endif %}{% if tipo == 'radioselect' and field.field.required %} required{% endif %}/>
+      <span class="form-check-label">{{ opcao.choice_label }}</span>
+    </label>
+    {% endfor %}
+    {% if erro %}<div class="invalid-feedback d-block" role="alert" id="{{ field.auto_id }}_erro">{{ erro }}</div>{% endif %}
+  </fieldset>
+
+{% elif tipo == "select" or tipo == "selectmultiple" or tipo == "nullbooleanselect" %}
+  <label class="form-label{% if field.field.required %} required{% endif %}" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field|widget_classe:"form-select" }}
+  {% if ajuda %}<div class="form-hint" id="{{ field.auto_id }}_ajuda">{{ ajuda }}</div>{% endif %}
+  {% if erro %}<div class="invalid-feedback d-block" role="alert" id="{{ field.auto_id }}_erro">{{ erro }}</div>{% endif %}
+
+{% elif tipo == "clearablefile" or tipo == "file" %}
+  <label class="form-label{% if field.field.required %} required{% endif %}" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field|widget_classe:"form-control" }}
+  {% if field.value and tipo == "clearablefile" %}<div class="form-hint">Arquivo atual: {{ field.value }}</div>{% endif %}
+  {% if ajuda %}<div class="form-hint" id="{{ field.auto_id }}_ajuda">{{ ajuda }}</div>{% endif %}
+  {% if erro %}<div class="invalid-feedback d-block" role="alert" id="{{ field.auto_id }}_erro">{{ erro }}</div>{% endif %}
+
+{% else %}
+  <label class="form-label{% if field.field.required %} required{% endif %}" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field|widget_classe:"form-control" }}
+  {% if ajuda %}<div class="form-hint" id="{{ field.auto_id }}_ajuda">{{ ajuda }}</div>{% endif %}
+  {% if erro %}<div class="invalid-feedback d-block" role="alert" id="{{ field.auto_id }}_erro">{{ erro }}</div>{% endif %}
+{% endif %}
+{% endwith %}

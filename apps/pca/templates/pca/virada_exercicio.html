@@ -1,0 +1,20 @@
+{% comment %}
+Fase 26 — casca compartilhada do wizard de virada:
+SÓ a barra de progresso (`componentes/wizard.md` § `.wizard-progress`),
+incluída pelas 3 páginas de etapa (`virada_selecionar.html`/
+`virada_ajustar.html`/`virada_revisar.html`), cada uma sua PRÓPRIA página
+(`{% extends "base.html" %}`) — decisão do executor documentada no
+SUMMARY: "3 páginas independentes" em vez de uma casca-mãe com os 3
+painéis incluídos, porque a navegação entre etapas é sempre um link/POST
+de página inteira, nunca troca de painel client-side ("sem JS de
+troca de etapa"). Os 3 botões ficam SEMPRE `disabled` — indicador visual
+puro: como só o painel da etapa CORRENTE existe no DOM de cada página
+(nunca os 3 juntos), permitir clique no `BRWizard` do core tentaria abrir
+um painel inexistente. `active` marca a etapa corrente e as já concluídas.
+Requer `etapa_ativa` (1, 2 ou 3) no contexto de quem inclui.
+{% endcomment %}
+<div class="wizard-progress" role="tablist">
+  <button class="wizard-progress-btn" type="button" role="tab" title="Selecionar" disabled="disabled" {% if etapa_ativa >= 1 %}active="active"{% endif %}><span class="info">1. Selecionar</span></button>
+  <button class="wizard-progress-btn" type="button" role="tab" title="Ajustar" disabled="disabled" {% if etapa_ativa >= 2 %}active="active"{% endif %}><span class="info">2. Ajustar</span></button>
+  <button class="wizard-progress-btn" type="button" role="tab" title="Revisar e concluir" disabled="disabled" {% if etapa_ativa >= 3 %}active="active"{% endif %}><span class="info">3. Revisar e concluir</span></button>
+</div>

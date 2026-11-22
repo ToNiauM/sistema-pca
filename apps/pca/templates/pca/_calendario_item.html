@@ -1,0 +1,31 @@
+{% load dsgov %}
+{% comment %}
+Fase 28 — ativador (número do item, `<a>` de
+verdade — fallback sem JS) IMEDIATAMENTE seguido do popover próprio
+(`.br-tooltip[data-popover-calendario]`, NUNCA a inicialização automática
+do `BRTooltip`, depreciada — `dsgov.js` exclui `[data-popover-calendario]`
+da seleção `.br-tooltip` do array `COMPONENTES` e implementa comportamento
+próprio: mostrar em hover/foco, fixar em clique/Enter/toque — um por vez —
+Esc/"Fechar detalhes" fecham e devolvem o foco). Reaproveitado por
+`_calendario_grade.html` (anual e mensal) — um único lugar para o par
+ativador/popover, nunca duas cópias divergentes.
+
+Conteúdo: Item + Objeto (cabeçalho), UO + Valor previsto + Valor
+contratado quando preenchido — "0" aparece (`|moeda` é zero-safe), só
+ausência real (`None`) vira reticência/some da linha.
+{% endcomment %}
+<a class="dsgov-calendario-item text-truncate" href="{% url 'pca:detalhe_processo' evento.processo.exercicio.ano evento.processo.item_pca %}" aria-describedby="popover-calendario-{{ evento.processo.id }}" data-popover-calendario tabindex="0" aria-label="Item {{ evento.processo.item_pca }}: {{ evento.processo.descricao_objeto|truncatechars:40 }}">{{ evento.processo.item_pca }}</a><div class="br-tooltip" role="dialog" aria-modal="false" aria-label="Detalhes do item {{ evento.processo.item_pca }}" data-popover-calendario id="popover-calendario-{{ evento.processo.id }}">
+  <div class="popover-header">
+    <span class="text">Item {{ evento.processo.item_pca }}</span>
+    <span class="subtext">{{ evento.processo.descricao_objeto|truncatechars:60 }}</span>
+  </div>
+  <div class="popover-body">
+    <p class="mb-1">{{ evento.processo.unidade_organizacional.nome }}</p>
+    <p class="mb-1">Valor previsto: {{ evento.processo.valor_estimado|moeda }}</p>
+    {% if evento.processo.valor_contratado is not None %}<p class="mb-0">Valor contratado: {{ evento.processo.valor_contratado|moeda }}</p>{% endif %}
+  </div>
+  <div class="popover-footer">
+    <a class="br-button secondary" href="{% url 'pca:detalhe_processo' evento.processo.exercicio.ano evento.processo.item_pca %}">Ver mais</a>
+    <button class="br-button" type="button" data-fechar-popover-calendario>Fechar detalhes</button>
+  </div>
+</div>

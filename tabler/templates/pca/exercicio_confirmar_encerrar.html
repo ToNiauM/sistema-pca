@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% comment %}Confirmação de encerramento como página própria, nunca modal. POST real em pca:encerrar.{% endcomment %}
+{% block titulo %}Encerrar exercício {{ exercicio.ano }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Gerenciar exercícios</div>
+      <h1 class="page-title">Encerrar exercício {{ exercicio.ano }}?</h1>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6">
+    {% if erro %}
+    <div class="alert alert-danger" role="alert">
+      <div class="d-flex align-items-start gap-2"><i class="ti ti-alert-circle fs-2 lh-1" aria-hidden="true"></i><div class="fw-bold">{{ erro }}</div></div>
+    </div>
+    {% endif %}
+    <div class="card">
+      <div class="card-status-top bg-warning"></div>
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3">
+          <span class="avatar bg-warning-lt flex-shrink-0"><i class="ti ti-alert-triangle fs-2" aria-hidden="true"></i></span>
+          <div role="alert">
+            <h2 class="h3 mb-1">Esta ação não pode ser desfeita.</h2>
+            <p class="text-secondary mb-0">Os processos do exercício {{ exercicio.ano }} permanecerão disponíveis para leitura, mas não poderão mais ser editados.</p>
+          </div>
+        </div>
+      </div>
+      <form method="post" action="{% url 'pca:encerrar' exercicio.ano %}" class="card-footer">
+        {% csrf_token %}
+        <div class="d-flex justify-content-end gap-2">
+          <a class="btn btn-link link-secondary" href="{% url 'pca:gerenciar_exercicios' %}">Cancelar</a>
+          <button class="btn btn-danger" type="submit"><i class="ti ti-lock me-2" aria-hidden="true"></i>Confirmar encerramento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

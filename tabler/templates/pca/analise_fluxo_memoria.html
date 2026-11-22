@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load ui %}
+{% comment %}
+Análises › Fluxo de caixa › Memória de cálculo de UM item (casca Tabler): fontes/eventos considerados, eventos
+descartados, premissas e parcelas com a fórmula em texto. Com simulação ativa, parcelas Oficial × Simulado lado a
+lado, com o selo "alterado" nas linhas que diferem (calculado na view). Sem formulário próprio.
+{% endcomment %}
+
+{% block titulo %}Memória de cálculo — Item {{ processo.item_pca }}{% endblock %}
+
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Fluxo de caixa</div>
+      <h1 class="page-title">Memória de cálculo — Item {{ processo.item_pca }}</h1>
+      <div class="text-secondary mt-1">{{ processo.descricao_objeto|truncatechars:120 }}</div>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <button class="btn" type="button" onclick="window.print()"><i class="ti ti-printer me-2" aria-hidden="true"></i>Imprimir</button>
+        <a class="btn btn-ghost-secondary" href="{% url 'pca:analise_fluxo' %}?exercicio={{ exercicio.ano }}"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if comparacao_ativa %}
+<div class="alert alert-warning d-print-none mb-3" role="alert">
+  <div class="d-flex gap-3">
+    <div><i class="ti ti-alert-triangle alert-icon" aria-hidden="true"></i></div>
+    <div>
+      <h4 class="alert-title">Simulação ativa — {{ variaveis_alteradas|length }} variável(is) alterada(s)</h4>
+      {% if variaveis_alteradas %}
+      <ul class="mb-0 ps-3">
+        {% for variavel in variaveis_alteradas %}<li>{{ variavel }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if not memoria %}
+<div class="alert alert-warning mb-3" role="alert">
+  <div class="d-flex gap-3">
+    <div><i class="ti ti-alert-triangle alert-icon" aria-hidden="true"></i></div>
+    <div>Sem dado suficiente para projeção deste item.</div>
+  </div>
+</div>
+{% else %}
+
+<div class="row row-cards mb-3">
+  <div class="col-12 col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title">Fonte e eventos considerados</h2></div>
+      {% if memoria.fontes %}
+      <div class="list-group list-group-flush">
+        {% for fonte in memoria.fontes %}<div class="list-group-item py-2"><i class="ti ti-circle-check text-green me-2" aria-hidden="true"></i>{{ fonte }}</div>{% endfor %}
+      </div>
+      {% else %}
+      <div class="card-body"><p class="text-secondary mb-0">Nenhuma fonte registrada para este item.</p></div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title">Eventos descartados</h2></div>
+      {% if memoria.descartados %}
+      <div class="list-group list-group-flush">
+        {% for descartado in memoria.descartados %}<div class="list-group-item py-2"><i class="ti ti-circle-minus text-secondary me-2" aria-hidden="true"></i>{{ descartado }}</div>{% endfor %}
+      </div>
+      {% else %}
+      <div class="card-body"><p class="text-secondary mb-0">Nenhum evento descartado.</p></div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title">Premissas aplicadas a este item</h2></div>
+      {% if memoria.premissas %}
+      <div class="list-group list-group-flush">
+        {% for premissa in memoria.premissas %}<div class="list-group-item py-2"><i class="ti ti-info-circle text-azure me-2" aria-hidden="true"></i>{{ premissa }}</div>{% endfor %}
+      </div>
+      {% else %}
+      <div class="card-body"><p class="text-secondary mb-0">Nenhuma premissa aplicada.</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if comparacao_ativa %}
+{% comment %} Memória dupla: Oficial e Simulado lado a lado (empilhados em telas estreitas); selo "alterado" onde
+(competência, camada, valor) difere entre as duas. {% endcomment %}
+<h2 class="h2 mb-3">Parcelas — Oficial × Simulado</h2>
+<div class="row row-cards mb-3">
+  <div class="col-12 col-xl-6">
+    <div class="card h-100">
+      <div class="card-header"><h3 class="card-title">Oficial</h3></div>
+      <div class="table-responsive">
+        <table class="table table-sm table-vcenter card-table mb-0">
+          <caption class="visually-hidden">Parcelas oficiais do item {{ processo.item_pca }}</caption>
+          <thead><tr><th scope="col">Competência</th><th scope="col">Camada</th><th scope="col" class="text-end">Valor</th><th scope="col"><span class="visually-hidden">Diferença</span></th></tr></thead>
+          <tbody>
+            {% for linha in linhas_oficial_comparacao %}
+            <tr{% if linha.alterado %} class="table-warning"{% endif %}><td class="text-nowrap">{{ linha.competencia }}</td><td>{{ linha.camada }}</td><td class="text-end text-nowrap">{{ linha.valor }}</td><td class="w-1">{% if linha.alterado %}<span class="badge bg-yellow-lt">alterado</span>{% endif %}</td></tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-secondary">Nenhuma parcela projetada para este item.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-6">
+    <div class="card h-100">
+      <div class="card-header"><h3 class="card-title">Simulado</h3></div>
+      <div class="table-responsive">
+        <table class="table table-sm table-vcenter card-table mb-0">
+          <caption class="visually-hidden">Parcelas simuladas do item {{ processo.item_pca }}</caption>
+          <thead><tr><th scope="col">Competência</th><th scope="col">Camada</th><th scope="col" class="text-end">Valor</th><th scope="col"><span class="visually-hidden">Diferença</span></th></tr></thead>
+          <tbody>
+            {% for linha in linhas_simulada_comparacao %}
+            <tr{% if linha.alterado %} class="table-warning"{% endif %}><td class="text-nowrap">{{ linha.competencia }}</td><td>{{ linha.camada }}</td><td class="text-end text-nowrap">{{ linha.valor }}</td><td class="w-1">{% if linha.alterado %}<span class="badge bg-yellow-lt">alterado</span>{% endif %}</td></tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-secondary">Nenhuma parcela projetada para este item na simulação.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card mb-3">
+  <div class="card-header"><h2 class="card-title">Parcelas</h2></div>
+  <div class="table-responsive">
+    <table class="table table-sm table-vcenter card-table table-hover mb-0">
+      <caption class="visually-hidden">Parcelas do item {{ processo.item_pca }}, por competência e camada</caption>
+      <thead><tr>{% for c in tabela_parcelas.colunas %}<th scope="col"{% if c == "Valor" %} class="text-end"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for linha in tabela_parcelas.linhas %}
+        <tr{% if linha.0.valor == "Total" %} class="fw-bold"{% endif %}>{% for cel in linha %}<td class="{% if forloop.counter == 3 %}text-end text-nowrap{% elif forloop.counter == 4 %}text-secondary small{% else %}text-nowrap{% endif %}">{{ cel.valor }}</td>{% endfor %}</tr>
+        {% empty %}
+        <tr><td colspan="{{ tabela_parcelas.colunas|length }}" class="text-secondary">Nenhuma parcela projetada para este item.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+<p class="text-secondary small mt-3 mb-0 d-print-none">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+{% endblock %}

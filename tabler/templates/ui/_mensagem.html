@@ -1,0 +1,4 @@
+<div class="alert alert-{{ cor }} alert-dismissible fade show" role="alert"{% if cor == "success" %} data-auto-fechar{% endif %}>
+  <div class="d-flex align-items-start gap-2"><i class="ti {{ icone }} fs-2 lh-1" aria-hidden="true"></i><div>{{ m }}</div></div>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+</div>

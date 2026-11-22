@@ -1,0 +1,47 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Entrar — {{ DSGOV.SISTEMA }}</title>
+  <meta name="theme-color" content="#1351b4"/>
+  <link rel="stylesheet" href="{% static 'dsgov/css/fontes.css' %}"/>
+  <link rel="stylesheet" href="{% static 'dsgov/vendor/govbr-ds/core.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'dsgov/vendor/fontawesome/css/all.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'dsgov/css/dsgov.css' %}"/>
+</head>
+<body class="dsgov-login">
+  {% include "dsgov/_header.html" %}
+  <main id="main-content">
+    <div class="br-card">
+      <div class="card-header">
+        <div class="text-up-02 text-weight-semi-bold">Entrar</div>
+        <div class="text-down-01 text-gray-70">{{ DSGOV.SISTEMA }}</div>
+      </div>
+      <div class="card-content">
+        {% if erro %}
+        <div class="br-message danger mb-3">
+          <div class="icon"><i class="fas fa-times-circle fa-lg" aria-hidden="true"></i></div>
+          <div class="content" role="alert"><span class="message-title">{% if bloqueado %}Acesso bloqueado.{% else %}Não foi possível entrar.{% endif %}</span><span class="message-body"> {{ erro }}</span></div>
+        </div>
+        {% endif %}
+        <form method="post" action="{% url 'core:login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}">
+          {% csrf_token %}
+          <div class="br-input mb-3">
+            <label for="id_username">E-mail institucional</label>
+            <input id="id_username" name="username" type="email" value="{{ usuario_digitado }}" autocomplete="username" required autofocus/>
+          </div>
+          <div class="br-input input-button mb-4">
+            <label for="id_password">Senha</label>
+            <input id="id_password" name="password" type="password" autocomplete="current-password" required/>
+            <button class="br-button" type="button" aria-label="Exibir senha" role="switch" aria-checked="false"><i class="fas fa-eye" aria-hidden="true"></i></button>
+          </div>
+          <button class="br-button primary block" type="submit"{% if bloqueado %} disabled{% endif %}>Entrar</button>
+        </form>
+      </div>
+    </div>
+  </main>
+  {% include "dsgov/_footer.html" %}
+  <script src="{% static 'dsgov/vendor/govbr-ds/core.min.js' %}"></script>
+</body>
+</html>

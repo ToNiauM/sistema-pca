@@ -1,0 +1,220 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000007.000027/2025-90",
+      "resultado": "ok",
+      "item": 10,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "23/07/2025 12:09",
+            "unidade": "CGTI",
+            "descricao": "Processo público gerado"
+          },
+          "ultimo": {
+            "data_hora": "23/07/2026 10:53",
+            "unidade": "CIT",
+            "descricao": "Registro de documento externo público 1466495 (Portaria)"
+          },
+          "recebimentos": {
+            "DELIC": "28/08/2025 17:06",
+            "CGTI": "10/11/2025 17:34",
+            "DECONT": "24/11/2025 16:25"
+          },
+          "conclusoes_na_unidade": {
+            "DELIC": "29/05/2026 13:46"
+          },
+          "assinaturas_no_historico": [
+            {
+              "data_hora": "02/02/2026 16:32",
+              "unidade": "VIPAD",
+              "protocolo": "1208781",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "02/02/2026 16:32",
+              "unidade": "VIPAD",
+              "protocolo": "1208777",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "02/02/2026 16:32",
+              "unidade": "VIPAD",
+              "protocolo": "1208622",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "02/02/2026 16:37",
+              "unidade": "DELIC",
+              "protocolo": "1208781",
+              "tipo": "Contrato",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "02/02/2026 16:37",
+              "unidade": "DELIC",
+              "protocolo": "1208622",
+              "tipo": "Contrato",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "02/02/2026 17:02",
+              "unidade": "DELIC",
+              "protocolo": "1208777",
+              "tipo": "Contrato",
+              "papel": "externo"
+            }
+          ],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "28/08/2025 17:06"
+          }
+        }
+      },
+      "documentos_contratuais": [
+        {
+          "id_documento": "1274749",
+          "protocolo": "1208622",
+          "rotulo": "Contrato nº 05/2026 - Tech Minas",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 104313,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "05/2026",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "02/02/2026",
+              "hora": "16:32"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "02/02/2026",
+              "hora": "16:37"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "02/02/2026 16:37",
+          "ultima_assinatura_cfc": "02/02/2026 16:32",
+          "tipo": "contrato",
+          "contratado": {
+            "razao_social": "Banco do Brasil S.A.",
+            "cnpj": "00.000.000/0001-91",
+            "fonte": "preambulo"
+          },
+          "procedencia": null,
+          "vigencia": null,
+          "prorrogacao": null,
+          "valor": {
+            "cifra": "10.000,00",
+            "extenso": "dez mil reais",
+            "confere": true
+          }
+        },
+        {
+          "id_documento": "1274912",
+          "protocolo": "1208777",
+          "rotulo": "Contrato nº 06/2026 - Petróleo Brasileiro S.A.",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 111244,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "06/2026",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "02/02/2026",
+              "hora": "16:32"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "02/02/2026",
+              "hora": "17:02"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "02/02/2026 17:02",
+          "ultima_assinatura_cfc": "02/02/2026 16:32",
+          "tipo": "contrato",
+          "contratado": {
+            "razao_social": "Petróleo Brasileiro S.A. - Petrobras",
+            "cnpj": "33.000.167/0001-01",
+            "fonte": "preambulo"
+          },
+          "procedencia": {
+            "modalidade_texto": "Pregão Eletrônico",
+            "numero": "90050/2025",
+            "modalidade_catalogo": "pregao eletronico"
+          },
+          "vigencia": null,
+          "prorrogacao": null,
+          "valor": {
+            "cifra": "20.000,00",
+            "extenso": "vinte mil reais",
+            "confere": true
+          }
+        },
+        {
+          "id_documento": "1274916",
+          "protocolo": "1208781",
+          "rotulo": "Contrato nº 07/2026 - Zeferino & Camelo",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 119002,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "07/2026",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "02/02/2026",
+              "hora": "16:32"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "02/02/2026",
+              "hora": "16:37"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "02/02/2026 16:37",
+          "ultima_assinatura_cfc": "02/02/2026 16:32",
+          "tipo": "contrato",
+          "contratado": {
+            "razao_social": "Banco Bradesco S.A.",
+            "cnpj": "60.746.948/0001-12",
+            "fonte": "preambulo"
+          },
+          "procedencia": null,
+          "vigencia": null,
+          "prorrogacao": null,
+          "valor": {
+            "cifra": "30.000,00",
+            "extenso": "trinta mil reais",
+            "confere": true
+          }
+        }
+      ]
+    }
+  ]
+}

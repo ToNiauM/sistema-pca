@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load dsgov %}
+{% block titulo %}Início{% endblock %}
+{% block conteudo %}
+{% comment %}
+Faixa de abertura no padrão da página inicial do PNCP: título, seletor de exercício
+(sem HTMX, recarrega a página inteira) e uma busca grande que leva à mesma busca global do
+cabeçalho (`DSGOV.BUSCA_URL_NAME`). `exercicios_disponiveis` chega pelo context processor global
+`apps.pca.context_processors.exercicios_disponiveis`; `br-select` com radios nativos
+(`componentes/select.md`) funciona mesmo sem o JS do core terminar de instanciar.
+{% endcomment %}
+<div class="dsgov-faixa">
+  <h1 class="mb-0">{{ DSGOV.SISTEMA }}</h1>
+  {% if subtitulo %}<p class="text-gray-70 mb-0 mt-1">{{ subtitulo }}</p>{% endif %}
+  {% if exercicios_disponiveis %}
+  <form method="get" class="d-flex flex-wrap align-items-end justify-content-center mt-3" aria-label="Selecionar exercício">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="exercicio_exibicao">Exercício</label>
+        <input id="exercicio_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for ex in exercicios_disponiveis %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="exercicio_{{ ex.ano }}" name="exercicio" type="radio" value="{{ ex.ano }}"{% if exercicio and ex.ano == exercicio.ano %} checked="checked"{% endif %}/>
+            <label for="exercicio_{{ ex.ano }}">{{ ex.ano }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <button class="br-button secondary ml-2" type="submit">Aplicar</button>
+  </form>
+  {% endif %}
+  {% if DSGOV.BUSCA_URL_NAME %}
+  <form class="dsgov-faixa-busca mt-4" method="get" action="{% url DSGOV.BUSCA_URL_NAME %}" role="search" aria-label="Buscar no PCA">
+    <div class="br-input has-icon">
+      <label class="sr-only" for="busca-inicio">Buscar no PCA</label>
+      <input id="busca-inicio" type="text" name="q" placeholder="Item, objeto, unidade ou nº SEI" autocomplete="off"/>
+      <button class="br-button circle small" type="submit" aria-label="Pesquisar"><i class="fas fa-search" aria-hidden="true"></i></button>
+    </div>
+  </form>
+  {% endif %}
+</div>
+
+{% if kpis %}
+{% comment %}
+7 KPIs: uma linha só a partir de 1280px (col-lg); de 992px a 1279px, Previstos,
+Cancelados e Ativos em cima e as 4 situações dos ativos embaixo; no celular, Previstos na largura toda e
+os demais 2 a 2 (`kpi.grupo` vem de core/views.py::inicio).
+{% endcomment %}
+<div class="row dsgov-linha-cards">
+  {% for kpi in kpis %}{% if kpi.grupo == "total" %}{% include "dsgov/_kpi_card.html" with icone_no_valor=True kpi_col="col-12 col-sm-4 col-lg" %}{% elif kpi.grupo == "universo" %}{% include "dsgov/_kpi_card.html" with icone_no_valor=True kpi_col="col-6 col-sm-4 col-lg" %}{% else %}{% include "dsgov/_kpi_card.html" with icone_no_valor=True kpi_col="col-6 col-md-3 col-lg" %}{% endif %}{% endfor %}
+</div>
+{% endif %}
+
+{% if manuais_divergentes %}
+<div class="br-message warning" role="alert">
+  <div class="icon"><i class="fas fa-lock fa-lg" aria-hidden="true"></i></div>
+  <div class="content">
+    <span class="message-title">Situação manual diferente das regras automáticas.</span>
+    <span class="message-body"> Estes itens estão com a situação travada manualmente e as regras aplicariam outra:
+    {% for p in manuais_divergentes %}<a href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}">item {{ p.item_pca }}</a> ({{ p.get_situacao_display }} → pelas regras: {{ p.get_situacao_regra_display }}){% if not forloop.last %}; {% endif %}{% endfor %}.
+    Para liberar, desmarque “situação manual” no Admin.</span>
+  </div>
+</div>
+{% endif %}
+
+{% if solicitacoes_a_avaliar and solicitacoes_a_avaliar.total %}
+{% comment %}Fase 43 — contador de partes de solicitações a avaliar, só para equipe do PCA e diretoria.{% endcomment %}
+<div class="br-message info" role="alert">
+  <div class="icon"><i class="fas fa-inbox fa-lg" aria-hidden="true"></i></div>
+  <div class="content">
+    <span class="message-title">Solicitações para avaliar: {{ solicitacoes_a_avaliar.total }}.</span>
+    <span class="message-body"> Há pedidos das unidades aguardando a decisão da sua alçada. <a href="{{ solicitacoes_a_avaliar.url }}">Abrir a fila Para avaliar</a>.</span>
+  </div>
+</div>
+{% endif %}
+
+{% if sei_card %}
+{% comment %}
+Terceiro uso de HTMX do sistema: o wrapper #sei-card
+ganha hx-get/hx-trigger/hx-swap SÓ quando sei_card.estado == "em_execucao";
+_sei_card.html (core/_sei_card.html, sem OOB) é o CONTEÚDO trocado a cada
+poll. O hx-trigger some da página só no PRÓXIMO carregamento completo
+(F5/nova navegação) depois que a varredura termina — o poll em si troca só
+o innerHTML de #sei-card, nunca os atributos do próprio wrapper (idioma
+padrão de polling do htmx, hx-swap="innerHTML" nunca reescreve o elemento
+que o disparou). Aceitável: o card final (ok/alerta) não muda mais depois
+disso e a maioria das aberturas do Início dura minutos, não a corrida
+inteira de ~30 min.
+{% endcomment %}
+<div class="row">
+  <div class="col-12">
+    <div id="sei-card"{% if sei_card.estado == "em_execucao" %} hx-get="{% url 'core:sei_card' %}" hx-trigger="every 15s" hx-swap="innerHTML"{% endif %}>
+      {% include "core/_sei_card.html" %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if graficos %}
+<div class="row dsgov-linha-cards">
+  {% for grafico in graficos %}{% include "dsgov/_grafico_card.html" %}{% endfor %}
+</div>
+{% if analise_url %}
+<p class="dsgov-nao-imprimir text-right mb-4"><a href="{{ analise_url }}{% if exercicio %}?exercicio={{ exercicio.ano }}{% endif %}">Mais informações no painel de Análises <i class="fas fa-angle-right ml-1" aria-hidden="true"></i></a></p>
+{% endif %}
+{% endif %}
+
+{% if pendencias %}
+<div class="row">
+  <div class="col-12">
+    <div class="br-table">
+      <div class="table-header">
+        <div class="top-bar">
+          <div class="table-title">{{ pendencias.titulo }}</div>
+          {% if pendencias.url %}<div class="ml-auto"><a class="br-button small" href="{{ pendencias.url }}">Ver todos <i class="fas fa-angle-right ml-1" aria-hidden="true"></i></a></div>{% endif %}
+        </div>
+      </div>
+      <table>
+        <caption class="sr-only">{{ pendencias.titulo }}</caption>
+        <thead>
+          <tr>{% for col in pendencias.colunas %}<th scope="col"{% if col.tipo == "moeda" or col.tipo == "numero" %} class="dsgov-numero"{% endif %}>{{ col.rotulo }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+          {% for obj in pendencias.objetos %}
+          <tr>{% for col in pendencias.colunas %}<td data-th="{{ col.rotulo }}"{% if col.tipo == "moeda" or col.tipo == "numero" %} class="dsgov-numero"{% endif %}>{% if col.tipo == "status" %}{% tag_status obj|atributo:col.campo obj|atributo:col.chave %}{% elif col.url %}<a href="{{ obj|atributo:col.url }}">{{ obj|exibir:col }}</a>{% else %}{{ obj|exibir:col }}{% endif %}</td>{% endfor %}</tr>
+          {% empty %}
+          <tr><td colspan="{{ pendencias.colunas|length }}">Nenhuma pendência.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if acesso_rapido %}
+<section class="dsgov-nao-imprimir my-4" aria-labelledby="titulo-acesso-rapido">
+  <h2 class="text-up-02 mb-3" id="titulo-acesso-rapido">Acesso rápido</h2>
+  <div class="row dsgov-linha-cards">
+    {% for cartao in acesso_rapido %}
+    <div class="col-sm-6 col-lg-4 mb-3">
+      <div class="br-card hover h-100">
+        <div class="card-content d-flex align-items-start">
+          <i class="{{ cartao.icone }} fa-2x text-blue-warm-vivid-70 mr-3" aria-hidden="true"></i>
+          <div>
+            <a class="text-weight-semi-bold text-up-01" href="{{ cartao.url }}">{{ cartao.rotulo }}</a>
+            <p class="text-down-01 mb-0 mt-1">{{ cartao.descricao }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if not kpis and not graficos and not pendencias %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="br-message info">
+      <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+      <div class="content" role="alert"><span class="message-title">Painel em construção.</span><span class="message-body"> Preencha kpis, graficos e pendencias em core/views.py (função inicio).</span></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if graficos %}{% load static %}<script src="{% static 'dsgov/vendor/echarts/echarts.min.js' %}"></script><script src="{% static 'dsgov/js/echarts-dsgov.js' %}"></script>{% endif %}
+{% endblock %}

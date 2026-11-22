@@ -1,0 +1,29 @@
+{% comment %}Tabela compartilhada pelas 3 etapas da virada, sem edição inline. `modo`: "selecionar" (caixa por linha + hidden item_pagina para o POST da página inteira), "ajustar" (ação Editar por linha) ou "revisar" (só leitura).{% endcomment %}
+<div class="table-responsive">
+  <table class="table table-vcenter card-table table-hover">
+    <caption class="visually-hidden">Itens da virada</caption>
+    <thead>
+      <tr>
+        {% if modo == "selecionar" %}<th class="w-1" scope="col"><input class="form-check-input m-0 align-middle" type="checkbox" data-selecionar-todos="virada" aria-label="Selecionar todos os itens desta página"><span class="visually-hidden">Selecionar</span></th>{% endif %}
+        <th scope="col" class="w-1">Item</th>
+        <th scope="col">Descrição</th>
+        <th scope="col" class="d-none d-lg-table-cell">UO</th>
+        <th scope="col" class="text-end d-none d-sm-table-cell">Valor estimado</th>
+        <th scope="col" class="d-none d-md-table-cell text-nowrap">Mês previsto</th>
+        <th scope="col" class="d-none d-xl-table-cell">Situação origem</th>
+        {% if modo == "ajustar" %}<th scope="col" class="w-1"><span class="visually-hidden">Ações</span></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in pagina %}{% include "pca/_virada_linha.html" %}{% empty %}
+      <tr><td colspan="8">
+        <div class="empty py-4">
+          <div class="empty-icon"><i class="ti ti-list-search" aria-hidden="true"></i></div>
+          <p class="empty-title">Nenhum item</p>
+          <p class="empty-subtitle text-secondary">Nenhum item disponível nesta etapa.</p>
+        </div>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

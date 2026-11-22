@@ -1,0 +1,32 @@
+{% comment %}par = {"titulo", "grafico": {id, opcoes, resumo, alto}, "tabela": {colunas, linhas}}. Cartão só com título e gráfico;
+a tabela fica recolhida em "Ver dados" no rodapé (mesmo desenho de ui/_grafico_card.html). O subtítulo do par não aparece.
+Opcionais no include: titulo (troca o título do cartão), acoes (nome de um template com um form GET, vai à direita do
+título). col_grafico/col_tabela são aceitos e ignorados (restos do desenho antigo, gráfico e tabela lado a lado).{% endcomment %}
+<div class="card h-100">
+  <div class="card-header">
+    <h3 class="card-title">{% firstof titulo par.titulo %}</h3>
+    {% if acoes %}<div class="card-actions d-print-none">{% include acoes %}</div>{% endif %}
+  </div>
+  <div class="card-body">
+    {{ par.grafico.opcoes|json_script:par.grafico.id }}
+    <div class="{% if par.grafico.alto %}pca-grafico-alto{% else %}pca-grafico{% endif %}" data-grafico="{{ par.grafico.id }}" role="img" aria-label="{{ par.grafico.resumo }}"></div>
+  </div>
+  {% if par.tabela %}
+  <div class="card-footer py-2">
+    <a class="small text-secondary text-decoration-none collapsed" data-bs-toggle="collapse" href="#dados-{{ par.grafico.id }}" role="button" aria-expanded="false" aria-controls="dados-{{ par.grafico.id }}"><i class="ti ti-table me-1" aria-hidden="true"></i>Ver dados</a>
+  </div>
+  <div class="collapse" id="dados-{{ par.grafico.id }}">
+    <div class="table-responsive border-top">
+      <table class="table table-sm table-vcenter card-table mb-0">
+        <caption class="visually-hidden">{{ par.titulo }} — dados</caption>
+        <thead><tr>{% for c in par.tabela.colunas %}<th scope="col"{% if not forloop.first %} class="text-end"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for linha in par.tabela.linhas %}
+          <tr>{% for cel in linha %}<td{% if not forloop.first %} class="text-end text-nowrap"{% endif %}>{% if cel.url %}<a href="{{ cel.url }}">{{ cel.valor }}</a>{% else %}{{ cel.valor }}{% endif %}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>

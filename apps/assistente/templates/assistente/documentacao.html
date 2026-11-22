@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% comment %}
+Fase 39 (A12) — documentação autenticada por slug do
+manifesto fechado (`apps.assistente.fontes.MANIFESTO_DOCS`). Seções
+renderizadas por `renderizacao.renderizar_documento` (Markdown fechado,
+link só http/https). Sem botão primary — só "Voltar ao assistente".
+{% endcomment %}
+
+{% block titulo %}{{ titulo_documento }}{% endblock %}
+
+{% block conteudo %}
+<h1>{{ titulo_documento }}</h1>
+
+{% for secao in secoes %}
+<h2>{{ secao.titulo }}</h2>
+{{ secao.corpo_html }}
+{% endfor %}
+
+<a class="br-button secondary mt-3" href="{% url 'assistente:pagina' %}">
+  <i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar ao assistente
+</a>
+{% endblock %}

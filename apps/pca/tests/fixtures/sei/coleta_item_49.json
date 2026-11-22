@@ -1,0 +1,27 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000012.000012/2026-33",
+      "resultado": "ok",
+      "item": 49,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "18/08/2026 08:46",
+            "unidade": "GECER",
+            "descricao": "Processo público gerado"
+          },
+          "ultimo": {
+            "data_hora": "31/08/2026 09:01",
+            "unidade": "GECER",
+            "descricao": "Documento 1509261 (Termo de Cientificação) retirado do bloco 67498"
+          },
+          "recebimentos": {},
+          "conclusoes_na_unidade": {},
+          "assinaturas_no_historico": []
+        }
+      },
+      "documentos_contratuais": []
+    }
+  ]
+}

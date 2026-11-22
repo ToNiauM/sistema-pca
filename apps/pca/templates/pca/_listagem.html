@@ -1,0 +1,28 @@
+{% comment %}
+Fase 26 — conteúdo COMPLETO do alvo `#listagem`:
+chips de filtro ativo + tabela/paginação. Usado tanto dentro de
+`tabela.html` (carga inicial) quanto como a resposta INTEIRA de
+`tabela_view` para requisições HTMX — as duas rotas precisam do MESMO
+par de partials, senão o chip "Situação: X"/"Limpar filtros" (ou o botão
+"Exportar", dentro de `_tabela_resultado.html`) fica desatualizado depois
+da primeira troca de filtro (fora do alvo do swap, o HTML antigo nunca é
+substituído).
+{% endcomment %}
+{% comment %}
+Na carga completa de `/tabela`, quem mostra as mensagens é
+`base.html` (`{% include "dsgov/_mensagens.html" %}` antes de `{% block conteudo %}`).
+Numa troca por HTMX (filtro, paginação ou o retorno do modal de acompanhamento),
+`_listagem.html` é a resposta INTEIRA — sem este include a mensagem de sucesso
+("Acompanhamento do item N registrado.") nunca apareceria. Só aqui, senão a carga
+completa iteraria `messages` duas vezes.
+{% endcomment %}
+{% if request.htmx %}{% include "dsgov/_mensagens.html" %}{% endif %}
+{% include "pca/_filtros_ativos_tabela.html" %}
+{% include "pca/_tabela_resultado.html" %}
+{% comment %}
+O contêiner do modal de acompanhamento vive DENTRO de
+`#listagem` (não mais em `tabela.html`) para que qualquer troca da listagem —
+filtro, paginação ou o `HX-Location` disparado pelo próprio POST do modal —
+esvazie este `<div>` e feche o modal sem precisar de `hx-swap-oob`.
+{% endcomment %}
+<div id="modal-acompanhamento" class="mt-3"></div>

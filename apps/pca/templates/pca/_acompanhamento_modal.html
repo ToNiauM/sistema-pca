@@ -1,0 +1,107 @@
+{% comment %}
+Fase 26 — único modal do sistema. Carregado
+via `hx-get` a partir de `processo_detalhe.html` (`#modal-acompanhamento`):
+o CLIQUE que disparou o `hx-get` É a ação do usuário que abre a modal
+(scrim.md: "não abra em eventos do sistema" — aqui não há evento de
+sistema, só a resposta síncrona ao clique), por isso o fragmento já chega
+`active` — zero JS próprio, nenhum `new core.Scrim(...)` inline.
+
+"Cancelar": vindo da tabela (`origem == "tabela"`),
+troca só `#listagem` por htmx (mesma rota/alvo já usados pelo filtro,
+`href` idêntico como fallback sem JS); vindo do detalhe ou sem htmx,
+continua um link real de volta à tabela (fecha por navegação, PRG da
+quick pw7).
+{% endcomment %}
+<div class="br-scrim-util foco active" id="scrim-acompanhamento" data-scrim="true" tabindex="-1">
+  <div class="br-modal dsgov-modal-largo" role="dialog" aria-modal="true" aria-labelledby="titulo-acompanhamento">
+    <div class="br-modal-header">
+      <div class="modal-title" id="titulo-acompanhamento">Registrar acompanhamento — Item {{ processo.item_pca }}</div>
+    </div>
+    <div class="br-modal-body">
+      {% if compromisso_vigente %}
+      {% comment %}
+      SÓ um aviso de leitura do compromisso vigente,
+      mesma frase institucional (`frase_compromisso`) do relatório de
+      movimentação e do bloco "Compromisso vigente" do detalhe; nenhum campo
+      novo no formulário abaixo.
+      {% endcomment %}
+      <div class="br-message info">
+        <div class="icon"><i class="fas fa-info-circle fa-lg" aria-hidden="true"></i></div>
+        <div class="content" role="alert">
+          <span class="message-title">Prazo atual:</span>
+          <span class="message-body"> {{ compromisso_vigente.frase }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {% if form.initial.observacao %}
+      {% comment %}
+      Só aparece quando o GET pré-preencheu
+      Observação com `apps.pca.mudancas.propor_texto`; um POST inválido
+      re-renderiza o form ligado a `request.POST`, sem `initial`, então
+      esta linha some sozinha (nunca falsamente sugere por cima do que o
+      usuário digitou).
+      {% endcomment %}
+      <div class="br-message info">
+        <div class="icon"><i class="fas fa-lightbulb fa-lg" aria-hidden="true"></i></div>
+        <div class="content" role="status">
+          <span class="message-body">Texto sugerido a partir das suas últimas edições neste item — edite à vontade.</span>
+        </div>
+      </div>
+      {% endif %}
+      {% comment %}`{{ form }}` abaixo já desenha `non_field_errors` como
+      `br-message danger` (contrato de `dsgov/forms/form.html`).{% endcomment %}
+      <form method="post" id="form-acompanhamento"
+            action="{% url 'pca:acompanhamento_modal' processo.exercicio.ano processo.item_pca %}"
+            hx-post="{% url 'pca:acompanhamento_modal' processo.exercicio.ano processo.item_pca %}"
+            hx-target="#modal-acompanhamento" hx-swap="innerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="versao" value="{{ versao }}">
+        <input type="hidden" name="querystring_retorno" value="{{ querystring_retorno }}">
+        <input type="hidden" name="origem" value="{{ origem }}">
+        {{ form }}
+      </form>
+    </div>
+    <div class="br-modal-footer justify-content-end">
+      {% if origem == "tabela" %}
+      <a class="br-button secondary" data-cancelar-modal
+         href="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}"
+         hx-get="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}"
+         hx-target="#listagem" hx-swap="innerHTML" hx-push-url="true">Cancelar</a>
+      {% else %}
+      <a class="br-button secondary" data-cancelar-modal href="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}#item-{{ processo.pk }}">Cancelar</a>
+      {% endif %}
+      <button class="br-button primary ml-2" type="submit" form="form-acompanhamento">Registrar</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var modal = document.getElementById("scrim-acompanhamento");
+  if (!modal) return;
+  function focalizaveis() {
+    return Array.prototype.slice.call(
+      modal.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input:not([type=hidden]):not([disabled]), select, [tabindex]:not([tabindex="-1"])'
+      )
+    );
+  }
+  var campo = modal.querySelector(".is-invalid") || modal.querySelector("#form-acompanhamento textarea, #form-acompanhamento input:not([type=hidden]), #form-acompanhamento select");
+  if (window.matchMedia && matchMedia("(pointer: coarse)").matches) modal.focus(); else (campo || modal).focus();
+  modal.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape") { var c = modal.querySelector("[data-cancelar-modal]"); if (c) c.click(); return; }
+    if (ev.key === "Tab") {
+      var itens = focalizaveis();
+      if (!itens.length) return;
+      var primeiro = itens[0];
+      var ultimo = itens[itens.length - 1];
+      if (ev.shiftKey && document.activeElement === primeiro) {
+        ev.preventDefault();
+        ultimo.focus();
+      } else if (!ev.shiftKey && document.activeElement === ultimo) {
+        ev.preventDefault();
+        primeiro.focus();
+      }
+    }
+  });
+})();
+</script>

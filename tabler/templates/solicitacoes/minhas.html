@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+{% comment %}
+Fase 43 — "Minhas solicitações" (Tabler): as da(s) unidade(s) do usuário (equipe e diretoria veem as de
+todas as unidades). Abas Todas / Em análise / Decididas, situação por parte em selos, motivo das recusas e dos
+ajustes, Desistir nas pendentes. Ação principal: "Nova solicitação".
+{% endcomment %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Solicitações</div>
+      <h1 class="page-title">{{ titulo }}</h1>
+    </div>
+    {% if pode_pedir %}
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <a class="btn btn-primary" href="{{ url_nova }}"><i class="ti ti-plus me-2" aria-hidden="true"></i>Nova solicitação</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if truncada %}
+<div class="alert alert-info mb-3" role="alert">Mostrando as {{ limite }} solicitações mais recentes.</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs" role="tablist" aria-label="Situação das solicitações">
+      {% for chave, rotulo, lista in abas %}
+      <li class="nav-item" role="presentation">
+        <button class="nav-link{% if forloop.first %} active{% endif %}" type="button" role="tab" id="aba-{{ chave }}" data-bs-toggle="tab" data-bs-target="#painel-{{ chave }}" aria-controls="painel-{{ chave }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ rotulo }} <span class="badge bg-secondary-lt ms-1">{{ lista|length }}</span></button>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="tab-content">
+    {% for chave, rotulo, lista in abas %}
+    <div class="tab-pane{% if forloop.first %} active show{% endif %}" id="painel-{{ chave }}" role="tabpanel" aria-labelledby="aba-{{ chave }}">
+      {% include "solicitacoes/_lista.html" with lista=lista legenda=rotulo %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

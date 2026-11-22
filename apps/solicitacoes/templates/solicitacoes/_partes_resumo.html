@@ -1,0 +1,17 @@
+{% load dsgov %}
+{% comment %}
+Resumo das partes de uma solicitação (listas e aba da ficha): uma linha por parte com "hoje → pedido", a
+tag de situação, o que foi concedido (ajuste) e o motivo da recusa/ajuste. `partes` = lista de
+`apresentacao.parte_para_tela`.
+{% endcomment %}
+{% for parte in partes %}
+<p class="mb-2">
+  <strong>{{ parte.rotulo }}{% if parte.campo != "cancelamento" %}:{% endif %}</strong>
+  {% if parte.campo == "cancelamento" %}{% elif parte.campo == "inclusao" %}{{ parte.pedido|truncatechars:80 }}{% else %}{{ parte.hoje }} <i class="fas fa-long-arrow-alt-right" aria-hidden="true"></i><span class="sr-only">para</span> {{ parte.pedido|truncatechars:80 }}{% endif %}
+  {% tag_status parte.estado_rotulo parte.chave %}
+  {% if parte.fora_do_exercicio %}<span class="br-tag"><span>Fora do exercício</span></span>{% endif %}
+  {% if parte.ajustada and parte.concedido %}<br/><span class="text-down-01">Concedido: {{ parte.concedido|truncatechars:80 }}</span>{% endif %}
+  {% if parte.motivo and parte.estado != "pendente" %}<br/><span class="text-down-01">Motivo: {{ parte.motivo|truncatechars:160 }}</span>{% endif %}
+  {% if parte.aguardando %}<br/><span class="text-down-01">{{ parte.aguardando }}</span>{% endif %}
+</p>
+{% endfor %}

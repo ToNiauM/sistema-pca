@@ -1,0 +1,17 @@
+{% comment %}
+As 11 células numéricas de uma linha da matriz do Resumo (`l` = linha de unidade ou `total`), na ordem fixa do
+cabeçalho: Previstos (Totais, Cancelados, Ativos) · Tipo (NC, RN, VG) · Meta PCA (Concluído, Em tramitação,
+No prazo, Atrasado) · Total concluído (inclui vigentes). Número + percentual pequeno embaixo; cada número abre a
+/tabela filtrada pelos hrefs de `_hrefs_resumo_uo`. `rotulo_linha` entra no aria-label.
+{% endcomment %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.total_previsto pct=l.percentual_no_pca com_pct=True href=l.hrefs.total_previsto uo=rotulo_linha rotulo="Totais" separador=True %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.cancelados pct=l.percentual_cancelados com_pct=True href=l.hrefs.cancelados uo=rotulo_linha rotulo="Cancelados" cor="text-gray-70" %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.ativos pct=l.percentual_ativos com_pct=True href=l.hrefs.ativos uo=rotulo_linha rotulo="Ativos" cor="text-weight-semi-bold" %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.nova pct=l.percentual_nova com_pct=True href=l.hrefs.nova uo=rotulo_linha rotulo="Nova contratação" faixa=True separador=True %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.renovacao pct=l.percentual_renovacao com_pct=True href=l.hrefs.renovacao uo=rotulo_linha rotulo="Renovação" faixa=True %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.vigente pct=l.percentual_vigente com_pct=True href=l.hrefs.vigente uo=rotulo_linha rotulo="Vigente" faixa=True cor="text-gray-70" %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.concluido_meta pct=l.percentual_concluido_meta com_pct=True href=l.hrefs.concluido_meta uo=rotulo_linha rotulo="Concluído (meta)" cor="text-green-cool-vivid-50" separador=True %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.em_tramitacao pct=l.percentual_em_tramitacao com_pct=True href=l.hrefs.em_tramitacao uo=rotulo_linha rotulo="Em tramitação (meta)" cor="text-blue-warm-vivid-70" %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.no_prazo pct=l.percentual_no_prazo com_pct=True href=l.hrefs.no_prazo uo=rotulo_linha rotulo="No prazo (meta)" cor="text-green-cool-vivid-50" %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.fora_prazo pct=l.percentual_fora_prazo com_pct=True href=l.hrefs.fora_prazo uo=rotulo_linha rotulo="Atrasado (meta)" cor="text-red-vivid-50" %}
+{% include "pca/_resumo_celula.html" with centro=True n=l.concluido pct=l.percentual_concluido com_pct=True href=l.hrefs.concluido uo=rotulo_linha rotulo="Total concluído (inclui vigentes)" faixa=True cor="text-green-cool-vivid-50" separador=True %}

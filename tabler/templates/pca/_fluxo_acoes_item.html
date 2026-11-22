@@ -1,0 +1,76 @@
+{% load l10n %}
+{% comment %}
+Ações por item da lista "Contratações neste recorte" (casca Tabler), renderizado pela view via render_to_string:
+excluir/incluir, renovar, alterar valor, adiar/antecipar início — cada form POST preserva o recorte (PRG, sem HTMX).
+{% endcomment %}
+<div class="d-flex flex-wrap align-items-center gap-1 position-relative d-print-none">
+  {% if excluido %}
+  <form method="post" action="{% url 'pca:analise_fluxo_item_incluir' item_pca %}">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+    <input type="hidden" name="cenario" value="{{ cenario }}"/>
+    <input type="hidden" name="indice" value="{{ indice }}"/>
+    {% if uo_id %}<input type="hidden" name="uo" value="{{ uo_id }}"/>{% endif %}
+    {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+    {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+    <button class="btn btn-sm text-nowrap" type="submit">Incluir de volta</button>
+  </form>
+  {% else %}
+  <form method="post" action="{% url 'pca:analise_fluxo_item_excluir' item_pca %}">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+    <input type="hidden" name="cenario" value="{{ cenario }}"/>
+    <input type="hidden" name="indice" value="{{ indice }}"/>
+    {% if uo_id %}<input type="hidden" name="uo" value="{{ uo_id }}"/>{% endif %}
+    {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+    {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+    <button class="btn btn-sm text-nowrap" type="submit">Excluir da simulação</button>
+  </form>
+
+  {% if tem_contratos %}
+  <form method="post" action="{% url 'pca:analise_fluxo_item_renovacao' item_pca %}">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+    <input type="hidden" name="cenario" value="{{ cenario }}"/>
+    <input type="hidden" name="indice" value="{{ indice }}"/>
+    {% if uo_id %}<input type="hidden" name="uo" value="{{ uo_id }}"/>{% endif %}
+    {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+    {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+    <input type="hidden" name="destino" value="{% if renovacao_atual %}false{% else %}true{% endif %}"/>
+    <button class="btn btn-sm text-nowrap" type="submit">Renovar: {% if renovacao_atual %}Não{% else %}Sim{% endif %}</button>
+  </form>
+  {% endif %}
+
+  <form method="post" action="{% url 'pca:analise_fluxo_item_valor' item_pca %}" class="d-flex align-items-center">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+    <input type="hidden" name="cenario" value="{{ cenario }}"/>
+    <input type="hidden" name="indice" value="{{ indice }}"/>
+    {% if uo_id %}<input type="hidden" name="uo" value="{{ uo_id }}"/>{% endif %}
+    {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+    {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+    <label for="valor-sim-{{ item_pca }}" class="visually-hidden">Novo valor do item {{ item_pca }}</label>
+    <div class="input-group input-group-sm flex-nowrap">
+      <input id="valor-sim-{{ item_pca }}" type="number" step="0.01" min="0.01" name="valor" value="{{ valor_atual|default_if_none:''|unlocalize }}" placeholder="Novo valor" class="form-control form-control-sm" style="width: 8rem"/>
+      <button class="btn btn-sm text-nowrap" type="submit">Alterar valor</button>
+    </div>
+  </form>
+
+  {% if not tem_contratos %}
+  <form method="post" action="{% url 'pca:analise_fluxo_item_inicio' item_pca %}" class="d-flex align-items-center">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+    <input type="hidden" name="cenario" value="{{ cenario }}"/>
+    <input type="hidden" name="indice" value="{{ indice }}"/>
+    {% if uo_id %}<input type="hidden" name="uo" value="{{ uo_id }}"/>{% endif %}
+    {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+    {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+    <label for="inicio-sim-{{ item_pca }}" class="visually-hidden">Novo início do item {{ item_pca }}</label>
+    <div class="input-group input-group-sm flex-nowrap">
+      <input id="inicio-sim-{{ item_pca }}" type="date" name="inicio" class="form-control form-control-sm" style="width: 9.5rem"/>
+      <button class="btn btn-sm text-nowrap" type="submit">Adiar/antecipar início</button>
+    </div>
+  </form>
+  {% endif %}
+  {% endif %}
+</div>

@@ -1,0 +1,9 @@
+{% comment %} Perfil do PCA: dimensão selecionável (perfil_dimensao); o GET recarrega gráfico e tabela juntos. Troca ao escolher (Aplicar só sem JavaScript, como o seletor de exercício do Início). Vai no cabeçalho do cartão (ui/_par_analitico.html, acoes). {% endcomment %}
+<form method="get" class="d-flex align-items-center gap-2" aria-label="Escolher dimensão do Perfil do PCA">
+  {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+  <label class="visually-hidden" for="perfil_dimensao">Dimensão (Perfil do PCA)</label>
+  <select class="form-select form-select-sm w-auto" onchange="this.form.submit()" id="perfil_dimensao" name="perfil_dimensao">
+    {% for chave, rotulo in rotulos_perfil.items %}<option value="{{ chave }}"{% if chave == perfil_dimensao_selecionada %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+  </select>
+  <noscript><button class="btn btn-sm" type="submit">Aplicar</button></noscript>
+</form>

@@ -1,0 +1,27 @@
+{% comment %}
+Rodapé (padrão das páginas do PNCP): fundo escuro padrão do br-footer, parágrafos
+institucionais à esquerda (`DSGOV.RODAPE_PARAGRAFOS`, lista; sem ela, `RODAPE_TEXTO`), links à direita
+(`DSGOV.LINKS_ACESSO_RAPIDO`, externos, e "Sobre o sistema" quando `DSGOV.SOBRE_URL_NAME` existe e há
+login) e a linha final com órgão e sistema. Os links de acesso rápido saíram do cabeçalho para cá.
+{% endcomment %}
+<footer class="br-footer" id="footer">
+  <div class="container-lg">
+    <div class="dsgov-rodape">
+      <div class="dsgov-rodape-texto">
+        {% for paragrafo in DSGOV.RODAPE_PARAGRAFOS %}<p>{{ paragrafo }}</p>{% empty %}<p>{{ DSGOV.RODAPE_TEXTO }}</p>{% endfor %}
+      </div>
+      {% if DSGOV.LINKS_ACESSO_RAPIDO or DSGOV.SOBRE_URL_NAME and user.is_authenticated %}
+      <nav class="dsgov-rodape-links" aria-label="Links do rodapé">
+        {% for rotulo, url in DSGOV.LINKS_ACESSO_RAPIDO %}<a href="{{ url }}" target="_blank" rel="noopener">{{ rotulo }}<i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i></a>{% endfor %}
+        {% if DSGOV.SOBRE_URL_NAME and user.is_authenticated %}<a href="{% url DSGOV.SOBRE_URL_NAME %}">Sobre o sistema</a>{% endif %}
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+  <span class="br-divider"></span>
+  <div class="container-lg">
+    <div class="info">
+      <div class="text-down-01 text-medium text-center py-3">{{ DSGOV.ORGAO }} · <strong>{{ DSGOV.SISTEMA }}</strong></div>
+    </div>
+  </div>
+</footer>

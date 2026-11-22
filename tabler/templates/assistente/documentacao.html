@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% comment %}Documentação autenticada por slug do manifesto fechado. Seções renderizadas pelo Markdown fechado da aplicação (link só http/https). Sem botão primário — só "Voltar ao assistente".{% endcomment %}
+{% block titulo %}{{ titulo_documento }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Documentação</div>
+      <h1 class="page-title">{{ titulo_documento }}</h1>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <a class="btn" href="{% url 'assistente:pagina' %}"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar ao assistente</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% if secoes|length > 2 %}
+  <div class="col-12 col-xl-3 order-xl-last d-none d-xl-block">
+    <nav class="card" aria-label="Nesta página">
+      <div class="card-header"><h2 class="card-title">Nesta página</h2></div>
+      <div class="list-group list-group-flush">
+        {% for secao in secoes %}<a class="list-group-item list-group-item-action small py-2" href="#secao-{{ forloop.counter }}">{{ secao.titulo }}</a>{% endfor %}
+      </div>
+    </nav>
+  </div>
+  {% endif %}
+  <div class="col-12 col-xl-9 col-xxl-7">
+    <article class="card">
+      <div class="card-body markdown p-4 p-lg-5">
+        {% for secao in secoes %}
+        <h2 id="secao-{{ forloop.counter }}">{{ secao.titulo }}</h2>
+        {{ secao.corpo_html }}
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+</div>
+{% endblock %}

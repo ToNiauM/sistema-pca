@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load dsgov %}
+{% block titulo %}Para avaliar{% endblock %}
+{% block conteudo %}
+{% comment %}
+Fase 43 — fila "Para avaliar": só as partes da alçada de quem está logado, da mais antiga para a
+mais nova; as paradas há mais de 10 dias úteis vêm primeiro e destacadas. "Avaliar" abre a solicitação já na
+parte (âncora #parte-N), onde está o formulário de decisão. Sem ação primária: a decisão é na tela da solicitação.
+{% endcomment %}
+<div class="mb-4">
+  <h1 class="mb-1">Para avaliar</h1>
+  <p class="text-gray-70 mb-0">Você avalia as partes da alçada: {{ alcadas }}.</p>
+</div>
+
+<div class="row dsgov-linha-cards">
+  {% for kpi in kpis %}{% include "dsgov/_kpi_card.html" with kpi=kpi icone_no_valor=True kpi_col="col-12 col-sm-4" %}{% endfor %}
+</div>
+
+<div class="br-table">
+  <div class="table-header">
+    <div class="top-bar"><div class="table-title">Partes aguardando decisão</div></div>
+  </div>
+  <table>
+    <caption class="sr-only">Partes de solicitações aguardando a sua decisão, as paradas há mais de {{ limite_parada }} dias úteis primeiro</caption>
+    <thead>
+      <tr>
+        <th scope="col">Solicitação</th>
+        <th scope="col">Item</th>
+        <th scope="col">Unidade</th>
+        <th scope="col">Parte</th>
+        <th scope="col">Hoje → Pedido</th>
+        <th scope="col">Aguardando</th>
+        <th scope="col" class="dsgov-acoes">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in linhas %}
+      <tr>
+        <td data-th="Solicitação"><a href="{{ linha.url }}">{{ linha.codigo }}</a><br/><span class="text-down-01">{{ linha.solicitante }}</span></td>
+        <td data-th="Item">{% if linha.item_url %}<a href="{{ linha.item_url }}">{{ linha.item }}</a>{% else %}{{ linha.item }}{% endif %}</td>
+        <td data-th="Unidade">{{ linha.unidade }}</td>
+        <td data-th="Parte">{{ linha.rotulo }}{% if linha.fora_do_exercicio %}<br/><span class="br-tag"><span>Fora do exercício</span></span>{% endif %}</td>
+        <td data-th="Hoje → Pedido">{% if linha.campo == "cancelamento" %}Cancelar o item{% elif linha.campo == "inclusao" %}{{ linha.pedido|truncatechars:80 }}{% else %}{{ linha.hoje }} <i class="fas fa-long-arrow-alt-right" aria-hidden="true"></i><span class="sr-only">para</span> {{ linha.pedido|truncatechars:80 }}{% endif %}</td>
+        <td data-th="Aguardando">{{ linha.criada_em }}<br/><span class="text-down-01">{{ linha.dias_uteis }} dia{{ linha.dias_uteis|pluralize }} út{{ linha.dias_uteis|pluralize:"il,eis" }}</span>{% if linha.parada %}<br/>{% tag_status "Parada" "erro" %}{% endif %}</td>
+        <td data-th="Ações" class="dsgov-acoes"><a class="br-button secondary small" href="{{ linha.url }}#parte-{{ linha.parte_id }}">Avaliar</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7">Nada para avaliar na sua alçada.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}
+{% comment %}
+Override cirúrgico — só injeta o <style> dos 3 tokens de cor
+institucionais no bloco `extrastyle` que o Django Admin já expõe para isso.
+Nenhum outro aspecto do template do Admin (layout/densidade/tabela/raio) é
+tocado; `admin_tema_css` vem de `PcaAdminSite.each_context`
+(core/admin_site.py).
+{% endcomment %}
+{% block extrastyle %}
+{{ block.super }}
+<style>{{ admin_tema_css|safe }}</style>
+{% endblock %}

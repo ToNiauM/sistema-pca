@@ -1,0 +1,19 @@
+{% comment %}
+Um resultado da visualização Lista da tela Processos, como os resultados da busca de
+editais do PNCP: número do item (link para a ficha, com a querystring da tabela), situação (mesmo parcial
+da coluna Situação: tag, Sobrestado e cadeado da situação manual), as mesmas ações da linha da Tabela,
+duas linhas de pares "Rótulo: valor" (`colunas_lista`, campos fixos) e o objeto. `id="item-<pk>"` é a
+âncora do "Voltar" da ficha e do retorno do modal ao mesmo ponto da tela.
+{% endcomment %}
+{% load dsgov pca_listagem %}
+<article class="dsgov-resultado" id="item-{{ p.pk }}">
+  <div class="d-flex flex-wrap align-items-center">
+    <a class="dsgov-resultado-titulo mr-3" href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}">Item {{ p.item_pca }}/{{ p.exercicio.ano }}</a>
+    <span class="mr-3">{% include "pca/_tabela_situacao.html" %}</span>
+    <span class="ml-auto text-nowrap">{% include "pca/_acoes_item.html" %}</span>
+  </div>
+  {% for linha in colunas_lista %}
+  <p>{% for col in linha %}<strong>{{ col.rotulo }}:</strong> {% if col.chave == "mes_previsto" %}{{ p.mes_previsto|nome_mes|default:"Sem mês previsto" }}{% else %}{{ p|exibir:col }}{% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+  {% endfor %}
+  <p><strong>Objeto:</strong> {{ p.descricao_objeto }}</p>
+</article>

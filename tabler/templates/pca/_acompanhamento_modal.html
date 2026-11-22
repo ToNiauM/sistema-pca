@@ -1,0 +1,93 @@
+{% comment %}
+Modal "Registrar acompanhamento" (tabler). Chega por `hx-get` em `#modal-acompanhamento` já aberto (markup do
+modal do Bootstrap com `show d-block` + fundo próprio, sem o JS do Modal): esvaziar o contêiner fecha tudo — é o
+que acontece quando a listagem é trocada (Cancelar da tabela, `HX-Location` depois do POST). Vindo da tabela,
+"Cancelar" troca só `#listagem`; vindo do detalhe (ou sem htmx), é um link real de volta. Esc e o "×" fazem o
+mesmo que "Cancelar".
+{% endcomment %}
+<div class="modal modal-blur show d-block" id="scrim-acompanhamento" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="titulo-acompanhamento">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="titulo-acompanhamento">Registrar acompanhamento — Item {{ processo.item_pca }}</h2>
+        {% if origem == "tabela" %}
+        <a class="btn-close" href="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}"
+           hx-get="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}"
+           hx-target="#listagem" hx-swap="innerHTML" hx-push-url="true" aria-label="Fechar"></a>
+        {% else %}
+        <a class="btn-close" href="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}#item-{{ processo.pk }}" aria-label="Fechar"></a>
+        {% endif %}
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary mb-3">{{ processo.descricao_objeto|truncatechars:160 }}</p>
+        {% if compromisso_vigente %}
+        <div class="alert alert-info mb-3" role="alert">
+          <div class="d-flex align-items-start gap-2"><i class="ti ti-calendar-time fs-2 lh-1" aria-hidden="true"></i>
+            <div><span class="fw-bold">Prazo atual:</span> {{ compromisso_vigente.frase }}</div>
+          </div>
+        </div>
+        {% endif %}
+        {% if form.initial.observacao %}
+        <div class="alert alert-azure mb-3" role="status">
+          <div class="d-flex align-items-start gap-2"><i class="ti ti-bulb fs-2 lh-1" aria-hidden="true"></i>
+            <div>Texto sugerido a partir das suas últimas edições neste item — edite à vontade.</div>
+          </div>
+        </div>
+        {% endif %}
+        <form method="post" id="form-acompanhamento"
+              action="{% url 'pca:acompanhamento_modal' processo.exercicio.ano processo.item_pca %}"
+              hx-post="{% url 'pca:acompanhamento_modal' processo.exercicio.ano processo.item_pca %}"
+              hx-target="#modal-acompanhamento" hx-swap="innerHTML">
+          {% csrf_token %}
+          <input type="hidden" name="versao" value="{{ versao }}">
+          <input type="hidden" name="querystring_retorno" value="{{ querystring_retorno }}">
+          <input type="hidden" name="origem" value="{{ origem }}">
+          {{ form }}
+        </form>
+      </div>
+      <div class="modal-footer">
+        {% if origem == "tabela" %}
+        <a class="btn btn-link link-secondary" data-cancelar-modal
+           href="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}"
+           hx-get="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}"
+           hx-target="#listagem" hx-swap="innerHTML" hx-push-url="true">Cancelar</a>
+        {% else %}
+        <a class="btn btn-link link-secondary" data-cancelar-modal href="{% url 'pca:tabela' %}{% if querystring_retorno %}?{{ querystring_retorno }}{% endif %}#item-{{ processo.pk }}">Cancelar</a>
+        {% endif %}
+        <button class="btn btn-primary" type="submit" form="form-acompanhamento"><i class="ti ti-check me-2" aria-hidden="true"></i>Registrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+<script>
+(function () {
+  var modal = document.getElementById("scrim-acompanhamento");
+  if (!modal) return;
+  function focalizaveis() {
+    return Array.prototype.slice.call(
+      modal.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input:not([type=hidden]):not([disabled]), select, [tabindex]:not([tabindex="-1"])'
+      )
+    );
+  }
+  var campo = modal.querySelector(".is-invalid") || modal.querySelector("#form-acompanhamento textarea, #form-acompanhamento input:not([type=hidden]), #form-acompanhamento select");
+  if (window.matchMedia && matchMedia("(pointer: coarse)").matches) modal.focus(); else (campo || modal).focus();
+  modal.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape") { var c = modal.querySelector("[data-cancelar-modal]"); if (c) c.click(); return; }
+    if (ev.key === "Tab") {
+      var itens = focalizaveis();
+      if (!itens.length) return;
+      var primeiro = itens[0];
+      var ultimo = itens[itens.length - 1];
+      if (ev.shiftKey && document.activeElement === primeiro) {
+        ev.preventDefault();
+        ultimo.focus();
+      } else if (!ev.shiftKey && document.activeElement === ultimo) {
+        ev.preventDefault();
+        primeiro.focus();
+      }
+    }
+  });
+})();
+</script>

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% comment %}
+Fase 26 — tela Processos no padrão
+`telas/listagem.md`: chips + "Limpar filtros" preservando `exercicio`
+(fecha A05); `br-table` de colunas dinâmicas em `#listagem`, trocado por
+HTMX sem nenhum `hx-swap-oob`. Os parciais do painel de filtros GLOBAL
+antigo (busca por "_filtros", "_filtro_multiselect", "_tags_filtros",
+"_tag_filtro", "_acoes_export" em apps/pca/templates/pca) saem desta tela
+mas continuam intocados no repositório porque as telas ainda
+na casca legada (dashboard/análise/calendário/resumo por UO, frentes 4/5)
+os usam; ver Deviations do SUMMARY.
+
+Fase 28 — a grade de filtros deixa de ser
+"1ª linha com até 4 campos + 2ª linha com o resto" (14 colunas numa grade
+de 12, a raiz da quebra imprevisível) e passa a 3 blocos: faixa 1
+(Busca + Unidade, 6/6 >= 992), faixa 2 (Situação + Mês previsto, 6/6),
+"Mais filtros" (`br-accordion`, os 12 campos restantes, 3/2/1 controles por
+linha em desktop amplo/intermediário/pequeno via `col-12 col-md-6
+col-lg-4` de cada campo em `forms_listagem.py`), SEMPRE fechado ao carregar
+quando algum desses 12 campos tem valor, o rótulo do
+botão mostra a contagem. Nenhum `name=` de campo mudou.
+{% endcomment %}
+{% load dsgov %}
+{% block titulo %}Processos · PCA {{ exercicio.ano }}{% endblock %}
+{% block conteudo %}
+{% comment %}
+Fase 28 — `flex-wrap` (utilitário do DS, `flex-wrap:wrap
+!important`) evita que "Processos" + "Novo processo" estourem a página em
+320px (achado da matriz visual de fechamento): sem quebra de
+linha, título e botão lado a lado não cabem na largura mínima canônica.
+{% endcomment %}
+<div class="d-flex flex-wrap align-items-center mb-4">
+  <div>
+    <h1 class="mb-0">Processos</h1>
+    {% comment %}
+    A5/A18 (preservado) — a identidade anual nunca fica implícita: mesmo
+    sem seletor próprio nesta tela (o único parâmetro propagado
+    entre telas é `exercicio`), o texto sempre nomeia o exercício
+    EFETIVAMENTE resolvido pelo servidor (explícito na URL ou o aberto
+    mais recente por padrão).
+    {% endcomment %}
+    <p class="text-gray-70 mb-0">PCA {{ exercicio.ano }}</p>
+  </div>
+  {% comment %}
+  "Ocultar filtros"/"Mostrar filtros" recolhe o painel de filtros (comportamento
+  `[data-alternar-painel]` do dsgov.js): sem o painel, a lista ocupa a largura toda. A escolha fica guardada no
+  navegador de cada pessoa; sem escolha, o painel abre a partir de 1280px e nasce recolhido abaixo disso.
+  {% endcomment %}
+  <div class="ml-auto d-flex flex-wrap align-items-center">
+    <button class="br-button secondary mr-2 my-1" type="button" data-alternar-painel aria-controls="painel-filtros"
+            aria-expanded="true" data-rotulo-aberto="Ocultar filtros" data-rotulo-fechado="Mostrar filtros"><i class="fas fa-filter mr-1" aria-hidden="true"></i><span data-rotulo>Ocultar filtros</span></button>
+    {% if perms.pca.editar_pca %}
+    <a class="br-button primary" href="{% url 'pca:criar_processo' %}"><i class="fas fa-plus mr-1" aria-hidden="true"></i>Novo processo</a>
+    {% endif %}
+  </div>
+</div>
+{% comment %}
+"Exportar" (secondary) NÃO fica no cabeçalho estático da página:
+fora de `#listagem`, sobreviveria a qualquer troca de filtro por HTMX com o
+`href` da CARGA INICIAL congelado (o cabeçalho nunca é re-renderizado pelo
+`hx-get` do form) — um clique em "Exportar" depois de filtrar levaria o
+recorte ERRADO em silêncio (viola). Sem reintroduzir OOB (fecha essa porta de propósito), o botão mora dentro de
+`_tabela_resultado.html` (`.top-bar .actions-trigger`, vocabulário do
+próprio `componentes/table.md`), que É o alvo do swap — sempre com a
+querystring corrente, nunca a inicial. Deviation documentada no SUMMARY.
+{% endcomment %}
+
+{% comment %}
+Padrão da busca de editais do PNCP: filtros numa coluna à esquerda (painel cinza com
+faixa azul no topo, `dsgov-filtros-lateral`) e resultados à direita; abaixo de 1280px o painel sobe para
+cima dos resultados, com os campos dois a dois. Mesmos campos, mesmos `name=`, mesmo HTMX (dispara a cada
+alteração; a busca espera 300 ms), mesmo "Mais filtros (N)" sempre fechado. `#estado-vista` (dentro de
+`#listagem`) leva a visualização Lista | Tabela junto em toda troca de filtro.
+{% endcomment %}
+<div class="row">
+<aside class="col-12 col-lg-3 mb-4" id="painel-filtros" aria-label="Filtros">
+<form id="filtros-processos" class="dsgov-filtros-lateral" method="get" action="{% url 'pca:tabela' %}"
+      hx-get="{% url 'pca:tabela' %}" hx-target="#listagem" hx-push-url="true"
+      hx-trigger="change, keyup changed delay:300ms from:[name='q']"
+      hx-include="#form-colunas, #estado-vista" hx-history="false">
+  <input type="hidden" name="exercicio" value="{{ exercicio.ano }}">
+  <h2 class="text-up-01 text-weight-bold mb-3">Filtros</h2>
+  {% comment %}
+  `as_field_group` renderiza só o componente (`dsgov/forms/field.html`); a largura é desta tela (coluna
+  inteira na lateral, dois a dois quando o painel fica em cima), não o `attrs.col` de `forms_listagem.py`.
+  `hx-include="#form-colunas"` (bidirecional com o form de colunas em `_tabela_resultado.html`) preserva a
+  seleção de colunas atual.
+  {% endcomment %}
+  <div class="row">
+    {% for campo in filtros_form %}
+      {% if campo.name == "q" or campo.name == "uo" or campo.name == "situacao" or campo.name == "mes" %}
+      <div class="col-12 col-md-6 col-lg-12 mb-3">{{ campo.as_field_group }}</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <div class="br-accordion" id="acordeao-mais-filtros">
+    {% comment %} (pedido do usuário, 22/09/2026) — "Mais filtros"
+    NUNCA nasce aberto: abre só no clique. O que sinaliza que há filtro secundário
+    valendo é o rótulo do botão (contador abaixo), não o painel escancarado a cada
+    recarga. Revoga o abre-sozinho.{% endcomment %}
+    <div class="item">
+      <button class="header" type="button" aria-controls="acordeao-mais-filtros-conteudo"
+              aria-expanded="false">
+        <span class="icon"><i class="fas fa-angle-down" aria-hidden="true"></i></span>
+        <span class="title">Mais filtros{% if mais_filtros_ativo %} ({{ mais_filtros_contagem }}){% endif %}</span>
+      </button>
+    </div>
+    <div class="content" id="acordeao-mais-filtros-conteudo">
+      <div class="row">
+        {% for campo in filtros_form %}
+          {% if campo.name != "q" and campo.name != "uo" and campo.name != "situacao" and campo.name != "mes" %}
+          <div class="col-12 col-md-6 col-lg-12 mb-3">{{ campo.as_field_group }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</form>
+</aside>
+
+{% comment %}
+Os chips de filtro ativo, o "Exportar XLSX", o seletor "Colunas", a alternância Lista | Tabela e a
+paginação moram DENTRO de `#listagem`: fora do alvo do swap, ficariam presos ao estado da carga inicial.
+`_listagem.html` é o MESMO parcial que `tabela_view` devolve inteiro numa requisição HTMX.
+{% endcomment %}
+<section class="col-12 col-lg-9" aria-label="Resultados">
+<div id="listagem">
+  {% include "pca/_listagem.html" %}
+</div>
+</section>
+</div>
+{% endblock %}

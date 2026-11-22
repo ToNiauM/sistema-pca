@@ -1,0 +1,31 @@
+{% comment %}
+Fase 26 (fecha A05) — chips de filtro ativo da tela
+Processos. NÃO reaproveita `dsgov/_filtros_ativos.html` (byte-idêntico à
+padrão DSGov, não editável): aquele partial monta "Limpar filtros" com
+`href="{{ request.path }}"` — zera TODOS os parâmetros, inclusive
+`exercicio`, reabrindo A05. Aqui "Limpar filtros" usa
+`querystring_limpar` (`apps/pca/filtros.py::querystring_filtros`,
+excluindo todo `PARAMETROS_FILTRO` menos `exercicio`, calculado em
+`tabela_view`), preservando o único parâmetro que propaga entre
+telas. Cada chip usa a querystring já calculada por `tags_ativas`
+(`apps/pca/filtros.py`), que nunca remove `exercicio` a não ser que a
+PRÓPRIA tag removida seja o exercício.
+{% endcomment %}
+{% if tags %}
+<div class="dsgov-filtros-ativos mb-3" aria-label="Filtros ativos">
+  {% for tag in tags %}
+  <span class="br-tag interaction">
+    <span>{{ tag.rotulo }}: {{ tag.valor }}</span>
+    <a class="br-button circle small" href="{% url 'pca:tabela' %}?{{ tag.querystring }}"
+       hx-get="{% url 'pca:tabela' %}?{{ tag.querystring }}" hx-target="#listagem" hx-push-url="true"
+       aria-label="Remover filtro {{ tag.rotulo }}: {{ tag.valor }}">
+      <i class="fas fa-times" aria-hidden="true"></i>
+    </a>
+  </span>
+  {% endfor %}
+  <a class="br-button small" href="{% url 'pca:tabela' %}?limpar=1{% if querystring_limpar %}&{{ querystring_limpar }}{% endif %}"
+     hx-get="{% url 'pca:tabela' %}?limpar=1{% if querystring_limpar %}&{{ querystring_limpar }}{% endif %}" hx-target="#listagem" hx-push-url="true">
+    <i class="fas fa-eraser mr-1" aria-hidden="true"></i>Limpar filtros
+  </a>
+</div>
+{% endif %}

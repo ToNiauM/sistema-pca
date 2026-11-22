@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% load l10n dsgov static %}
+
+{% comment %}
+Análises › Fluxo de caixa (casca DSGov). A tela se lê de cima para baixo como uma história — mesma ordem e
+mesmos dados da casca Tabler (tabler/templates/pca/analise_fluxo.html):
+  1. Visão — unidade, o que entra na conta (cenário), índice de reajuste e qual projeção (oficial/simulação);
+  2. Resumo — quanto o PCA vai custar no horizonte, QUANDO (restante do ano · ano seguinte · 4 anos depois,
+     blocos que somam o total) e DE ONDE vem (as 4 camadas, do mais certo ao mais estimado);
+  3. Leitura rápida — composição e certeza ano a ano (gráficos) e frases calculadas sobre os números;
+  4. Ano a ano e mês a mês — gráficos empilhados com o total escrito em cima; clicar abre o recorte;
+  5. Recorte (ano/mês clicado) — total, composição e as contratações, com as ações de simulação por item;
+  6. Por unidade e "Como ler" (camadas, premissas e itens fora da conta).
+Sem estilo inline (regra ESTILO do verificador): barras e composição são gráficos ECharts.
+{% endcomment %}
+
+{% block titulo %}Fluxo de caixa — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Fluxo de caixa — PCA {{ exercicio.ano|default:"—" }}</h1>
+</div>
+
+{% comment %}
+Fase 37 (spec §3.4) — faixa "Simulação ativa": só aparece com
+`sim != "oficial"` (resolvido pela view — nunca por acidente com
+o padrão `sim=oficial`). Lista `simulacao.descrever(ajustes, rotulos)` já
+pronta em `variaveis_alteradas`; "Voltar ao oficial" limpa o rascunho.
+{% endcomment %}
+{% if comparacao_ativa %}
+<div class="br-message warning mb-3 dsgov-nao-imprimir">
+  <div class="icon"><i class="fas fa-exclamation-triangle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Simulação ativa{% if cenario_selecionado_obj %}: {{ cenario_selecionado_obj.nome }}{% endif %} — {{ variaveis_alteradas|length }} mudança(s) em relação ao oficial</span>
+    {% if variaveis_alteradas %}
+    <ul class="mb-0">
+      {% for variavel in variaveis_alteradas %}
+      <li>{{ variavel }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <form method="post" action="{% url 'pca:analise_fluxo_voltar_oficial' %}" class="mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+      <input type="hidden" name="cenario" value="{{ cenario_selecionado }}"/>
+      <input type="hidden" name="indice" value="{{ indice_selecionado }}"/>
+      {% if uo_selecionada %}<input type="hidden" name="uo" value="{{ uo_selecionada }}"/>{% endif %}
+      {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+      {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+      <button class="br-button secondary small" type="submit">Voltar ao oficial</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<form method="get" class="row align-items-end mb-3 dsgov-nao-imprimir" aria-label="Filtrar o fluxo de caixa">
+  {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+  {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+  {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+  <div class="col-sm-6 col-md-3">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="cenario_exibicao">O que entra na conta</label>
+        <input id="cenario_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for valor, rotulo in cenarios %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="cenario_{{ valor }}" name="cenario" type="radio" value="{{ valor }}"{% if valor == cenario_selecionado %} checked="checked"{% endif %}/>
+            <label for="cenario_{{ valor }}">{{ rotulo }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-2">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="indice_exibicao">Reajuste por</label>
+        <input id="indice_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        {% for valor in indices %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="indice_{{ valor }}" name="indice" type="radio" value="{{ valor }}"{% if valor == indice_selecionado %} checked="checked"{% endif %}/>
+            <label for="indice_{{ valor }}">{{ valor }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-2">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="uo_exibicao">Unidade</label>
+        <input id="uo_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="uo_todas" name="uo" type="radio" value=""{% if not uo_selecionada %} checked="checked"{% endif %}/>
+            <label for="uo_todas">Todas as unidades</label>
+          </div>
+        </div>
+        {% for unidade in unidades %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="uo_{{ unidade.pk }}" name="uo" type="radio" value="{{ unidade.pk }}"{% if unidade.pk == uo_selecionada %} checked="checked"{% endif %}/>
+            <label for="uo_{{ unidade.pk }}">{{ unidade.nome }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% comment %}
+  Fase 37 (spec §3.2) — seletor "Cenário salvo" (`sim`): Oficial/
+  Rascunho sempre presentes + um item por `CenarioFluxo` do exercício. Rótulo
+  deliberadamente diferente de "Cenário" (acima, que escolhe entre
+  base/contratado/sem_reajuste/sem_renovacao) para não haver dois campos com
+  o mesmo rótulo na mesma tela (ambiguidade de acessibilidade).
+  {% endcomment %}
+  <div class="col-sm-6 col-md-3">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="cenario_salvo_exibicao">Projeção</label>
+        <input id="cenario_salvo_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="sim_oficial" name="sim" type="radio" value="oficial"{% if sim == "oficial" %} checked="checked"{% endif %}/>
+            <label for="sim_oficial">Oficial</label>
+          </div>
+        </div>
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="sim_rascunho" name="sim" type="radio" value="rascunho"{% if sim == "rascunho" %} checked="checked"{% endif %}/>
+            <label for="sim_rascunho">Minha simulação (rascunho)</label>
+          </div>
+        </div>
+        {% for cenario_item in cenarios_salvos %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="sim_cenario_{{ cenario_item.pk }}" name="sim" type="radio" value="{{ cenario_item.pk }}"{% if sim == cenario_item.pk|stringformat:"d" %} checked="checked"{% endif %}/>
+            <label for="sim_cenario_{{ cenario_item.pk }}">Salva: {{ cenario_item.nome }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-12 col-md-2">
+    <button class="br-button primary" type="submit">Atualizar</button>
+  </div>
+</form>
+
+{% if cenario_selecionado_obj %}
+<div class="dsgov-nao-imprimir mb-3 d-flex flex-wrap align-items-center" aria-label="Cenário salvo selecionado">
+  <span class="mr-3">
+    Cenário: <strong>{{ cenario_selecionado_obj.nome }}</strong>
+    (autor: {{ cenario_selecionado_obj.autor.get_full_name|default:cenario_selecionado_obj.autor.email }},
+    salvo em {{ cenario_selecionado_obj.atualizado_em|date:"d/m/Y H:i" }})
+  </span>
+  <form method="post" action="{% url 'pca:analise_fluxo_cenario_carregar' cenario_selecionado_obj.pk %}" class="mr-2">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+    <input type="hidden" name="cenario" value="{{ cenario_selecionado }}"/>
+    <input type="hidden" name="indice" value="{{ indice_selecionado }}"/>
+    {% if uo_selecionada %}<input type="hidden" name="uo" value="{{ uo_selecionada }}"/>{% endif %}
+    {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+    {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+    <button class="br-button secondary small" type="submit">Carregar no rascunho</button>
+  </form>
+  {% if pode_editar_cenario_selecionado %}
+  <form method="post" action="{% url 'pca:analise_fluxo_cenario_salvar' cenario_selecionado_obj.pk %}" class="mr-2">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+    <input type="hidden" name="cenario" value="{{ cenario_selecionado }}"/>
+    <input type="hidden" name="indice" value="{{ indice_selecionado }}"/>
+    {% if uo_selecionada %}<input type="hidden" name="uo" value="{{ uo_selecionada }}"/>{% endif %}
+    {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+    {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+    <button class="br-button secondary small" type="submit">Salvar (sobrescrever com o rascunho atual)</button>
+  </form>
+  <a class="br-button secondary small" href="{% url 'pca:analise_fluxo_cenario_excluir_confirmar' cenario_selecionado_obj.pk %}?exercicio={{ exercicio.ano }}">Excluir</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if sim == "rascunho" and simulacao_ativa_sessao %}
+<div class="dsgov-nao-imprimir mb-3">
+  <form method="post" action="{% url 'pca:analise_fluxo_cenario_salvar_como' %}" class="row align-items-end" aria-label="Salvar rascunho como cenário">
+    {% csrf_token %}
+    <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+    <input type="hidden" name="cenario" value="{{ cenario_selecionado }}"/>
+    <input type="hidden" name="indice" value="{{ indice_selecionado }}"/>
+    {% if uo_selecionada %}<input type="hidden" name="uo" value="{{ uo_selecionada }}"/>{% endif %}
+    {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+    {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+    <div class="col-sm-8 col-md-4 mb-3">
+      <div class="br-input">
+        <label for="cenario_salvar_nome">Salvar rascunho como cenário</label>
+        <input id="cenario_salvar_nome" type="text" name="nome" maxlength="100" required="required"/>
+      </div>
+    </div>
+    <div class="col-sm-4 col-md-2 mb-3">
+      <button class="br-button secondary" type="submit">Salvar como novo</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+{% comment %}
+Fase 37 (spec §3.3) — painel "Simular": índices de reajuste
+(um campo por ano do horizonte) e lead time, fechado por padrão
+(`br-accordion`, HTML canônico de `accordion.md`); "Voltar ao oficial"
+aparece quando há rascunho ativo na sessão. Sem HTMX (form GET normal do
+`telas/relatorio.md` continua recarregando a página; estas ações são POST
++ PRG).
+{% endcomment %}
+<div class="br-accordion mb-3 dsgov-nao-imprimir" id="fluxo-simular-accordion">
+  <div class="item">
+    <button class="header" type="button" aria-controls="fluxo-simular-conteudo" aria-expanded="false">
+      <span class="icon"><i class="fas fa-angle-down" aria-hidden="true"></i></span>
+      <span class="title">Simular: mudar índices e tempo até contratar{% if simulacao_ativa_sessao %} (rascunho ativo){% endif %}</span>
+    </button>
+  </div>
+  <div class="content" id="fluxo-simular-conteudo">
+    <p class="text-down-01 text-gray-70">Mude os índices ou o tempo até contratar e veja o efeito sem alterar nada no oficial. Para mexer em um item (excluir, renovar, mudar valor ou início), clique num ano ou mês do gráfico e use as ações da lista. Depois escolha <strong>Minha simulação</strong> em Projeção.</p>
+    <form method="post" action="{% url 'pca:analise_fluxo_simular' %}" class="row align-items-end" aria-label="Simular índices e lead time">
+      {% csrf_token %}
+      <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+      <input type="hidden" name="cenario" value="{{ cenario_selecionado }}"/>
+      <input type="hidden" name="indice" value="{{ indice_selecionado }}"/>
+      {% if uo_selecionada %}<input type="hidden" name="uo" value="{{ uo_selecionada }}"/>{% endif %}
+      {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+      {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+      {% for ano, percentual in indices_horizonte %}
+      <div class="col-sm-6 col-md-2 mb-3">
+        <div class="br-input small">
+          <label for="indice_sim_{{ ano }}">Índice {{ ano }} (%)</label>
+          <input id="indice_sim_{{ ano }}" type="number" step="0.01" name="indice_{{ ano }}" value="{{ percentual|default_if_none:''|unlocalize }}"/>
+        </div>
+      </div>
+      {% endfor %}
+      <div class="col-sm-6 col-md-2 mb-3">
+        <div class="br-input small">
+          <label for="lead_time_sim">Tempo até contratar (dias)</label>
+          <input id="lead_time_sim" type="number" step="1" min="0" max="3650" name="lead_time_dias" value="{{ lead_time_mediano_dias_exibicao }}"/>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-2 mb-3">
+        <button class="br-button secondary" type="submit">Simular</button>
+      </div>
+    </form>
+    {% if simulacao_ativa_sessao %}
+    <form method="post" action="{% url 'pca:analise_fluxo_voltar_oficial' %}">
+      {% csrf_token %}
+      <input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>
+      <input type="hidden" name="cenario" value="{{ cenario_selecionado }}"/>
+      <input type="hidden" name="indice" value="{{ indice_selecionado }}"/>
+      {% if uo_selecionada %}<input type="hidden" name="uo" value="{{ uo_selecionada }}"/>{% endif %}
+      {% if ano_recorte %}<input type="hidden" name="ano" value="{{ ano_recorte }}"/>{% endif %}
+      {% if mes_recorte %}<input type="hidden" name="mes" value="{{ mes_recorte }}"/>{% endif %}
+      <button class="br-button secondary small" type="submit">Voltar ao oficial</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{# ---------- 2. Resumo: quanto, quando e de onde ---------- #}
+<div class="br-card mb-3">
+  <div class="card-content">
+    <div class="row">
+      <div class="col-12 col-lg-4 mb-3">
+        <div class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold">Quanto o PCA {{ exercicio.ano }} vai custar · {{ resumo.periodo }}</div>
+        <div class="text-up-05 text-weight-bold text-gray-80">{{ resumo.total }}</div>
+        {% if resumo.comparacao %}<div class="text-down-01">{{ resumo.comparacao }}</div>{% endif %}
+        <div class="text-gray-70"><strong class="text-blue-warm-vivid-70">{{ resumo.percentual_contratado }}</strong> já contratado · {{ resumo.percentual_projetado }} ainda é projeção</div>
+      </div>
+      <div class="col-12 col-lg-8"><div class="row">
+      {% for bloco in resumo.blocos %}
+      <div class="col-12 col-md-4 mb-3">
+        <div class="dsgov-kpi h-100">
+          <div class="d-flex"><strong>{{ bloco.rotulo }}</strong><span class="ml-auto text-down-01 text-gray-70">{{ bloco.percentual }}</span></div>
+          <div class="text-down-01 text-gray-70">{{ bloco.periodo }}</div>
+          <div class="text-up-02 text-weight-semi-bold text-gray-80 mt-1">{{ bloco.valor }}</div>
+          {% if bloco.comparacao %}<div class="text-down-01">{{ bloco.comparacao }}</div>{% endif %}
+          {% if bloco.url %}<a class="text-down-01" href="{{ bloco.url }}">Ver as contratações <i class="fas fa-angle-right" aria-hidden="true"></i></a>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      </div></div>
+    </div>
+    <span class="br-divider my-2"></span>
+    <div class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold mb-2">De onde vem o valor — do mais certo ao mais estimado</div>
+    <div class="row">
+      {% for c in resumo.camadas %}
+      <div class="col-12 col-sm-6 col-lg-3 mb-2">
+        <div class="d-flex align-items-center"><i class="fas fa-square {{ c.cor_dsgov }} mr-1" aria-hidden="true"></i><strong>{{ c.rotulo }}</strong><span class="br-tag {% if c.grau == 'certo' %}success{% elif c.grau == 'previsto' %}info{% else %}warning{% endif %} small ml-auto">{{ c.grau }}</span></div>
+        <div><span class="text-up-01 text-weight-semi-bold">{{ c.valor }}</span> <span class="text-down-01 text-gray-70">{{ c.percentual }}</span></div>
+        <div class="text-down-01 text-gray-70">{{ c.descricao }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{# ---------- 3. Leitura rápida ---------- #}
+{% for a in alertas_dados %}
+<div class="br-message warning mb-3">
+  <div class="icon"><i class="fas fa-database fa-lg" aria-hidden="true"></i></div>
+  <div class="content"><span class="message-title">Dado faltando.</span> <span class="message-body">{{ a }}</span></div>
+</div>
+{% endfor %}
+{% if leituras %}
+<div class="br-message info mb-3">
+  <div class="icon"><i class="fas fa-lightbulb fa-lg" aria-hidden="true"></i></div>
+  <div class="content">
+    <span class="message-title">O que os números dizem</span>
+    <ul class="mb-0">{% for l in leituras %}<li>{{ l.texto }}</li>{% endfor %}</ul>
+  </div>
+</div>
+{% endif %}
+<div class="row">
+  {% include "dsgov/_grafico_card.html" with grafico=grafico_certeza %}
+  {% include "dsgov/_grafico_card.html" with grafico=grafico_composicao %}
+</div>
+
+{# ---------- 4. Ano a ano e mês a mês ---------- #}
+<div class="row">
+  {% include "dsgov/_grafico_card.html" with grafico=grafico_anual %}
+  {% if grafico_mensal.tabela.linhas %}{% include "dsgov/_grafico_card.html" with grafico=grafico_mensal %}{% endif %}
+</div>
+
+{# ---------- 5. Recorte (ano ou mês clicado) ---------- #}
+{% if ano_recorte %}
+<div id="fluxo-recorte" class="mb-4">
+  <div class="d-flex flex-wrap align-items-center mb-2">
+    <h2 class="text-up-01 mb-0 mr-3">Contratações neste recorte: {{ recorte_rotulo }}</h2>
+    <div class="dsgov-filtros-ativos dsgov-nao-imprimir" aria-label="Recorte ativo">
+      <span class="br-tag interaction">
+        <span>Ano: {{ ano_recorte }}</span>
+        <a class="br-button circle small" href="{% url_com ano=None mes=None %}" aria-label="Remover filtro Ano: {{ ano_recorte }}"><i class="fas fa-times" aria-hidden="true"></i></a>
+      </span>
+      {% if mes_recorte %}
+      <span class="br-tag interaction">
+        <span>Mês: {{ mes_recorte_nome }}</span>
+        <a class="br-button circle small" href="{% url_com mes=None %}#fluxo-recorte" aria-label="Remover filtro Mês: {{ mes_recorte_nome }}"><i class="fas fa-times" aria-hidden="true"></i></a>
+      </span>
+      {% endif %}
+      <a class="br-button small" href="{% url_com ano=None mes=None uo=None %}"><i class="fas fa-eraser mr-1" aria-hidden="true"></i>Limpar filtros</a>
+    </div>
+  </div>
+  <p class="text-down-01 text-gray-70">O que compõe o valor do recorte. As ações de cada linha só mudam a sua simulação.</p>
+  {% if kpi_recorte %}
+  <div class="row dsgov-linha-cards">
+    <div class="col-sm-6 col-md-4 mb-3"><div class="br-card dsgov-kpi h-100"><div class="card-content">
+      <div class="text-down-01 text-gray-70 text-uppercase text-weight-semi-bold">Total em {{ kpi_recorte.rotulo }}</div>
+      <div class="text-up-03 text-weight-semi-bold text-gray-80 mt-2">{{ kpi_recorte.valor }}</div>
+    </div></div></div>
+    <div class="col-sm-6 col-md-8 mb-3"><div class="br-card h-100"><div class="card-content"><div class="row">
+      {% for c in kpi_recorte.camadas %}
+      <div class="col-6 col-md-3"><div class="text-down-01 text-gray-70"><i class="fas fa-square {{ c.cor_dsgov }} mr-1" aria-hidden="true"></i>{{ c.rotulo }}</div><div class="text-weight-semi-bold">{{ c.valor }}</div></div>
+      {% endfor %}
+    </div></div></div></div>
+  </div>
+  {% endif %}
+  <div class="br-table">
+    <div class="table-header"></div>
+    <table>
+      <caption class="sr-only">Contratações no recorte {{ recorte_rotulo }}</caption>
+      <thead><tr>{% for c in tabela_recorte.colunas %}<th scope="col"{% if not forloop.first %} class="dsgov-numero"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for linha in tabela_recorte.linhas %}
+        <tr>{% for cel in linha %}<td{% if not forloop.first %} class="dsgov-numero"{% endif %} data-th="{{ tabela_recorte.colunas|slice:forloop.counter|last }}">{% if cel.url %}<a href="{{ cel.url }}">{{ cel.valor }}</a>{% else %}{{ cel.valor }}{% endif %}</td>{% endfor %}</tr>
+        {% empty %}
+        <tr><td colspan="{{ tabela_recorte.colunas|length }}">Nenhuma contratação com valor projetado neste recorte.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if pagina_recorte.paginator.num_pages > 1 %}
+    <div class="table-footer">
+      <nav class="br-pagination" aria-label="Paginação das contratações do recorte" data-total="{{ pagina_recorte.paginator.num_pages }}" data-current="{{ pagina_recorte.number }}">
+        <ul class="d-flex flex-wrap">
+          {% for numero_pagina in pagina_recorte.paginator.page_range %}
+          <li class="mr-1"><a class="page{% if numero_pagina == pagina_recorte.number %} active{% endif %}" href="{% url_com pagina=numero_pagina %}#fluxo-recorte" aria-label="Página {{ numero_pagina }}" aria-current="{% if numero_pagina == pagina_recorte.number %}page{% else %}false{% endif %}">{{ numero_pagina }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{# ---------- 6. Por unidade ---------- #}
+<h2 class="text-up-01 mb-1">Por unidade</h2>
+<p class="text-down-01 text-gray-70">Quem pesa mais no fluxo, em R$ (mi = milhões, mil = milhares; passe o mouse para o valor exato). Clique num valor para ver as contratações daquela unidade no ano.</p>
+<div class="br-table mb-4">
+  <div class="table-header"></div>
+  <table>
+    <caption class="sr-only">Fluxo de caixa por unidade e ano</caption>
+    <thead><tr>{% for c in tabela_uo_ano.colunas %}<th scope="col"{% if not forloop.first %} class="dsgov-numero"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for linha in tabela_uo_ano.linhas %}
+      <tr>{% for cel in linha %}<td{% if not forloop.first %} class="dsgov-numero"{% endif %} data-th="{{ tabela_uo_ano.colunas|slice:forloop.counter|last }}">{% if cel.url %}<a href="{{ cel.url }}" title="{{ cel.valor }}">{% firstof cel.curto cel.valor %}</a>{% elif cel.curto %}<span title="{{ cel.valor }}">{{ cel.curto }}</span>{% else %}{{ cel.valor }}{% endif %}</td>{% endfor %}</tr>
+      {% empty %}
+      <tr><td colspan="{{ tabela_uo_ano.colunas|length }}">Nenhum valor projetado no recorte atual.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ---------- Como ler ---------- #}
+<h2 class="text-up-01 mb-3">Como ler esta projeção</h2>
+<div class="row">
+  <div class="col-12 col-md-6 mb-4">
+    <h3 class="text-base text-weight-semi-bold">As quatro partes do valor</h3>
+    <dl>
+      {% for c in descricoes_camada %}
+      <dt><i class="fas fa-square {{ c.cor_dsgov }} mr-1" aria-hidden="true"></i>{{ c.rotulo }} <span class="text-down-01 text-gray-70">({{ c.grau }})</span></dt>
+      <dd class="text-gray-70 mb-2">{{ c.descricao }}</dd>
+      {% endfor %}
+    </dl>
+    <p class="text-down-01 text-gray-70">Não há histórico de pagamentos: a projeção começa no mês atual. "O que entra na conta" liga ou desliga as partes; "Reajuste por" escolhe o índice.</p>
+  </div>
+  <div class="col-12 col-md-6 mb-4">
+    <h3 class="text-base text-weight-semi-bold">Premissas usadas</h3>
+    {% if premissas %}
+    <ul>{% for premissa in premissas %}<li>{{ premissa }}</li>{% endfor %}</ul>
+    {% else %}
+    <p>Nenhuma premissa aplicada nesta projeção.</p>
+    {% endif %}
+    <h3 class="text-base text-weight-semi-bold">Itens fora da conta{% if sem_dado %} ({{ sem_dado|length }}){% endif %}</h3>
+    {% if sem_dado %}
+    <p class="text-down-01 text-gray-70">Faltam dados para projetar estes itens; eles não entram em nenhum valor acima.</p>
+    <div class="br-accordion" id="fluxo-sem-dado">
+      <div class="item">
+        <button class="header" type="button" aria-controls="fluxo-sem-dado-lista" aria-expanded="false">
+          <span class="icon"><i class="fas fa-angle-down" aria-hidden="true"></i></span>
+          <span class="title">Ver os {{ sem_dado|length }} itens</span>
+        </button>
+      </div>
+      <div class="content" id="fluxo-sem-dado-lista">
+        <ul>{% for item in sem_dado %}<li><a href="{{ item.url }}">Item {{ item.item_pca }}</a> — {{ item.motivo }}</li>{% endfor %}</ul>
+      </div>
+    </div>
+    {% else %}
+    <p>Todos os itens têm dados suficientes para a projeção.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="dsgov-nao-imprimir d-flex flex-wrap align-items-center justify-content-between mt-4">
+  <p class="text-down-01 text-gray-70 mb-0">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+  <div>
+    <a class="br-button secondary mr-2" href="{% url 'pca:analise_fluxo_xlsx' %}?{{ querystring_xlsx }}"><i class="fas fa-file-excel mr-1" aria-hidden="true"></i>Planilha completa (XLSX)</a>
+    <a class="br-button secondary mr-2" href="{% url 'pca:analise_fluxo_csv' %}?{{ querystring_csv }}"><i class="fas fa-file-csv mr-1" aria-hidden="true"></i>Parcelas, uma por linha (CSV)</a>
+    <button class="br-button secondary mr-2" type="button" onclick="window.print()"><i class="fas fa-print mr-1" aria-hidden="true"></i>Imprimir</button>
+    <a class="br-button secondary" href="{% url 'pca:analise' %}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'dsgov/vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'dsgov/js/echarts-dsgov.js' %}"></script>
+{% endblock %}

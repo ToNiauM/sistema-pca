@@ -1,0 +1,99 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000007.000002/2026-13",
+      "resultado": "ok",
+      "item": 2,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "20/01/2026 09:12",
+            "unidade": "DELIC",
+            "descricao": "Processo público gerado"
+          },
+          "ultimo": {
+            "data_hora": "13/03/2026 14:05",
+            "unidade": "DELIC",
+            "descricao": "Conclusão do processo na unidade"
+          },
+          "recebimentos": {
+            "DELIC": "20/01/2026 09:20"
+          },
+          "conclusoes_na_unidade": {
+            "DELIC": "13/03/2026 14:05"
+          },
+          "assinaturas_no_historico": [
+            {
+              "data_hora": "13/03/2026 09:10",
+              "unidade": "VIPAD",
+              "protocolo": "1250332",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "13/03/2026 09:40",
+              "unidade": "DELIC",
+              "protocolo": "1250332",
+              "tipo": "Contrato",
+              "papel": "externo"
+            }
+          ],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "20/01/2026 09:20"
+          }
+        }
+      },
+      "documentos_contratuais": [
+        {
+          "id_documento": "1300012",
+          "protocolo": "1250332",
+          "rotulo": "Contrato nº 383500-6/2026",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 88120,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "383500-6/2026",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "13/03/2026",
+              "hora": "09:10"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "13/03/2026",
+              "hora": "09:40"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "13/03/2026 09:40",
+          "ultima_assinatura_cfc": "13/03/2026 09:10",
+          "tipo": "contrato",
+          "contratado": {
+            "razao_social": "[pessoa física omitida]",
+            "cnpj": null,
+            "fonte": "preambulo"
+          },
+          "procedencia": {
+            "modalidade_texto": "Dispensa de Licitação",
+            "numero": "383500-6/2026",
+            "modalidade_catalogo": "dispensa sem disputa"
+          },
+          "vigencia": {
+            "inicio": "2026-03-13",
+            "fim": "2028-03-12"
+          },
+          "prorrogacao": null,
+          "valor": null
+        }
+      ]
+    }
+  ]
+}

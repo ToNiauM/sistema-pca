@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% comment %}
+Calendário (versão Tabler) — mesmos controles num único <form method="get"> (visão/mês/exercício/situação), sem HTMX.
+A situação é escolhida em "pílulas" (checkbox) que também servem de legenda das cores. `_contexto_calendario`
+(bucketização, condições, querystrings) é a única fonte de contexto; este template só apresenta.
+{% endcomment %}
+{% load ui pca_ui %}
+{% block titulo %}Calendário · PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Acompanhamento</div>
+      <h1 class="page-title">Calendário — PCA {{ exercicio.ano|default:"—" }}</h1>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        <a class="btn" href="{% url 'core:inicio' %}"><i class="ti ti-arrow-left me-2" aria-hidden="true"></i>Voltar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3 d-print-none">
+  <div class="card-body">
+    <form method="get" aria-label="Controles do calendário">
+      <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-3 col-xl-2">
+          <label class="form-label" for="visao_calendario">Visão</label>
+          <select class="form-select" id="visao_calendario" name="visao">
+            <option value="mensal"{% if visao_calendario == "mensal" %} selected{% endif %}>Mensal</option>
+            <option value="anual"{% if visao_calendario == "anual" %} selected{% endif %}>Anual</option>
+          </select>
+        </div>
+        {% if visao_calendario == "mensal" %}
+        <div class="col-6 col-md-3 col-xl-2">
+          <label class="form-label" for="mes_calendario">Mês</label>
+          <select class="form-select" id="mes_calendario" name="mes_calendario">
+            {% for mes in meses %}<option value="{{ mes.numero }}"{% if mes.numero == mes_calendario %} selected{% endif %}>{{ mes.rotulo }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        {% if exercicios_disponiveis %}
+        <div class="col-6 col-md-3 col-xl-2">
+          <label class="form-label" for="exercicio_calendario">Exercício</label>
+          <select class="form-select" id="exercicio_calendario" name="exercicio">
+            {% for ex in exercicios_disponiveis %}<option value="{{ ex.ano }}"{% if exercicio and ex.ano == exercicio.ano %} selected{% endif %}>{{ ex.ano }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="w-100 d-none d-md-block"></div>
+        <div class="col-12 col-md">
+          <fieldset>
+            <legend class="form-label">Situação <span class="text-secondary fw-normal small">(nenhuma marcada = todas)</span></legend>
+            <div class="form-selectgroup" aria-label="Legenda de condições">
+              {% for item in condicoes_calendario %}
+              <label class="form-selectgroup-item">
+                <input class="form-selectgroup-input" id="condicao_legenda_{{ forloop.counter }}" name="condicao_legenda" type="checkbox" value="{{ item.token }}"{% if item.marcado %} checked{% endif %}/>
+                <span class="form-selectgroup-label d-flex align-items-center gap-2">{% include "pca/_calendario_ponto.html" with classe=item.classe rotulo=item.rotulo %}{{ item.rotulo }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+        </div>
+        {% for chave, valor in filtros_ocultos_calendario %}{% if chave != "condicao_legenda" %}<input type="hidden" name="{{ chave }}" value="{{ valor }}">{% endif %}{% endfor %}
+        <div class="col-12 col-md-auto">
+          <button class="btn btn-primary w-100" type="submit"><i class="ti ti-filter me-2" aria-hidden="true"></i>Aplicar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% include "pca/_calendario_grade.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Popovers do calendário: Esc fecha o que estiver aberto (o foco continua no número do item). */
+document.addEventListener("keydown", function (ev) {
+  if (ev.key !== "Escape") return;
+  var bs = window.bootstrap || (window.tabler && window.tabler.bootstrap);
+  if (!bs) return;
+  document.querySelectorAll("[data-popover-calendario]").forEach(function (el) {
+    var p = bs.Popover.getInstance(el);
+    if (p) p.hide();
+  });
+});
+</script>
+{% endblock %}

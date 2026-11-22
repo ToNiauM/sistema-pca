@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load dsgov static %}
+
+{% comment %}
+Fase 36 (spec §6.4) — "Estatísticas": 3 blocos
+(Valores/Vigência/Perfil), cada um gráfico + tabela gêmea via o partial
+canônico do par analítico (Fase 28), exatamente 3 nesta página. Filtro só
+de UO (form GET, recarrega a página inteira, sem HTMX). Sem KPIs (spec
+§6.4 não pede), sem CSV, sem `br-button primary`. Os números que não cabem
+no par gráfico/tabela principal de cada bloco (desvio por modalidade,
+Pareto 80%, top fornecedores, vencimentos por trimestre, alerta de
+vigência acumulada ≥ 48 meses) aparecem como listas/tabelas simples, mesmo
+padrão de "Itens sem dado"/"Premissas" em `analise_fluxo.html`.
+{% endcomment %}
+
+{% block titulo %}Estatísticas — PCA {{ exercicio.ano|default:"—" }}{% endblock %}
+
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Estatísticas — PCA {{ exercicio.ano|default:"—" }}</h1>
+</div>
+
+<form method="get" class="row align-items-end mb-3 dsgov-nao-imprimir" aria-label="Filtrar as estatísticas por unidade">
+  {% if exercicio %}<input type="hidden" name="exercicio" value="{{ exercicio.ano }}"/>{% endif %}
+  <div class="col-sm-6 col-md-4">
+    <div class="br-select">
+      <div class="br-input">
+        <label for="uo_exibicao">Unidade</label>
+        <input id="uo_exibicao" type="text" placeholder="Selecione" autocomplete="off" readonly/>
+        <button class="br-button" type="button" aria-label="Exibir lista" tabindex="-1" data-trigger="data-trigger"><i class="fas fa-angle-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="br-list" tabindex="0">
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="uo_todas" name="uo" type="radio" value=""{% if not uo_selecionada %} checked="checked"{% endif %}/>
+            <label for="uo_todas">Todas as unidades</label>
+          </div>
+        </div>
+        {% for unidade in unidades %}
+        <div class="br-item" tabindex="-1">
+          <div class="br-radio">
+            <input id="uo_{{ unidade.pk }}" name="uo" type="radio" value="{{ unidade.pk }}"{% if unidade.pk == uo_selecionada %} checked="checked"{% endif %}/>
+            <label for="uo_{{ unidade.pk }}">{{ unidade.nome }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-12 col-md-4">
+    <button class="br-button secondary" type="submit">Aplicar filtro</button>
+  </div>
+</form>
+
+<h2 class="text-up-01 mb-3">Valores</h2>
+{% include "dsgov/_par_analitico.html" with par=par_valores %}
+<div class="row">
+  <div class="col-12 col-md-6 mb-4">
+    <h3 class="text-up-01 mb-3">Desvio estimado × contratado por modalidade</h3>
+    {% if desvio_por_modalidade %}
+    <div class="br-table small">
+      <div class="table-header"></div>
+      <table>
+        <caption class="sr-only">Desvio estimado × contratado por modalidade</caption>
+        <thead><tr><th scope="col">Modalidade</th><th scope="col" class="dsgov-numero">Mediana</th><th scope="col" class="dsgov-numero">P25</th><th scope="col" class="dsgov-numero">P75</th><th scope="col" class="dsgov-numero">n</th></tr></thead>
+        <tbody>
+          {% for modalidade, dados in desvio_por_modalidade.items %}
+          <tr>
+            <td data-th="Modalidade">{{ modalidade }}{% if dados.estrato == "geral" %} <span class="text-down-01 text-gray-70">(estimativa geral — só {{ dados.n_modalidade }} caso(s) na modalidade)</span>{% endif %}</td>
+            <td data-th="Mediana" class="dsgov-numero">{{ dados.mediana|percentual }}</td>
+            <td data-th="P25" class="dsgov-numero">{{ dados.p25|percentual }}</td>
+            <td data-th="P75" class="dsgov-numero">{{ dados.p75|percentual }}</td>
+            <td data-th="n" class="dsgov-numero">{{ dados.n|numero }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p>Sem dados suficientes de desvio estimado × contratado no recorte atual.</p>
+    {% endif %}
+  </div>
+  <div class="col-12 col-md-6 mb-4">
+    <h3 class="text-up-01 mb-3">Concentração</h3>
+    <p><strong>{{ pareto_80|numero }}</strong> item(ns) concentram 80% do valor contratado no recorte atual.</p>
+    <h4 class="text-up-01 mb-2">Top 10 fornecedores por valor</h4>
+    {% if top_fornecedores %}
+    <ul>
+      {% for fornecedor in top_fornecedores %}
+      <li>{{ fornecedor.razao_social }} — {{ fornecedor.valor|moeda }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>Nenhum fornecedor com valor contratado no recorte atual.</p>
+    {% endif %}
+  </div>
+</div>
+
+<h2 class="text-up-01 mb-3">Vigência</h2>
+{% include "dsgov/_par_analitico.html" with par=par_vigencia %}
+<div class="row">
+  <div class="col-12 col-md-6 mb-4">
+    <h3 class="text-up-01 mb-3">Vencimentos por trimestre</h3>
+    {% if vencimentos_por_trimestre %}
+    <div class="br-table small">
+      <div class="table-header"></div>
+      <table>
+        <caption class="sr-only">Vencimentos por trimestre</caption>
+        <thead><tr><th scope="col">Trimestre</th><th scope="col" class="dsgov-numero">Itens</th><th scope="col" class="dsgov-numero">Valor mensal</th></tr></thead>
+        <tbody>
+          {% for trimestre, dados in vencimentos_por_trimestre %}
+          <tr><td data-th="Trimestre">{{ trimestre }}</td><td data-th="Itens" class="dsgov-numero">{{ dados.quantidade|numero }}</td><td data-th="Valor mensal" class="dsgov-numero">{{ dados.valor_mensal|moeda }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p>Nenhum vencimento de vigência no recorte atual.</p>
+    {% endif %}
+  </div>
+  <div class="col-12 col-md-6 mb-4">
+    <h3 class="text-up-01 mb-3">Alerta — vigência acumulada ≥ 48 meses</h3>
+    {% comment %} Art. 107 da Lei 14.133/2021 — teto de 60 meses. {% endcomment %}
+    {% if alertas_vigencia_48_meses %}
+    <ul>
+      {% for item_pca in alertas_vigencia_48_meses %}
+      <li>Item {{ item_pca }} — vigência acumulada já ultrapassa 48 meses.</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>Nenhum item com vigência acumulada de 48 meses ou mais no recorte atual.</p>
+    {% endif %}
+  </div>
+</div>
+
+<h2 class="text-up-01 mb-3">Perfil</h2>
+{% include "dsgov/_par_analitico.html" with par=par_perfil %}
+
+<div class="dsgov-nao-imprimir d-flex flex-wrap align-items-center justify-content-between mt-4">
+  <p class="text-down-01 text-gray-70 mb-0">Gerado em {% now "d/m/Y H:i" %} por {{ request.user.get_full_name|default:request.user.email }}</p>
+  <div>
+    <button class="br-button secondary mr-2" type="button" onclick="window.print()"><i class="fas fa-print mr-1" aria-hidden="true"></i>Imprimir</button>
+    <a class="br-button secondary" href="{% url 'pca:analise' %}"><i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>Voltar</a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'dsgov/vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'dsgov/js/echarts-dsgov.js' %}"></script>
+{% endblock %}

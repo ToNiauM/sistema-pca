@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load dsgov pca_listagem %}
+
+{% comment %}
+Fase 40 (spec §1/§3) — prévia da ação "Gerar itens de N+1" a
+partir dos contratos vigentes do exercício de origem. GET puro, nunca
+escreve; o único botão `primary` desta página confirma por POST
+(`pca:gerar_n1_confirmar`). Colunas da tabela (spec §3): Item (N) · Objeto
+(truncado) · Vencimento · Destino (`br-tag`) · Em N+1 (tipo · situação ·
+mês) · Valor · Fonte do valor · Situação da geração. Linhas "não entra"
+ficam por último, cinza. Sem paginação — prévia inteira (≤ 500 linhas).
+{% endcomment %}
+
+{% block titulo %}Gerar itens de {{ ano_n1 }}{% endblock %}
+
+{% block conteudo %}
+<div class="mb-4">
+  <h1 class="mb-0">Gerar itens de {{ ano_n1 }}</h1>
+</div>
+
+<p class="text-down-01 text-gray-70 mb-4">
+  A partir dos contratos do PCA {{ exercicio.ano }} com vigência informada. Quem não deve
+  entrar muda a renovação prevista ou a vigência na tela Prazos antes de gerar.
+</p>
+
+{% if previa.erros %}
+<div class="br-message danger">
+  <div class="icon"><i class="fas fa-times-circle fa-lg" aria-hidden="true"></i></div>
+  <div class="content" role="alert">
+    <span class="message-title">Catálogo incompleto.</span>
+    <span class="message-body">{{ previa.erros|join:" " }}</span>
+  </div>
+</div>
+{% endif %}
+
+<div class="row dsgov-linha-cards">
+  {% for kpi in cards %}{% include "dsgov/_kpi_card.html" %}{% endfor %}
+</div>
+
+<div class="br-table mb-4">
+  <div class="table-header"></div>
+  <table>
+    <caption class="sr-only">Prévia da geração de itens de {{ ano_n1 }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Item (N)</th>
+        <th scope="col">Objeto</th>
+        <th scope="col" class="dsgov-numero">Vencimento</th>
+        <th scope="col">Destino</th>
+        <th scope="col">Em {{ ano_n1 }}</th>
+        <th scope="col" class="dsgov-numero">Valor</th>
+        <th scope="col">Fonte do valor</th>
+        <th scope="col">Situação da geração</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in previa.linhas %}
+      <tr{% if linha.estado == "nao_entra" %} class="text-gray-60"{% endif %}>
+        <td data-th="Item (N)">{{ linha.processo.item_pca }}</td>
+        <td data-th="Objeto"><span title="{{ linha.processo.descricao_objeto }}">{{ linha.processo.descricao_objeto|truncatechars:80 }}</span></td>
+        <td data-th="Vencimento" class="dsgov-numero">{{ linha.processo.vigencia_fim|date:"d/m/Y" }}</td>
+        <td data-th="Destino"><span class="br-tag small" title="{{ linha.destino.explicacao }}"><span>{{ linha.destino.rotulo }}</span></span></td>
+        <td data-th="Em {{ ano_n1 }}">
+          {% if linha.tipo_chave %}{{ linha.tipo_chave|title }} · {{ linha.situacao }} · mês {{ linha.mes|nome_mes }}{% else %}—{% endif %}
+        </td>
+        <td data-th="Valor" class="dsgov-numero">{% if linha.estado == "nao_entra" %}—{% else %}{{ linha.valor|moeda }}{% endif %}</td>
+        <td data-th="Fonte do valor">
+          {% if linha.fonte_valor == "projecao" %}Motor de fluxo de caixa
+          {% elif linha.fonte_valor == "origem" %}Valor estimado de {{ exercicio.ano }} (sem projeção)
+          {% else %}—{% endif %}
+        </td>
+        <td data-th="Situação da geração">
+          {% if linha.estado == "novo" %}<span class="br-tag bg-success small"><span>Novo</span></span>
+          {% elif linha.estado == "ja_gerado" %}<span class="br-tag small"><span>Já gerado — item {{ linha.item_gerado }}</span></span>
+          {% else %}<span class="br-tag bg-danger small"><span>Não entra</span></span>{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8">Nenhum contrato com vigência informada neste exercício.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<form method="post" action="{% url 'pca:gerar_n1_confirmar' exercicio.ano %}">
+  {% csrf_token %}
+  <button class="br-button primary" type="submit"{% if not previa.novos or previa.erros %} disabled{% endif %}>Gerar {{ previa.novos }} itens</button>
+  <a class="br-button secondary ml-2" href="{% url 'pca:gerenciar_exercicios' %}">Voltar</a>
+</form>
+{% endblock %}

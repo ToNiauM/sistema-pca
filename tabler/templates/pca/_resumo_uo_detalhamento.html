@@ -1,0 +1,72 @@
+{% load ui %}{% comment %}
+Análise complementar do Resumo (versão Tabler), recolhida por padrão: participação de cada unidade no PCA e a
+situação de TODOS os ativos, vigentes incluídos (a tabela principal mostra a situação só da meta). Números de
+`calcular_resumo_uo`; cada número filtra a /tabela (situação = hrefs.ativos + situacao).
+{% endcomment %}
+{% url 'pca:tabela' as url_tabela %}
+<div class="accordion mb-3" id="acc-detalhar-composicao">
+  <div class="accordion-item bg-body">
+    <h2 class="accordion-header h4 mb-0">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acc-detalhar-composicao-conteudo" aria-controls="acc-detalhar-composicao-conteudo" aria-expanded="false">
+        <span class="fw-medium">Análise complementar: participação no PCA e situação de todos os ativos (com vigentes)</span>
+        <span class="accordion-button-toggle"><i class="ti ti-chevron-down" aria-hidden="true"></i></span>
+      </button>
+    </h2>
+    <div class="accordion-collapse collapse" id="acc-detalhar-composicao-conteudo">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-vcenter card-table table-hover mb-0">
+            <caption class="visually-hidden">Participação no PCA e situação de todos os ativos, vigentes incluídos</caption>
+            <thead>
+              <tr>
+                <th scope="col" rowspan="2" class="align-bottom">Unidade</th>
+                <th scope="col" rowspan="2" class="text-end align-bottom border-start">Participação no PCA</th>
+                <th scope="colgroup" colspan="5" class="text-center border-start">Situação de todos os ativos <span class="fw-normal text-secondary">(% dos ativos)</span></th>
+              </tr>
+              <tr>
+                <th scope="col" class="text-end border-start">Ativos</th>
+                <th scope="col" class="text-end">Concluídos</th>
+                <th scope="col" class="text-end">Em tramitação</th>
+                <th scope="col" class="text-end">No prazo</th>
+                <th scope="col" class="text-end">Atrasados</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for linha in linhas %}
+              <tr>
+                <th scope="row" class="text-nowrap"><a href="{{ url_tabela }}?{{ linha.hrefs.uo }}">{{ linha.uo }}</a></th>
+                <td class="text-end text-nowrap border-start"><a class="text-reset" href="{{ url_tabela }}?{{ linha.hrefs.total_previsto }}">{{ linha.percentual_no_pca|percentual }}</a></td>
+                {% include "pca/_resumo_celula.html" with n=linha.ativos href=linha.hrefs.ativos uo=linha.uo rotulo="Ativos" forte=True classe="border-start" %}
+                {% include "pca/_resumo_celula.html" with n=linha.concluido pct=linha.percentual_concluido com_pct=True href=linha.hrefs.concluido uo=linha.uo rotulo="Concluídos (com vigentes)" cor="green" %}
+                {% with base=linha.hrefs.ativos %}
+                {% include "pca/_resumo_celula.html" with n=linha.em_tramitacao_ativos pct=linha.percentual_em_tramitacao_ativos com_pct=True href=base|add:"&situacao=em_tramitacao" uo=linha.uo rotulo="Em tramitação (todos os ativos)" cor="azure" %}
+                {% include "pca/_resumo_celula.html" with n=linha.no_prazo_ativos pct=linha.percentual_no_prazo_ativos com_pct=True href=base|add:"&situacao=no_prazo" uo=linha.uo rotulo="No prazo (todos os ativos)" cor="yellow" %}
+                {% include "pca/_resumo_celula.html" with n=linha.atrasado_ativos pct=linha.percentual_atrasado_ativos com_pct=True href=base|add:"&situacao=atrasado" uo=linha.uo rotulo="Atrasados (todos os ativos)" cor="red" %}
+                {% endwith %}
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-secondary">Nenhum processo no recorte atual.</td></tr>
+              {% endfor %}
+            </tbody>
+            {% if linhas %}
+            <tfoot>
+              <tr class="fw-bold">
+                <th scope="row">Total</th>
+                <td class="text-end border-start">{{ total.percentual_no_pca|percentual }}</td>
+                {% include "pca/_resumo_celula.html" with n=total.ativos href=total.hrefs.ativos uo="Total" rotulo="Ativos" forte=True classe="border-start" %}
+                {% include "pca/_resumo_celula.html" with n=total.concluido pct=total.percentual_concluido com_pct=True href=total.hrefs.concluido uo="Total" rotulo="Concluídos (com vigentes)" cor="green" %}
+                {% with base=total.hrefs.ativos %}
+                {% include "pca/_resumo_celula.html" with n=total.em_tramitacao_ativos pct=total.percentual_em_tramitacao_ativos com_pct=True href=base|add:"&situacao=em_tramitacao" uo="Total" rotulo="Em tramitação (todos os ativos)" cor="azure" %}
+                {% include "pca/_resumo_celula.html" with n=total.no_prazo_ativos pct=total.percentual_no_prazo_ativos com_pct=True href=base|add:"&situacao=no_prazo" uo="Total" rotulo="No prazo (todos os ativos)" cor="yellow" %}
+                {% include "pca/_resumo_celula.html" with n=total.atrasado_ativos pct=total.percentual_atrasado_ativos com_pct=True href=base|add:"&situacao=atrasado" uo="Total" rotulo="Atrasados (todos os ativos)" cor="red" %}
+                {% endwith %}
+              </tr>
+            </tfoot>
+            {% endif %}
+          </table>
+        </div>
+        <p class="small text-secondary px-3 py-2 mb-0">Vigentes contam aqui para análise, mas nunca para o cumprimento da meta do PCA.</p>
+      </div>
+    </div>
+  </div>
+</div>

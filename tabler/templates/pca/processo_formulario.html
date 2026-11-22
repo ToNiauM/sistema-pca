@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% comment %}
+Criar e editar processo (tabler), mesmo template. Criação (`secoes_form` ausente): `{{ form }}` direto. Edição:
+uma seção por card (`<fieldset>` + `<legend>`), números SEI (formset 1:N) dentro da seção "Processo", salvos junto
+com o processo (mesma transação e mesmo token de versão). Barra de ações fixa no rodapé da tela.
+{% endcomment %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">{% if processo %}PCA {{ processo.exercicio.ano }}{% else %}Processos{% endif %}</div>
+      <h1 class="page-title">{{ titulo }}</h1>
+      {% if processo %}<div class="text-secondary mt-1">{{ processo.descricao_objeto|truncatechars:140 }}</div>{% endif %}
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 {% if secoes_form %}col-xxl-10{% else %}col-lg-8 col-xl-6{% endif %}">
+    {% if secoes_form and form.non_field_errors %}
+    <div class="alert alert-danger mb-3" role="alert">
+      <div class="d-flex align-items-start gap-2"><i class="ti ti-alert-circle fs-2 lh-1" aria-hidden="true"></i>
+        <div><div class="fw-bold">Corrija os erros abaixo.</div>{% for erro in form.non_field_errors %}<div>{{ erro }}</div>{% endfor %}</div>
+      </div>
+    </div>
+    {% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if processo %}<input type="hidden" name="versao" value="{{ versao }}">{% endif %}
+      <input type="hidden" name="querystring_retorno" value="{{ querystring_retorno }}">
+      {% if secoes_form %}
+      {% if formset %}{{ formset.management_form }}{% endif %}
+      {% for secao in secoes_form %}
+      <div class="card mb-3">
+      <fieldset>
+        <legend class="card-header float-none w-100 mb-0 fs-3 fw-medium">{{ secao.titulo }}</legend>
+        <div class="card-body">
+          <div class="row g-3">
+            {% for campo in secao.campos %}
+            <div class="{{ campo.field.widget.attrs.col|default:'col-12' }}">{{ campo.as_field_group }}</div>
+            {% endfor %}
+          </div>
+          {% if secao.titulo == "Processo" and formset %}
+          <div class="mt-4">
+            <div class="form-label">Números SEI</div>
+            {% if formset.non_form_errors %}
+            <div class="alert alert-danger mb-3" role="alert">
+              <div class="d-flex align-items-start gap-2"><i class="ti ti-alert-circle fs-2 lh-1" aria-hidden="true"></i>
+                <div><div class="fw-bold">Corrija os números SEI duplicados.</div>{% for erro in formset.non_form_errors %}<div>{{ erro }}</div>{% endfor %}</div>
+              </div>
+            </div>
+            {% endif %}
+            <div class="border rounded divide-y" role="group" aria-label="Números SEI do processo">
+              {% for sei_form in formset %}
+              <div class="row g-2 align-items-end p-2 m-0">
+                <div class="col">
+                  {{ sei_form.id }}
+                  {% if sei_form.non_field_errors %}
+                  <div class="invalid-feedback d-block mb-1" role="alert">{% for erro in sei_form.non_field_errors %}{{ erro }} {% endfor %}</div>
+                  {% endif %}
+                  {{ sei_form.numero_sei.as_field_group }}
+                </div>
+                <div class="col-auto pb-2">{{ sei_form.DELETE.as_field_group }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </fieldset>
+      </div>
+      {% endfor %}
+      {% for campo in form.hidden_fields %}{{ campo }}{% endfor %}
+      <div class="card sticky-bottom mb-3 shadow-sm">
+        <div class="card-body py-2 d-flex justify-content-end gap-2">
+          <a class="btn btn-link link-secondary" href="{{ url_cancelar }}">Cancelar</a>
+          <button class="btn btn-primary" type="submit"><i class="ti ti-device-floppy me-2" aria-hidden="true"></i>{{ rotulo_salvar|default:"Salvar" }}</button>
+        </div>
+      </div>
+      {% else %}
+      <div class="card">
+        <div class="card-body">
+          {{ form }}
+          {% include "ui/_acoes_formulario.html" %}
+        </div>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}

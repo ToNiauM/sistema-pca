@@ -1,0 +1,9 @@
+<div id="mensagens" {% if oob %}hx-swap-oob="true"{% endif %}>
+{% for m in messages %}
+  {% if "error" in m.tags %}{% with tipo="danger" icone="fa-times-circle" titulo="Erro." %}{% include "dsgov/_mensagem.html" %}{% endwith %}
+  {% elif "warning" in m.tags %}{% with tipo="warning" icone="fa-exclamation-triangle" titulo="Atenção." %}{% include "dsgov/_mensagem.html" %}{% endwith %}
+  {% elif "success" in m.tags %}{% with tipo="success" icone="fa-check-circle" titulo="Sucesso." %}{% include "dsgov/_mensagem.html" %}{% endwith %}
+  {% else %}{% with tipo="info" icone="fa-info-circle" titulo="Informação." %}{% include "dsgov/_mensagem.html" %}{% endwith %}
+  {% endif %}
+{% endfor %}
+</div>

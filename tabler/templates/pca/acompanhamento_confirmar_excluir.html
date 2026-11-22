@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load ui %}
+{% comment %}
+Confirmação de exclusão de UMA linha de Acompanhamento (tabler): página própria, POST real em
+`pca:acompanhamento_excluir`; o bloco "Efeito no item" vem de `services.efeito_da_exclusao` (sem gravar nada).
+{% endcomment %}
+{% block titulo %}Confirmar exclusão — Item {{ p.item_pca }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Item {{ p.item_pca }}/{{ p.exercicio.ano }}</div>
+      <h1 class="page-title">Confirmar exclusão</h1>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6">
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title">Acompanhamento a excluir</h2></div>
+      <div class="card-body">
+        <div class="datagrid">
+          <div class="datagrid-item datagrid-item-largo">
+            <div class="datagrid-title">Item</div>
+            <div class="datagrid-content">{{ p.item_pca }}/{{ p.exercicio.ano }} — {{ p.descricao_objeto|truncatechars:80 }}</div>
+          </div>
+          <div class="datagrid-item">
+            <div class="datagrid-title">Data</div>
+            <div class="datagrid-content">{{ acompanhamento.referencia_data|data_br }}</div>
+          </div>
+          <div class="datagrid-item">
+            <div class="datagrid-title">Tipo</div>
+            <div class="datagrid-content">
+              {% if acompanhamento.tipo_evento == "automatico" %}
+              Registro automático do robô
+              {% elif acompanhamento.reuniao %}
+              Reunião de {{ acompanhamento.reuniao.data|data_br }}
+              {% else %}
+              Registro avulso
+              {% endif %}
+            </div>
+          </div>
+          <div class="datagrid-item">
+            <div class="datagrid-title">Prazo registrado</div>
+            <div class="datagrid-content">{{ acompanhamento.prazo_prometido|data_br }}</div>
+          </div>
+          <div class="datagrid-item datagrid-item-largo">
+            <div class="datagrid-title">Observação</div>
+            <div class="datagrid-content">{{ acompanhamento.situacao_informada|default:acompanhamento.evento|ou_traco }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-danger mb-3" role="alert">
+      <div class="d-flex align-items-start gap-2"><i class="ti ti-alert-triangle fs-2 lh-1" aria-hidden="true"></i>
+        <div><div class="fw-bold">Esta ação não pode ser desfeita.</div><div>A linha de acompanhamento será excluída definitivamente.</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Efeito no item</h2></div>
+      <div class="card-body">
+        {% if efeito.nada_muda %}
+        <p class="mb-0">Nenhum prazo ou situação do item depende desta linha.</p>
+        {% else %}
+        <ul class="mb-0">
+          {% for mudanca in efeito.mudancas %}
+          <li>{{ mudanca.rotulo }}: {{ mudanca.antes|default_if_none:"—" }} → {{ mudanca.depois|default_if_none:"—" }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      <div class="card-footer">
+        <form method="post" action="{% url 'pca:acompanhamento_excluir' p.exercicio.ano p.item_pca acompanhamento.pk %}" class="d-flex justify-content-end gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="querystring_retorno" value="{{ querystring_retorno }}"/>
+          <a class="btn btn-link link-secondary" href="{{ url_cancelar }}">Cancelar</a>
+          <button class="btn btn-danger" type="submit"><i class="ti ti-trash me-2" aria-hidden="true"></i>Sim, excluir</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% load dsgov %}
+{% comment %}
+Aba "Solicitações" da ficha do item (unidade do item, equipe e diretoria). `solicitacoes_ficha` = lista de
+`apresentacao.solicitacao_para_tela`.
+{% endcomment %}
+<div class="br-table">
+  <div class="table-header"></div>
+  <table>
+    <caption class="sr-only">Solicitações do item {{ p.item_pca }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Solicitação</th>
+        <th scope="col">Pedido</th>
+        <th scope="col">Situação</th>
+        <th scope="col">Unidade</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in solicitacoes_ficha %}
+      <tr>
+        <td data-th="Solicitação"><a href="{{ s.url }}">{{ s.codigo }}</a><br/><span class="text-down-01">{{ s.criada_em }}</span></td>
+        <td data-th="Pedido">{% include "solicitacoes/_partes_resumo.html" with partes=s.partes %}</td>
+        <td data-th="Situação">{% tag_status s.estado_rotulo s.chave %}</td>
+        <td data-th="Unidade">{{ s.unidade }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">Nenhuma solicitação para este item.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

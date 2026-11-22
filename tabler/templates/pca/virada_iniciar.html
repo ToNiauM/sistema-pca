@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% comment %}Etapa 1 do wizard de virada exige confirmação explícita (POST acao=iniciar); um GET isolado nunca grava nada.{% endcomment %}
+{% block titulo %}Iniciar virada {{ exercicio_origem.ano }} → {{ ano_destino }}{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">Gerenciar exercícios</div>
+      <h1 class="page-title">Iniciar virada {{ exercicio_origem.ano }} → {{ ano_destino }}</h1>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6">
+    <div class="card">
+      <div class="card-body">
+        <p class="text-secondary mb-0">{{ contagem_itens }} itens do PCA {{ exercicio_origem.ano }} serão copiados para o PCA {{ ano_destino }}.</p>
+      </div>
+      <form method="post" class="card-footer">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="iniciar">
+        <div class="d-flex justify-content-end gap-2">
+          <a class="btn btn-link link-secondary" href="{% url 'pca:gerenciar_exercicios' %}">Cancelar</a>
+          <button class="btn btn-primary" type="submit">Iniciar virada</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

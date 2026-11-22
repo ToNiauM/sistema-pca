@@ -1,0 +1,37 @@
+{% comment %}
+Fase 26 — badge de situação EXCLUSIVO da tela
+Processos migrada (`_tabela_linha.html`). Não reaproveita/edita
+`_status_com_prazo.html` de propósito: aquele partial é `hx-swap-oob`
+compartilhado por `analise.html`/`_analise_blocos.html`/
+`_calendario_grade.html`/`_dashboard_blocos.html` — telas ainda na casca
+legada (`core/shell.html`, frentes 4/5, 26-04/26-05) — reescrevê-lo agora
+trocaria o `<br-tag>` Custom Element por um `<span class="br-tag">`
+CSS-only debaixo dessas telas sem tocar o resto do que elas precisam,
+fora do escopo desta frente (coordenação de arquivo compartilhado). Este arquivo novo é o único usado por telas migradas.
+
+`{% tag_status %}` (core/templatetags/dsgov.py) resolve a cor semântica a
+partir da própria chave crua de `Situacao`: "concluido"/"atrasado" batem
+direto com as chaves de `classe_status`; "no_prazo"/"em_tramitacao" caem
+no `bg-info` padrão — exatamente o mapa do
+no_prazo/em_tramitacao → info, concluido → sucesso, atrasado → erro.
+Cancelado sobrepõe qualquer situação residual (preservado).
+`sobrestado` é uma FLAG independente de `Situacao` (nunca um dos 4
+valores do enum) — decisão do executor: mantém a tag de situação normal e
+acrescenta uma segunda `br-tag` textual "Sobrestado" ao lado, em vez de
+inventar uma 5ª chave em `classe_status` só para este caso raro.
+
+Fase 28 — a linha final com `prazo_efetivo` saiu:
+"Prazo vigente" virou coluna própria do registro único
+(`apps.pca.colunas`), repeti-la aqui duplicaria a informação.
+
+29/09/2026 — cadeado quando a situação é manual (`situacao_manual`, desmarcável só no Admin); o title
+diz o que as regras aplicariam, se divergem.
+{% endcomment %}
+{% load dsgov pca_listagem %}
+{% if p.estado == "cancelado" %}
+{% tag_status "Cancelado" "cancelado" %}
+{% else %}
+{% tag_status p.situacao_efetiva|rotulo_situacao p.situacao_efetiva|classe_situacao %}
+{% endif %}
+{% if p.sobrestado %}{% tag_status "Sobrestado" "alerta" %}{% endif %}
+{% if p.situacao_manual and p.estado != "cancelado" %}<i class="fas fa-lock text-gray-60 ml-1" aria-hidden="true" title="Situação manual — as regras automáticas não a alteram{% if p.situacao_regra %} (pelas regras: {{ p.get_situacao_regra_display }}){% endif %}"></i><span class="sr-only">Situação manual{% if p.situacao_regra %}; pelas regras: {{ p.get_situacao_regra_display }}{% endif %}</span>{% endif %}

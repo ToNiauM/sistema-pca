@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% comment %}Texto institucional (sem ações — só leitura).{% endcomment %}
+{% block titulo %}Sobre o sistema{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-3">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">{{ APP.ORGAO_SIGLA }} · Institucional</div>
+      <h1 class="page-title">Sobre o sistema</h1>
+    </div>
+  </div>
+</div>
+<div class="row row-cards">
+  <div class="col-12 col-lg-6 col-xxl-5">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title"><i class="ti ti-info-circle me-2 text-secondary" aria-hidden="true"></i>Sobre o PCA CFC</h2></div>
+      <div class="card-body">
+        <p class="mb-0">
+          O PCA organiza o planejamento das contratações do Conselho Federal
+          de Contabilidade. Este sistema permite consultar os itens e
+          acompanhar prazos, situação e execução contratual.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6 col-xxl-5">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="card-title"><i class="ti ti-compass me-2 text-secondary" aria-hidden="true"></i>Como usar este sistema</h2></div>
+      <div class="list-group list-group-flush">
+        <a class="list-group-item list-group-item-action d-flex align-items-center gap-3" href="{% url 'pca:tabela' %}">
+          <span class="avatar avatar-sm bg-primary-lt"><i class="ti ti-list-details" aria-hidden="true"></i></span>
+          <span><span class="d-block fw-medium">Consultar processos</span><span class="d-block small text-secondary">Veja cada item do PCA e sua situação.</span></span>
+        </a>
+        <a class="list-group-item list-group-item-action d-flex align-items-center gap-3" href="{% url 'core:inicio' %}">
+          <span class="avatar avatar-sm bg-green-lt"><i class="ti ti-chart-bar" aria-hidden="true"></i></span>
+          <span><span class="d-block fw-medium">Ver indicadores</span><span class="d-block small text-secondary">Acompanhe o progresso do exercício.</span></span>
+        </a>
+        <a class="list-group-item list-group-item-action d-flex align-items-center gap-3" href="{% url 'pca:calendario' %}">
+          <span class="avatar avatar-sm bg-azure-lt"><i class="ti ti-calendar" aria-hidden="true"></i></span>
+          <span><span class="d-block fw-medium">Consultar prazos</span><span class="d-block small text-secondary">Localize entregas ao longo do ano.</span></span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% comment %}
+Análise complementar do Resumo (casca DSGov), recolhida por padrão — espelha a da casca Tabler (ccb140a):
+participação de cada unidade no PCA e a situação de TODOS os ativos, vigentes incluídos (a matriz principal mostra
+a situação só da meta). `br-accordion` (`references/componentes/accordion.md`) + matriz (`telas/matriz.md`).
+Números de `calcular_resumo_uo`; cada número filtra a /tabela (situação = hrefs.ativos + situacao, mesmo recorte
+de `concluido`, que já tem href próprio).
+{% endcomment %}
+{% load dsgov %}
+{% url 'pca:tabela' as url_tabela %}
+<div class="br-accordion mt-2 mb-4" id="acc-detalhar-composicao">
+  <div class="item">
+    <button class="header" type="button" aria-controls="acc-detalhar-composicao-conteudo" aria-expanded="false">
+      <span class="icon"><i class="fas fa-angle-down" aria-hidden="true"></i></span>
+      <span class="title">Análise complementar: participação no PCA e situação de todos os ativos (com vigentes)</span>
+    </button>
+  </div>
+  <div class="content" id="acc-detalhar-composicao-conteudo">
+    <div class="br-table small dsgov-matriz">
+      <div class="table-header"></div>
+      <table>
+        <caption class="sr-only">Participação no PCA e situação de todos os ativos, vigentes incluídos</caption>
+        <thead>
+          <tr>
+            <th scope="col" rowspan="2" class="dsgov-rotulo-linha">Unidade</th>
+            <th scope="col" rowspan="2" class="dsgov-numero dsgov-separador">Participação no PCA</th>
+            <th scope="colgroup" colspan="5" class="dsgov-grupo dsgov-separador">Situação de todos os ativos (% dos ativos)</th>
+          </tr>
+          <tr>
+            <th scope="col" class="dsgov-numero dsgov-separador dsgov-destaque">Ativos</th>
+            <th scope="col" class="dsgov-numero">Concluídos</th>
+            <th scope="col" class="dsgov-numero">Em tramitação</th>
+            <th scope="col" class="dsgov-numero">No prazo</th>
+            <th scope="col" class="dsgov-numero">Atrasados</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for linha in linhas %}
+          <tr>
+            <th scope="row" class="dsgov-rotulo-linha"><a href="{{ url_tabela }}?{{ linha.hrefs.uo }}" aria-label="{{ linha.uo }} — abrir a tabela filtrada">{{ linha.uo }}</a></th>
+            <td class="dsgov-numero dsgov-separador"><a href="{{ url_tabela }}?{{ linha.hrefs.total_previsto }}" aria-label="{{ linha.uo }}, Participação no PCA: {{ linha.percentual_no_pca|percentual }} — abrir a tabela filtrada">{{ linha.percentual_no_pca|percentual }}</a></td>
+            {% include "pca/_resumo_celula.html" with n=linha.ativos href=linha.hrefs.ativos uo=linha.uo rotulo="Ativos" separador=True destaque=True %}
+            {% include "pca/_resumo_celula.html" with n=linha.concluido pct=linha.percentual_concluido com_pct=True href=linha.hrefs.concluido uo=linha.uo rotulo="Concluídos (com vigentes)" cor="text-green-cool-vivid-50" %}
+            {% with base=linha.hrefs.ativos %}
+            {% include "pca/_resumo_celula.html" with n=linha.em_tramitacao_ativos pct=linha.percentual_em_tramitacao_ativos com_pct=True href=base|add:"&situacao=em_tramitacao" uo=linha.uo rotulo="Em tramitação (todos os ativos)" cor="text-blue-warm-vivid-70" %}
+            {% include "pca/_resumo_celula.html" with n=linha.no_prazo_ativos pct=linha.percentual_no_prazo_ativos com_pct=True href=base|add:"&situacao=no_prazo" uo=linha.uo rotulo="No prazo (todos os ativos)" cor="text-green-cool-vivid-50" %}
+            {% include "pca/_resumo_celula.html" with n=linha.atrasado_ativos pct=linha.percentual_atrasado_ativos com_pct=True href=base|add:"&situacao=atrasado" uo=linha.uo rotulo="Atrasados (todos os ativos)" cor="text-red-vivid-50" %}
+            {% endwith %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="7">Nenhum processo no recorte atual.</td></tr>
+          {% endfor %}
+        </tbody>
+        {% if linhas %}
+        <tfoot>
+          <tr>
+            <th scope="row" class="dsgov-rotulo-linha">TOTAL</th>
+            <td class="dsgov-numero dsgov-separador">{{ total.percentual_no_pca|percentual }}</td>
+            {% include "pca/_resumo_celula.html" with n=total.ativos href=total.hrefs.ativos uo="TOTAL" rotulo="Ativos" separador=True destaque=True %}
+            {% include "pca/_resumo_celula.html" with n=total.concluido pct=total.percentual_concluido com_pct=True href=total.hrefs.concluido uo="TOTAL" rotulo="Concluídos (com vigentes)" cor="text-green-cool-vivid-50" %}
+            {% with base=total.hrefs.ativos %}
+            {% include "pca/_resumo_celula.html" with n=total.em_tramitacao_ativos pct=total.percentual_em_tramitacao_ativos com_pct=True href=base|add:"&situacao=em_tramitacao" uo="TOTAL" rotulo="Em tramitação (todos os ativos)" cor="text-blue-warm-vivid-70" %}
+            {% include "pca/_resumo_celula.html" with n=total.no_prazo_ativos pct=total.percentual_no_prazo_ativos com_pct=True href=base|add:"&situacao=no_prazo" uo="TOTAL" rotulo="No prazo (todos os ativos)" cor="text-green-cool-vivid-50" %}
+            {% include "pca/_resumo_celula.html" with n=total.atrasado_ativos pct=total.percentual_atrasado_ativos com_pct=True href=base|add:"&situacao=atrasado" uo="TOTAL" rotulo="Atrasados (todos os ativos)" cor="text-red-vivid-50" %}
+            {% endwith %}
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+    <p class="text-down-01 text-gray-70 mt-2 mb-0">Vigentes contam aqui para análise, mas nunca para o cumprimento da meta do PCA.</p>
+  </div>
+</div>

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block titulo %}Início{% endblock %}
+{% block conteudo %}
+<div class="page-header d-print-none mb-4">
+  <div class="row g-3 align-items-center">
+    <div class="col">
+      <div class="page-pretitle">{% if subtitulo %}{{ subtitulo }}{% else %}Visão geral{% endif %}</div>
+      <h1 class="page-title">Painel do {{ APP.SISTEMA }}</h1>
+    </div>
+    <div class="col-12 col-md-auto">
+      <div class="btn-list">
+        {% if exercicios_disponiveis %}
+        <form method="get" class="d-flex align-items-center gap-2" aria-label="Selecionar exercício">
+          <label class="text-secondary small text-nowrap" for="exercicio">Exercício</label>
+          <select class="form-select w-auto" id="exercicio" name="exercicio" onchange="this.form.submit()">
+            {% for ex in exercicios_disponiveis %}<option value="{{ ex.ano }}"{% if exercicio and ex.ano == exercicio.ano %} selected{% endif %}>{{ ex.ano }}</option>{% endfor %}
+          </select>
+          <noscript><button class="btn" type="submit">Aplicar</button></noscript>
+        </form>
+        {% endif %}
+        <a class="btn btn-primary" href="{% url 'pca:tabela' %}"><i class="ti ti-list-details me-2" aria-hidden="true"></i>Ver processos</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if kpis %}
+<div class="row row-cards mb-3">
+  {% comment %}
+  7 KPIs: uma linha só a partir de 1400px (col-xxl); abaixo, Previstos, Cancelados e
+  Ativos em cima e as 4 situações dos ativos embaixo; no celular, Previstos na largura toda e os demais
+  2 a 2. A cor de cada um é a da fatia na rosca (`kpi.tom` → filtro `cor_tom`).
+  {% endcomment %}
+  {% for kpi in kpis %}{% if kpi.grupo == "total" %}{% include "ui/_kpi_card.html" with icone_no_valor=True col_kpi="col-12 col-sm-4 col-xxl" cor_kpi=kpi.tom|cor_tom %}{% elif kpi.grupo == "universo" %}{% include "ui/_kpi_card.html" with icone_no_valor=True col_kpi="col-6 col-sm-4 col-xxl" cor_kpi=kpi.tom|cor_tom %}{% else %}{% include "ui/_kpi_card.html" with icone_no_valor=True col_kpi="col-6 col-md-3 col-xxl" cor_kpi=kpi.tom|cor_tom %}{% endif %}{% endfor %}
+</div>
+{% endif %}
+
+{% if manuais_divergentes %}
+<div class="alert alert-warning mb-3" role="alert">
+  <div class="d-flex gap-2">
+    <i class="ti ti-lock alert-icon" aria-hidden="true"></i>
+    <div>
+      <h4 class="alert-title mb-1">Situação manual diferente das regras automáticas</h4>
+      <div class="text-secondary">Estes itens estão com a situação travada manualmente e as regras aplicariam outra:
+      {% for p in manuais_divergentes %}<a href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}">item {{ p.item_pca }}</a> ({{ p.get_situacao_display }} → pelas regras: {{ p.get_situacao_regra_display }}){% if not forloop.last %}; {% endif %}{% endfor %}.
+      Para liberar, desmarque “situação manual” no Admin.</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if solicitacoes_a_avaliar and solicitacoes_a_avaliar.total %}
+{% comment %}Fase 43 — contador de partes de solicitações a avaliar, só para equipe do PCA e diretoria.{% endcomment %}
+<div class="alert alert-info mb-3" role="alert">
+  <div class="d-flex gap-2">
+    <i class="ti ti-inbox alert-icon" aria-hidden="true"></i>
+    <div>
+      <h4 class="alert-title mb-1">Solicitações para avaliar: {{ solicitacoes_a_avaliar.total }}</h4>
+      <div class="text-secondary">Há pedidos das unidades aguardando a decisão da sua alçada. <a href="{{ solicitacoes_a_avaliar.url }}">Abrir a fila Para avaliar</a>.</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if graficos %}
+<div class="row row-cards mb-3">
+  {% for grafico in graficos %}{% include "ui/_grafico_card.html" with col_grafico=forloop.first|yesno:"col-12 col-lg-5,col-12 col-lg-7" %}{% endfor %}
+</div>
+{% if analise_url %}
+<p class="text-end mb-3 d-print-none"><a href="{{ analise_url }}{% if exercicio %}?exercicio={{ exercicio.ano }}{% endif %}">Mais informações no painel de Análises<i class="ti ti-arrow-right ms-1" aria-hidden="true"></i></a></p>
+{% endif %}
+{% endif %}
+
+<div class="row row-cards">
+  {% if pendencias %}
+  <div class="{% if sei_card %}col-12 col-xl-8{% else %}col-12{% endif %}">
+    <div class="card h-100">
+      <div class="card-header">
+        <h3 class="card-title">{{ pendencias.titulo }}</h3>
+        {% if pendencias.url %}<div class="card-actions"><a class="btn btn-sm" href="{{ pendencias.url }}">Ver todos<i class="ti ti-arrow-right ms-1" aria-hidden="true"></i></a></div>{% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
+          <caption class="visually-hidden">{{ pendencias.titulo }}</caption>
+          <thead>
+            <tr>{% for col in pendencias.colunas %}<th scope="col"{% if col.tipo == "moeda" or col.tipo == "numero" %} class="text-end"{% endif %}>{{ col.rotulo }}</th>{% endfor %}</tr>
+          </thead>
+          <tbody>
+            {% for obj in pendencias.objetos %}
+            <tr>{% for col in pendencias.colunas %}{% if col.campo == "descricao_objeto" %}<td class="w-50"><span title="{{ obj|exibir:col }}">{{ obj|exibir:col|truncatechars:95 }}</span></td>{% else %}<td class="text-nowrap{% if col.tipo == "moeda" or col.tipo == "numero" %} text-end{% endif %}">{% if col.tipo == "status" %}{% tag_status obj|atributo:col.campo obj|atributo:col.chave %}{% elif col.url %}<a class="fw-bold" href="{{ obj|atributo:col.url }}">{{ obj|exibir:col }}</a>{% else %}{{ obj|exibir:col }}{% endif %}</td>{% endif %}{% endfor %}</tr>
+            {% empty %}
+            <tr><td colspan="{{ pendencias.colunas|length }}">
+              <div class="empty py-4"><div class="empty-icon"><i class="ti ti-circle-check text-green" aria-hidden="true"></i></div><p class="empty-title">Nenhuma pendência</p><p class="empty-subtitle text-secondary">Tudo em dia neste exercício.</p></div>
+            </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% if sei_card %}
+  <div class="col-12 col-xl-4">
+    <div id="sei-card" class="h-100"{% if sei_card.estado == "em_execucao" %} hx-get="{% url 'core:sei_card' %}" hx-trigger="every 15s" hx-swap="innerHTML"{% endif %}>
+      {% include "core/_sei_card.html" %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% if acesso_rapido %}
+{% comment %} "Acesso rápido" (mesmos destinos do menu, filtrados por permissão).{% endcomment %}
+<section class="mt-4 d-print-none" aria-labelledby="titulo-acesso-rapido">
+  <h2 class="h3 mb-3" id="titulo-acesso-rapido">Acesso rápido</h2>
+  <div class="row row-cards">
+    {% for cartao in acesso_rapido %}
+    <div class="col-sm-6 col-lg-4">
+      <div class="card card-sm card-link card-link-pop h-100">
+        <a class="stretched-link" href="{{ cartao.url }}" aria-label="{{ cartao.rotulo }}"></a>
+        <div class="card-body d-flex align-items-start gap-3">
+          <span class="avatar bg-primary-lt"><i class="{{ cartao.icone|ti }}" aria-hidden="true"></i></span>
+          <div><div class="fw-bold">{{ cartao.rotulo }}</div><div class="text-secondary small">{{ cartao.descricao }}</div></div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if not kpis and not graficos and not pendencias %}
+<div class="empty"><div class="empty-icon"><i class="ti ti-layout-dashboard" aria-hidden="true"></i></div><p class="empty-title">Painel sem dados</p><p class="empty-subtitle text-secondary">Não há exercício com processos para exibir.</p></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if graficos %}{% load static %}<script src="{% static 'tabler/vendor/echarts/echarts.min.js' %}"></script><script src="{% static 'tabler/js/echarts-pca.js' %}"></script>{% endif %}
+{% endblock %}

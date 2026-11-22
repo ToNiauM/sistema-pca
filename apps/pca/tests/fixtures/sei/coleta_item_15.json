@@ -1,0 +1,155 @@
+{
+  "processos": [
+    {
+      "numero": "90796110000007.000015/2025-44",
+      "resultado": "ok",
+      "item": 15,
+      "andamentos": {
+        "marcos": {
+          "primeiro": {
+            "data_hora": "10/05/2025 08:00",
+            "unidade": "DELIC",
+            "descricao": "Processo público gerado"
+          },
+          "ultimo": {
+            "data_hora": "20/06/2026 11:00",
+            "unidade": "DELIC",
+            "descricao": "Conclusão do processo na unidade"
+          },
+          "recebimentos": {
+            "DELIC": "10/05/2025 08:20"
+          },
+          "conclusoes_na_unidade": {
+            "DELIC": "20/06/2026 11:00"
+          },
+          "assinaturas_no_historico": [
+            {
+              "data_hora": "30/05/2025 10:00",
+              "unidade": "VIPAD",
+              "protocolo": "1180020",
+              "tipo": "Contrato",
+              "papel": "interno"
+            },
+            {
+              "data_hora": "01/06/2025 09:30",
+              "unidade": "DELIC",
+              "protocolo": "1180020",
+              "tipo": "Contrato",
+              "papel": "externo"
+            },
+            {
+              "data_hora": "15/06/2026 10:00",
+              "unidade": "VIPAD",
+              "protocolo": "1290088",
+              "tipo": "Termo de Apostilamento",
+              "papel": "interno"
+            }
+          ],
+          "recebimento_gelic_delic": {
+            "unidade": "DELIC",
+            "data_hora": "10/05/2025 08:20"
+          }
+        }
+      },
+      "documentos_contratuais": [
+        {
+          "id_documento": "1200011",
+          "protocolo": "1180020",
+          "rotulo": "Contrato nº 12/2025",
+          "assinantes_externos_na_arvore": 1,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 90210,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "12/2025",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "30/05/2025",
+              "hora": "10:00"
+            },
+            {
+              "papel": "externo",
+              "cargo": "Usuário Externo",
+              "data": "01/06/2025",
+              "hora": "09:30"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": true,
+          "ultima_assinatura": "01/06/2025 09:30",
+          "ultima_assinatura_cfc": "30/05/2025 10:00",
+          "tipo": "contrato",
+          "contratado": {
+            "razao_social": "Contrata Fácil Serviços Ltda",
+            "cnpj": "07.526.557/0001-00",
+            "fonte": "preambulo"
+          },
+          "procedencia": {
+            "modalidade_texto": "Pregão Eletrônico",
+            "numero": "90031/2025",
+            "modalidade_catalogo": "pregao eletronico"
+          },
+          "vigencia": {
+            "inicio": "2025-06-01",
+            "fim": "2026-05-31"
+          },
+          "prorrogacao": null,
+          "valor": null
+        },
+        {
+          "id_documento": "1350077",
+          "protocolo": "1290088",
+          "rotulo": "Termo de Apostilamento",
+          "assinantes_externos_na_arvore": 0,
+          "acao_conteudo": "documento_visualizar",
+          "http_status": 200,
+          "conteudo": "html",
+          "bytes": 40120,
+          "protocolo_no_corpo": true,
+          "menciona_cfc": true,
+          "numero_no_corpo": "12/2025",
+          "assinaturas": [
+            {
+              "papel": "cfc",
+              "cargo": "Conselheiro",
+              "data": "15/06/2026",
+              "hora": "10:00"
+            }
+          ],
+          "assinado_cfc": true,
+          "assinado_externo": false,
+          "ultima_assinatura": "15/06/2026 10:00",
+          "ultima_assinatura_cfc": "15/06/2026 10:00",
+          "tipo": "apostilamento",
+          "contratado": null,
+          "procedencia": null,
+          "vigencia": null,
+          "prorrogacao": null,
+          "valor": {
+            "cifra": "45.000,00",
+            "extenso": "quarenta e cinco mil reais",
+            "confere": true
+          },
+          "apostilamento": {
+            "natureza": "reajuste",
+            "valor_anterior": null,
+            "valor_novo": {
+              "cifra": "45.000,00",
+              "extenso": "quarenta e cinco mil reais",
+              "confere": true
+            },
+            "percentual": null,
+            "indice": null,
+            "periodicidade": "global",
+            "data_base": null,
+            "trecho": "valor global"
+          }
+        }
+      ]
+    }
+  ]
+}

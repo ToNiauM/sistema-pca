@@ -1,0 +1,42 @@
+{% load ui %}
+{% comment %}Card "Sincronização com o SEI" do Início (conteúdo sem o wrapper #sei-card): incluído na página e servido sozinho pelo polling do HTMX enquanto a varredura roda.{% endcomment %}
+<div class="card h-100">
+  <div class="card-header">
+    <h3 class="card-title"><i class="ti ti-refresh me-2 text-secondary" aria-hidden="true"></i>Sincronização com o SEI</h3>
+    <div class="card-actions text-nowrap small">
+      {% if sei_card.estado == "nunca_executado" %}<span class="status status-secondary"><span class="status-dot"></span>Nunca executado</span>
+      {% elif sei_card.estado == "alerta" %}<span class="status status-yellow"><span class="status-dot status-dot-animated"></span>Atenção</span>
+      {% elif sei_card.estado == "em_execucao" %}<span class="status status-blue"><span class="status-dot status-dot-animated"></span>Em execução</span>
+      {% else %}<span class="status status-green"><span class="status-dot"></span>Em dia</span>{% endif %}
+    </div>
+  </div>
+  <div class="card-body">
+    {% if sei_card.estado == "nunca_executado" %}
+    <p class="text-secondary mb-0">A varredura do SEI ainda não rodou neste ambiente.</p>
+    {% elif sei_card.estado == "em_execucao" %}
+    <div class="d-flex justify-content-between small mb-1"><span>Item {{ sei_card.item }} ({{ sei_card.k }}/{{ sei_card.total }})</span><span class="fw-bold">{{ sei_card.percentual|percentual:0 }}</span></div>
+    <div class="progress progress-sm mb-3"><div class="progress-bar progress-bar-indeterminate" role="progressbar" aria-label="Varredura em andamento"></div></div>
+    <div class="datagrid">
+      <div class="datagrid-item"><div class="datagrid-title">Coletados</div><div class="datagrid-content">{{ sei_card.coletados|numero }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Pulados</div><div class="datagrid-content">{{ sei_card.pulados|numero }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Erros</div><div class="datagrid-content">{{ sei_card.erros|numero }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Iniciada</div><div class="datagrid-content">{{ sei_card.iniciado_em|date:"H:i" }} · {{ sei_card.decorrido_min|numero }} min</div></div>
+    </div>
+    <p class="text-secondary small mt-3 mb-0 text-truncate">{{ sei_card.ultima_linha }}</p>
+    {% else %}
+    {% if sei_card.estado == "alerta" %}
+    <div class="alert alert-warning mb-3" role="alert">{% if sei_card.status == "erro" %}<strong>Última execução falhou.</strong>{% if sei_card.mensagem %} {{ sei_card.mensagem }}{% endif %}{% else %}<strong>Mais de 3 dias úteis sem execução.</strong>{% endif %}</div>
+    {% endif %}
+    <div class="datagrid">
+      <div class="datagrid-item"><div class="datagrid-title">Última execução</div><div class="datagrid-content">{{ sei_card.terminado_em|date:"d/m/Y H:i" }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Itens alterados</div><div class="datagrid-content">{{ sei_card.totais.itens_alterados|numero }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Pendências novas</div><div class="datagrid-content">{{ sei_card.totais.pendencias_novas|numero }}</div></div>
+      <div class="datagrid-item"><div class="datagrid-title">Erros</div><div class="datagrid-content">{{ sei_card.totais.erros|numero }}</div></div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="card-footer text-secondary small">
+    Pedidos atendidos hoje: <strong>{{ sei_card.pedidos_atendidos_hoje }}</strong>{% if sei_card.ultimo_pedido %} · último: item {{ sei_card.ultimo_pedido.item_pca }}, {{ sei_card.ultimo_pedido.atendido_em|date:"d/m H:i" }}, {{ sei_card.ultimo_pedido.status }}{% endif %}
+    {% if sei_card.sem_processo_sei.total %}<div class="mt-1"><i class="ti ti-file-off me-1" aria-hidden="true"></i><a href="{{ sei_card.sem_processo_sei.url }}">{{ sei_card.sem_processo_sei.total|numero }} item(ns) sem processo SEI</a> — não são sincronizados</div>{% endif %}
+  </div>
+</div>

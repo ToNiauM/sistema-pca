@@ -1,0 +1,5 @@
+{% load ui %}{% comment %}
+Célula numérica do Resumo: número que filtra a /tabela + percentual pequeno embaixo (a base do % está no cabeçalho),
+centralizados na célula (pedido de 29/09/2026).
+Parâmetros: n, href, uo, rotulo; opcionais: sem_link, pct + com_pct=True, cor (cor de texto do Tabler), forte, classe.
+{% endcomment %}<td class="text-center text-nowrap{% if classe %} {{ classe }}{% endif %}">{% if not sem_link %}<a class="{% if not n %}text-secondary{% elif cor %}text-{{ cor }}{% else %}text-reset{% endif %}{% if forte %} fw-bold{% endif %}" href="{% url 'pca:tabela' %}?{{ href }}" title="{{ uo }} · {{ rotulo }}: abrir os processos" aria-label="{{ uo }}, {{ rotulo }}: {{ n|numero }} — abrir a tabela filtrada">{{ n|numero }}</a>{% else %}<span class="{% if not n %}text-secondary{% elif cor %}text-{{ cor }}{% endif %}{% if forte %} fw-bold{% endif %}">{{ n|numero }}</span>{% endif %}{% if com_pct and n %}<div class="small text-secondary fw-normal">{{ pct|percentual }}</div>{% endif %}</td>

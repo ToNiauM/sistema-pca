@@ -1,0 +1,25 @@
+{% comment %}
+Ações de um item da tela Processos (Ver · Editar · Registrar acompanhamento), as mesmas na linha da
+Tabela e no resultado da Lista. Editar e Registrar só com `pca.editar_pca`; Registrar
+abre o modal por HTMX em `#modal-acompanhamento` (dentro de `#listagem`).
+{% endcomment %}
+<a class="br-button circle small mr-1"
+   href="{% url 'pca:detalhe_processo' p.exercicio.ano p.item_pca %}{% if querystring_tabela %}?{{ querystring_tabela }}{% endif %}"
+   aria-label="Ver item {{ p.item_pca }}" title="Ver item {{ p.item_pca }}">
+  <i class="fas fa-eye" aria-hidden="true"></i>
+</a>
+{% if perms.pca.editar_pca %}
+<a class="br-button circle small mr-1"
+   href="{% url 'pca:editar_processo' p.exercicio.ano p.item_pca %}"
+   aria-label="Editar item {{ p.item_pca }}" title="Editar item {{ p.item_pca }}">
+  <i class="fas fa-pen" aria-hidden="true"></i>
+</a>
+<a class="br-button circle small"
+   href="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}"
+   hx-get="{% url 'pca:acompanhamento_modal' p.exercicio.ano p.item_pca %}"
+   hx-target="#modal-acompanhamento" hx-swap="innerHTML"
+   aria-label="Registrar acompanhamento do item {{ p.item_pca }}"
+   title="Registrar acompanhamento do item {{ p.item_pca }}">
+  <i class="fas fa-plus" aria-hidden="true"></i>
+</a>
+{% endif %}

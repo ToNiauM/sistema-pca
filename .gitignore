@@ -1,0 +1,66 @@
+# Arquivos de lock do Office (aparecem enquanto a planilha está aberta)
+~$*
+
+# Sistema operacional
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.venv-test/
+venv/
+
+# Django
+*.log
+staticfiles/
+media/
+
+# SQLite (Fase 31) — o arquivo real vive no volume Docker pca_data, nunca
+# na árvore de trabalho; entra aqui só como rede de segurança para quem
+# rodar manage.py fora do container.
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Relatórios de conferência do import — gerados em runtime a cada
+# execução de `importar_pca`; só a estrutura do diretório é versionada.
+ops/relatorios/*.md
+
+# Exports pontuais com dados reais de produção (ex.: modelo de reimportação
+# preenchido com o banco atual) — nunca versionados.
+ops/relatorios/dados-atuais/
+
+# Relatórios do codemod govbr-ds (Fase 22) e o manifesto de
+# idempotência (hash do conteúdo já convertido por arquivo) — runtime, nunca
+# versionados; regenerados a cada execução de `ops/codemod/govbr_codemod.py`.
+ops/codemod/relatorios/
+ops/codemod/.cache/
+
+# Dumps manuais do banco (pg_dump rodado no host). O serviço `backup` do compose
+# não escreve aqui — ele despeja em /tmp dentro do container e envia para o R2.
+#Dados de produção não entram no versionamento.
+/backups/
+
+# Mesmo motivo do bloco acima (dump manual, dados reais de produção), mas para
+# o dump de segurança rodado a partir do host antes de mudanças de código:
+#singular, pasta separada de `backups/`.
+/backup/
+
+# Placeholders de diretório vazio (ex.: pasta de fase criada antes de qualquer) — redundante assim que o diretório ganha um arquivo real.
+.gitkeep
+
+# Assistente do PCA (Fase 39) — SQLite auxiliares, fila e marcadores em data/ia/
+# (volume pca_data; nunca versionados, fora de backup/export).
+data/ia/
+
+# site gerado pelo MkDocs
+site/
